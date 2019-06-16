@@ -1,0 +1,37 @@
+{
+  "name": "private-ethers",
+  "version": "0.0.1",
+  "description": "An extension of Ethers.js Ethereum library that supports private transactions in accordance to Enterprise Ethereum Alliance's Ethereum Client Specification",
+  "main": "index.js",
+  "scripts": {
+    "auto-build": "npm run build -- -w",
+    "build": "tsc --build ./tsconfig.json",
+    "clean": "tsc --build --clean ./tsconfig.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/naddison36/private-ethers.git"
+  },
+  "keywords": [
+    "Ethereum",
+    "Enterprise Ethereum Alliance",
+    "EEA",
+    "private",
+    "privacy"
+  ],
+  "author": "Nick Addison",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/naddison36/private-ethers/issues"
+  },
+  "homepage": "https://github.com/naddison36/private-ethers#readme",
+  "dependencies": {
+    "ethers": ">5.0.0-beta.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.14",
+    "jest": "^24.8.0",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.5.2"
+  }
+}
