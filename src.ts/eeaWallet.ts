@@ -7,7 +7,7 @@ import { resolveProperties } from "@ethersproject/properties"
 
 import { serialize } from './transactions'
 
-export class PrivateWallet extends Wallet {
+export class EEA_Wallet extends Wallet {
 
     signTransaction(transaction: TransactionRequest): Promise<string> {
         return resolveProperties(transaction).then((tx) => {

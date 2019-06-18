@@ -1,13 +1,22 @@
 
 import { getAddress } from "@ethersproject/address"
 import { BigNumber, BigNumberish } from "@ethersproject/bignumber"
-import { arrayify, BytesLike, hexDataSlice, hexlify, hexZeroPad, SignatureLike, splitSignature, stripZeros } from "@ethersproject/bytes"
+import {
+    BytesLike,
+    hexDataSlice,
+    hexZeroPad,
+    SignatureLike,
+    splitSignature,
+    stripZeros
+} from '@ethersproject/bytes'
 import { Zero } from "@ethersproject/constants"
 import { checkProperties } from "@ethersproject/properties"
 import * as errors from "@ethersproject/errors"
 import { keccak256 } from "@ethersproject/keccak256"
 import * as RLP from "@ethersproject/rlp"
 import { computePublicKey, recoverPublicKey } from "@ethersproject/signing-key"
+
+import { arrayify, hexlify } from './bytes'
 
 function handleAddress(value: string): string {
     if (value === "0x") { return null; }
@@ -27,9 +36,11 @@ const transactionFields = [
     { name: 'value',    maxLength: 32 },
     { name: 'data' },
 
+    { name: 'chainId'},
+
     // Extra EEA privacy properties
     { name: 'privateFrom'},
-    { name: 'privateFor',   array: true},
+    { name: 'privateFor', array: true},
     { name: 'restriction'},
 ]
 
@@ -94,8 +105,23 @@ export function serialize(transaction: UnsignedTransaction, signature?: Signatur
 
     let raw: Array<string | Uint8Array> = [];
 
-    transactionFields.forEach(function(fieldInfo) {
+    transactionFields.forEach(fieldInfo => {
+        // let value: any
+        //
+        // if (transaction.hasOwnProperty(fieldInfo.name)) {
+        //     value = (<any>transaction)[fieldInfo.name]
+        // }
+        // else {
+        //     value = []
+        // }
         let value = (<any>transaction)[fieldInfo.name] || ([]);
+
+        // Convert transaction fields like privateFor that are an array
+        if (fieldInfo.array) {
+            // Convert items of the array to bytes
+            value = value.map((v: any) => Buffer.from(v));
+        }
+
         value = arrayify(hexlify(value));
 
         // Fixed-width field
@@ -111,14 +137,21 @@ export function serialize(transaction: UnsignedTransaction, signature?: Signatur
             }
         }
 
-        raw.push(hexlify(value));
-    });
+        if (fieldInfo.name === 'chainId') {
+            if (transaction.chainId != null && transaction.chainId !== 0) {
+                raw.push(hexlify(value));    // v
+            }
+            else {
+                raw.push("0x");     // v
+            }
+            raw.push("0x");     // r
+            raw.push("0x");     // s
+        }
+        else {
+            raw.push(hexlify(value));
+        }
 
-    if (transaction.chainId != null && transaction.chainId !== 0) {
-        raw.push(hexlify(transaction.chainId));
-        raw.push("0x");
-        raw.push("0x");
-    }
+    });
 
     let unsignedTransaction = RLP.encode(raw);
 
@@ -131,22 +164,17 @@ export function serialize(transaction: UnsignedTransaction, signature?: Signatur
     // case that the signTransaction function only adds a v.
     let sig = splitSignature(signature);
 
-    // We pushed a chainId and null r, s on for hashing only; remove those
     let v = 27 + sig.recoveryParam
-    if (raw.length === 9) {
-        raw.pop();
-        raw.pop();
-        raw.pop();
-        v += transaction.chainId * 2 + 8;
-    }
+    v += transaction.chainId * 2 + 8;
 
-    raw.push(hexlify(v));
-    raw.push(stripZeros(arrayify(sig.r)));
-    raw.push(stripZeros(arrayify(sig.s)));
+    raw[6] = hexlify(v);
+    raw[7] = stripZeros(arrayify(sig.r));
+    raw[8] = stripZeros(arrayify(sig.s));
 
     return RLP.encode(raw);
 }
 
+// TODO this needs to be implemented properly
 export function parse(rawTransaction: BytesLike): Transactions {
     let transaction = RLP.decode(rawTransaction);
     if (transaction.length !== 9 && transaction.length !== 6) {
@@ -160,7 +188,10 @@ export function parse(rawTransaction: BytesLike): Transactions {
         to:       handleAddress(transaction[3]),
         value:    handleNumber(transaction[4]),
         data:     transaction[5],
-        chainId:  0
+        chainId:  0,
+        privateFrom: handleAddress(transaction[9]),
+        // privateFor: handleAddressArray(transaction[10]),
+        // restriction: handleString(transaction[11]),
     };
 
     // Legacy unsigned transaction
