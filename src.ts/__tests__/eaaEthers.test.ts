@@ -26,7 +26,7 @@ describe('EEA Ethers', () => {
             gasPrice: 0,
             gasLimit: 3000000,
             chainId: 2018,
-            privateFrom: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73',
+            privateFrom: 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=',
             privateFor: ['Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='],
             restriction: 'restricted',
         }

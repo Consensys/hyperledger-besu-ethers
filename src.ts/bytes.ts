@@ -120,14 +120,5 @@ export function hexlify(value: BytesLike | Hexable | number | string,
         return result;
     }
 
-    // if (Array.isArray(value)) {
-    //     return value;
-    //     // const result: Array<string> = [];
-    //     // for (let item of value) {
-    //     //     result.push(hexlify(item))
-    //     // }
-    //     // return result;
-    // }
-
     return errors.throwArgumentError("invalid hexlify value", "value", value);
 }

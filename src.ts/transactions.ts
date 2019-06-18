@@ -13,10 +13,10 @@ import { Zero } from "@ethersproject/constants"
 import { checkProperties } from "@ethersproject/properties"
 import * as errors from "@ethersproject/errors"
 import { keccak256 } from "@ethersproject/keccak256"
-import * as RLP from "@ethersproject/rlp"
 import { computePublicKey, recoverPublicKey } from "@ethersproject/signing-key"
 
 import { arrayify, hexlify } from './bytes'
+import * as RLP from "./rlp"
 
 function handleAddress(value: string): string {
     if (value === "0x") { return null; }
@@ -39,8 +39,8 @@ const transactionFields = [
     { name: 'chainId'},
 
     // Extra EEA privacy properties
-    { name: 'privateFrom'},
-    { name: 'privateFor', array: true},
+    { name: 'privateFrom', base64: true},
+    { name: 'privateFor', base64Array: true},
     { name: 'restriction'},
 ]
 
@@ -103,26 +103,26 @@ export interface Transactions {
 export function serialize(transaction: UnsignedTransaction, signature?: SignatureLike): string {
     checkProperties(transaction, allowedTransactionKeys);
 
-    let raw: Array<string | Uint8Array> = [];
+    let raw: Array<string | Uint8Array | string[]> = [];
 
     transactionFields.forEach(fieldInfo => {
-        // let value: any
-        //
-        // if (transaction.hasOwnProperty(fieldInfo.name)) {
-        //     value = (<any>transaction)[fieldInfo.name]
-        // }
-        // else {
-        //     value = []
-        // }
         let value = (<any>transaction)[fieldInfo.name] || ([]);
 
         // Convert transaction fields like privateFor that are an array
-        if (fieldInfo.array) {
+        if (fieldInfo.base64Array) {
             // Convert items of the array to bytes
-            value = value.map((v: any) => Buffer.from(v));
+            value = value.map((v: any) => {
+                return Buffer.from(v, 'base64');
+            });
+            raw.push(value);
+            return;
         }
-
-        value = arrayify(hexlify(value));
+        else if (fieldInfo.base64) {
+            value = Buffer.from(value, 'base64');
+        }
+        else {
+            value = arrayify(hexlify(value));
+        }
 
         // Fixed-width field
         if (fieldInfo.length && value.length !== fieldInfo.length && value.length > 0) {

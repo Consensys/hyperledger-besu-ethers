@@ -20,7 +20,8 @@ function unarrayifyInteger(data: Uint8Array, offset: number, length: number): nu
     return result;
 }
 
-function _encode(object: Array<any> | string): Array<number> {
+function _encode(object: Array<any> | string | boolean | number): Array<number> {
+
     if (Array.isArray(object)) {
         let payload: Array<number> = [];
         object.forEach(function(child) {
@@ -37,6 +38,22 @@ function _encode(object: Array<any> | string): Array<number> {
 
         return length.concat(payload);
 
+    }
+
+    // see point 9 of the RLP Encoding
+    // https://medium.com/coinmonks/data-structure-in-ethereum-episode-1-recursive-length-prefix-rlp-encoding-decoding-d1016832f919
+    if (typeof(object) === 'boolean') {
+        if (object) {
+            // @ts-ignore
+            return [0x01]
+        } else {
+            // @ts-ignore
+            return [0x80]
+        }
+    }
+
+    if (typeof(object) === "number") {
+        object = hexlify(object)
     }
 
     let data: Array<number> = Array.prototype.slice.call(arrayify(object));
@@ -56,7 +73,8 @@ function _encode(object: Array<any> | string): Array<number> {
 }
 
 export function encode(object: any): string {
-    return hexlify(_encode(object));
+    const rlpEncoded = _encode(object)
+    return hexlify(rlpEncoded);
 }
 
 type Decoded = {
