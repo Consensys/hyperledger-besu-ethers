@@ -6,7 +6,16 @@ Private transactions are supported by PegaSys's [Pantheon](https://docs.pantheon
 
 ## Install
 
+To install as a node module
+```bash
+npm install eea-ethers
+```
+
 ## Usage
+
+See [Ethers.js version 5](https://docs.ethers.io/ethers.js/v5-beta/) documentation for details on how the Ethers.js library works.
+
+Differences with this extensions are
 
 ## Pantheon
 

@@ -155,7 +155,7 @@ export function serialize(transaction: UnsignedTransaction, signature?: Signatur
 
     let unsignedTransaction = RLP.encode(raw);
 
-    // Requesting an unsigned transation
+    // Requesting an unsigned transaction
     if (!signature) {
         return unsignedTransaction;
     }
