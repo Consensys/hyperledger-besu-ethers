@@ -38,6 +38,11 @@ You can see the logs from the nodes running on docker-compose with
 
 A blockchain explorer will be at http://localhost:32768
 
+To tail the logs of a specific docker servive. eg node 1
+```bash
+docker-compose logs -f node1
+```
+
 To bash into the to the Pantheon image used by the quickstart
 ```bash
 docker run -it --entrypoint=sh quickstart/pantheon:develop-privacy

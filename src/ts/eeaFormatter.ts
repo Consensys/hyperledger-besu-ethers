@@ -10,6 +10,7 @@ import { shallowCopy } from "@ethersproject/properties";
 
 import { parse as parseTransaction, EeaTransactionReceipt } from "./eeaTransaction";
 
+// TODO remove the next three functions once they are exported from @ethersproject/providers
 export type FormatFunc = (value: any) => any;
 
 export type FormatFuncs = { [ key: string ]: FormatFunc };
@@ -26,7 +27,7 @@ export type Formats = {
     filterLog: FormatFuncs,
 };
 
-// TODO remove this once Ethers exports the Formatter so it can just be extended
+// TODO remove the Formatter class once Ethers exports it from @ethersproject/providers
 class Formatter {
     readonly formats: Formats;
 
@@ -328,29 +329,6 @@ class Formatter {
         if (transaction.to == null && transaction.creates == null) {
             transaction.creates = this.contractAddress(transaction);
         }
-
-        // @TODO: use transaction.serialize? Have to add support for including v, r, and s...
-        /*
-        if (!transaction.raw) {
-
-             // Very loose providers (e.g. TestRPC) do not provide a signature or raw
-             if (transaction.v && transaction.r && transaction.s) {
-                 let raw = [
-                     stripZeros(hexlify(transaction.nonce)),
-                     stripZeros(hexlify(transaction.gasPrice)),
-                     stripZeros(hexlify(transaction.gasLimit)),
-                     (transaction.to || "0x"),
-                     stripZeros(hexlify(transaction.value || "0x")),
-                     hexlify(transaction.data || "0x"),
-                     stripZeros(hexlify(transaction.v || "0x")),
-                     stripZeros(hexlify(transaction.r)),
-                     stripZeros(hexlify(transaction.s)),
-                 ];
-
-                 transaction.raw = rlpEncode(raw);
-             }
-         }
-         */
 
         let result = Formatter.check(this.formats.transaction, transaction);
 

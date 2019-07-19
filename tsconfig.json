@@ -23,6 +23,9 @@
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
+
+    "resolveJsonModule": true,
+
     "outDir": "build",
     "baseUrl": "./"
   },
