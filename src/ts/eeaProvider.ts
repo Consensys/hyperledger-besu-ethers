@@ -11,7 +11,6 @@ import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
 
 import { EeaFormatter } from './eeaFormatter'
 import { PrivacyGroupOptions, generatePrivacyGroup } from './privacyGroup'
-// import { EeaTransaction, EeaTransactionResponse } from './eeaTransaction'
 import { EeaTransaction } from './eeaTransaction'
 
 const allowedTransactionKeys: { [ key: string ]: boolean } = {
