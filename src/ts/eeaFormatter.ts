@@ -8,7 +8,7 @@ import { AddressZero } from "@ethersproject/constants";
 import * as errors from "@ethersproject/errors";
 import { shallowCopy } from "@ethersproject/properties";
 
-import { parse as parseTransaction } from "./eeaTransaction";
+import { parse as parseTransaction, EeaTransactionReceipt } from "./eeaTransaction";
 
 export type FormatFunc = (value: any) => any;
 
@@ -18,6 +18,7 @@ export type Formats = {
     transaction: FormatFuncs,
     transactionRequest: FormatFuncs,
     receipt: FormatFuncs,
+    privateReceipt: FormatFuncs,
     receiptLog: FormatFuncs,
     block: FormatFuncs,
     blockWithTransactions: FormatFuncs,
@@ -111,6 +112,24 @@ class Formatter {
             confirmations: Formatter.allowNull(number, null),
             cumulativeGasUsed: bigNumber,
             status: Formatter.allowNull(number)
+        };
+
+        formats.privateReceipt = {
+            to: Formatter.allowNull(this.address),
+            from: Formatter.allowNull(this.address),
+            contractAddress: Formatter.allowNull(address, null),
+            // transactionIndex: number,
+            // root: Formatter.allowNull(hash),
+            // gasUsed: bigNumber,
+            // logsBloom: Formatter.allowNull(data),// @TODO: should this be data?
+            // blockHash: hash,
+            // transactionHash: hash,
+            logs: Formatter.arrayOf(this.receiptLog.bind(this)),
+            // blockNumber: number,
+            // confirmations: Formatter.allowNull(number, null),
+            // cumulativeGasUsed: bigNumber,
+            // status: Formatter.allowNull(number)
+            output: Formatter.allowNull(data)
         };
 
         formats.block = {
@@ -386,6 +405,10 @@ class Formatter {
             result.byzantium = true;
         }
         return result;
+    }
+
+    privateReceipt(value: any): EeaTransactionReceipt {
+        return Formatter.check(this.formats.privateReceipt, value);
     }
 
     topics(value: any): any {

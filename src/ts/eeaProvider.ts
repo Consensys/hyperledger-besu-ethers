@@ -1,7 +1,5 @@
 
-import { VError } from 'verror'
-
-import { TransactionRequest, TransactionResponse } from "@ethersproject/abstract-provider";
+import { TransactionReceipt, TransactionRequest, TransactionResponse } from "@ethersproject/abstract-provider";
 import { BigNumber } from "@ethersproject/bignumber";
 import { hexDataLength, hexValue } from "@ethersproject/bytes";
 import { hexlify } from "./bytes";
@@ -9,7 +7,7 @@ import * as errors from "@ethersproject/errors";
 import { Networkish } from "@ethersproject/networks";
 import { checkProperties, resolveProperties, shallowCopy } from "@ethersproject/properties";
 import { JsonRpcProvider, JsonRpcSigner } from "@ethersproject/providers";
-import { ConnectionInfo, fetchJson } from "@ethersproject/web";
+import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
 
 import { EeaFormatter } from './eeaFormatter'
 import { PrivacyGroupOptions, generatePrivacyGroup } from './privacyGroup'
@@ -135,12 +133,14 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
             });
         }
         catch(err) {
-            throw new VError(err, `Failed to send ${method} with params ${JSON.stringify(params)} and id ${id}.`);
+            return errors.throwError(`Failed to send ${method} with params ${JSON.stringify(params)} and id ${id}.`, err.code, {
+                method, params, error: err,
+            });
         }
     }
 
-    sendTransaction(signedTransaction: string | Promise<string>): Promise<TransactionResponse> {
-        return this._runPerform("sendTransaction", {
+    sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<TransactionResponse> {
+        return this._runPerform("sendPrivateTransaction", {
             signedTransaction: () => Promise.resolve(signedTransaction).then(t => hexlify(t))
         }).then((result) => {
             const parsedTransaction = this.formatter.transaction(signedTransaction)
@@ -155,7 +155,7 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
     }
 
     _wrapTransaction(tx: EeaTransaction, hash?: string): TransactionResponse {
-        if (hash != null && hexDataLength(hash) !== 32) { throw new Error("invalid response - sendTransaction"); }
+        if (hash != null && hexDataLength(hash) !== 32) { throw new Error("invalid response - sendPrivateTransaction"); }
 
         // @ts-ignore
         let result = <TransactionResponse>tx;
@@ -166,7 +166,8 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
             // Pantheon derives the transaction hash differently for private transactions so will remove this check for now
             // Pantheon transaction hash code
             // https://github.com/PegaSysEng/pantheon/blob/8d43c888491e10905c42be9a4feedbb1332c4ef5/ethereum/core/src/main/java/tech/pegasys/pantheon/ethereum/privacy/PrivateTransaction.java#L385
-            // errors.throwError("Transaction hash mismatch from Provider.sendTransaction.", errors.UNKNOWN_ERROR, { expectedHash: tx.hash, returnedHash: hash });
+            tx.hash = hash
+            // errors.throwError("Transaction hash mismatch from Provider.sendPrivateTransaction.", errors.UNKNOWN_ERROR, { expectedHash: tx.hash, returnedHash: hash });
         }
 
         // @TODO: (confirmations? number, timeout? number)
@@ -223,8 +224,8 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         return Promise.resolve(privacyGroupId);
     }
 
-    getTransactionCountFromPrivacyGroup(addressOrName: string | Promise<string>, privacyGroupOptions: PrivacyGroupOptions | string): Promise<number> {
-        return this._runPerform("getTransactionCountFromPrivacyGroup", {
+    getPrivateTransactionCount(addressOrName: string | Promise<string>, privacyGroupOptions: PrivacyGroupOptions | string): Promise<number> {
+        return this._runPerform("getPrivateTransactionCount", {
             address: () => this._getAddress(addressOrName),
             privacyGroupId: () => this._getPrivacyGroupId(privacyGroupOptions),
         }).then((result: any) => {
@@ -232,10 +233,37 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         });
     }
 
+    getPrivateTransactionReceipt(transactionHash: string): Promise<TransactionReceipt> {
+        return this.ready.then(() => {
+            return resolveProperties({ transactionHash: transactionHash }).then(({ transactionHash }) => {
+                let params = { transactionHash: this.formatter.hash(transactionHash, true) };
+                return poll(() => {
+                    return this.perform("getPrivateTransactionReceipt", params).then((result) => {
+                        if (result == null) {
+                            if (this._emitted["t:" + transactionHash] == null) {
+                                return null;
+                            }
+                            return undefined;
+                        } else if (result.code) {
+                            errors.throwError(`Failed to get private transaction receipt for tx hash ${transactionHash}. Server error: ${result.message}.`, result.code,{
+                                error: result.message,
+                                transactionHash,
+                            });
+                        }
+
+                        return this.formatter.privateReceipt(result);
+                    }).catch((err) => {
+                        errors.throwError(`Failed to get private transaction receipt for tx hash ${transactionHash}. Error: ${err.message}`, err.code, err);
+                    });
+                }, { onceBlock: this });
+            });
+        });
+    }
+
     // Override the base perform method to add the eea calls
     perform(method: string, params: any): Promise<any> {
         switch (method) {
-            case "sendTransaction":
+            case "sendPrivateTransaction":
                 // method overridden to use EEA send raw transaction
                 return this.send("eea_sendRawTransaction", [ params.signedTransaction ])
                     .catch((error: any) => {
@@ -256,8 +284,11 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
                         throw error;
                     });
 
-            case "getTransactionCountFromPrivacyGroup":
+            case "getPrivateTransactionCount":
                 return this.send("eea_getTransactionCount", [ getLowerCase(params.address), params.privacyGroupId ]);
+
+            case "getPrivateTransactionReceipt":
+                return this.send("eea_getTransactionReceipt", [ params.transactionHash ]);
 
             default:
                 return super.perform(method, params)

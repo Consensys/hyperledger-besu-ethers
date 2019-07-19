@@ -1,5 +1,5 @@
 
-import { TransactionReceipt } from '@ethersproject/abstract-provider'
+import { Log } from '@ethersproject/abstract-provider'
 import { getAddress } from "@ethersproject/address"
 import { BigNumber, BigNumberish } from "@ethersproject/bignumber"
 import {
@@ -127,6 +127,14 @@ export interface EeaTransaction {
     v?: number;
 }
 
+export interface EeaTransactionReceipt {
+    to?: string;
+    from?: string;
+    contractAddress?: string;
+    logs?: Array<Log>;
+    output?: string;
+}
+
 export interface EeaTransactionResponse extends EeaTransaction {
     blockNumber?: number;
     blockHash?: string;
@@ -134,7 +142,7 @@ export interface EeaTransactionResponse extends EeaTransaction {
     confirmations: number;
     from: string;
     raw?: string;
-    wait: (confirmations?: number) => Promise<TransactionReceipt>;
+    wait: (confirmations?: number) => Promise<EeaTransactionReceipt>;
 }
 
 export function serialize(transaction: EeaUnsignedTransaction, signature?: SignatureLike): string {

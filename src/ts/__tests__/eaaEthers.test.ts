@@ -6,19 +6,19 @@ import {keccak256} from 'ethers/utils'
 const urlNode1 = "http://localhost:20000";
 const providerNode1 = new eeaEthers.providers.EeaJsonRpcProvider(urlNode1);
 providerNode1.on('debug', (info) => {
-    console.log(`Sent "${info.action}" action to node 1 with request: ${JSON.stringify(info.request)}\nResponse: ${info.response}`);
+    console.log(`Sent "${info.action}" action to node 1 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
 
-const urlNode2 = "http://localhost:20001";
+const urlNode2 = "http://localhost:20002";
 const providerNode2 = new eeaEthers.providers.EeaJsonRpcProvider(urlNode2);
 providerNode2.on('debug', (info) => {
-    console.log(`Sent "${info.action}" action to node 2 with request: ${JSON.stringify(info.request)}\nResponse: ${info.response}`);
+    console.log(`Sent "${info.action}" action to node 2 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
 
-const urlNode3 = "http://localhost:20002";
+const urlNode3 = "http://localhost:20004";
 const providerNode3 = new eeaEthers.providers.EeaJsonRpcProvider(urlNode3);
 providerNode3.on('debug', (info) => {
-    console.log(`Sent "${info.action}" action to node 3 with request: ${JSON.stringify(info.request)}\nResponse: ${info.response}`);
+    console.log(`Sent "${info.action}" action to node 3 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
 
 const node1 = 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo='
@@ -80,6 +80,9 @@ describe('EEA Ethers', () => {
 
         // @ts-ignore
         let eeaWallet: eeaEthers.EeaWallet
+        let privateNonce: number
+        let publicNonce: number
+        let txHash: string
 
         beforeAll(() => {
             // fe3b557e8fb62b89f4916b721be55ceb828dbd73
@@ -87,15 +90,21 @@ describe('EEA Ethers', () => {
             eeaWallet = new eeaEthers.EeaWallet(privateKey)
         })
 
-        test('get transaction count for privacy group', async () => {
-            expect(await providerNode1.getTransactionCountFromPrivacyGroup(testParticipants.from, testParticipants)).toBeGreaterThanOrEqual(0)
+        test('get private transaction count', async () => {
+            privateNonce = await providerNode1.getPrivateTransactionCount(testParticipants.from, testParticipants)
+            expect(privateNonce).toBeGreaterThanOrEqual(0)
         })
 
-        test('send signed deploy transaction', async() => {
+        test('get public transaction count', async () => {
+            publicNonce = await providerNode1.getTransactionCount(testParticipants.from)
+            expect(publicNonce).toEqual(0)
+        })
+
+        test('send signed deploy transaction', async () => {
 
             // deploy a contract
             const unsignedTransaction = {
-                nonce: await providerNode1.getTransactionCountFromPrivacyGroup(testParticipants.from, testParticipants),
+                nonce: privateNonce,
                 gasPrice: 0,
                 gasLimit: 3000000,
                 // to: undefined,
@@ -109,17 +118,72 @@ describe('EEA Ethers', () => {
 
             const signedTransaction = await eeaWallet.signTransaction(unsignedTransaction)
 
-            const tx = await providerNode1.sendTransaction(signedTransaction)
+            const tx = await providerNode1.sendPrivateTransaction(signedTransaction)
             expect(tx.hash).toMatch(RegEx.transactionHash)
+            txHash = tx.hash
 
             console.log(`Server tx hash: ${tx.hash}`)
             console.log(`Client tx hash: ${keccak256(signedTransaction)}`)
 
+            // wait for the transaction to be mined
             const txReceipt = await providerNode1.waitForTransaction(tx.hash)
             expect(txReceipt.status).toEqual(1)
-        }, 40000)
+            expect(txReceipt.contractAddress).toBeNull()
+        }, 30000)
 
+        test('get private transaction counts', async () => {
+            const nonceNode1 = await providerNode1.getPrivateTransactionCount(testParticipants.from, testParticipants)
+            expect(nonceNode1).toBeGreaterThanOrEqual(privateNonce + 1)
 
+            const nonceNode2 = await providerNode2.getPrivateTransactionCount(testParticipants.from, testParticipants)
+            expect(nonceNode2).toBeGreaterThanOrEqual(privateNonce + 1)
+
+            const nonceNode3 = await providerNode3.getPrivateTransactionCount(testParticipants.from, testParticipants)
+            expect(nonceNode3).toBeGreaterThanOrEqual(publicNonce)
+        })
+
+        test('get public transaction count', async () => {
+            const nonceNode1 = await providerNode1.getTransactionCount(testParticipants.from)
+            expect(nonceNode1).toBeGreaterThanOrEqual(publicNonce)
+
+            const nonceNode2 = await providerNode2.getTransactionCount(testParticipants.from)
+            expect(nonceNode2).toBeGreaterThanOrEqual(publicNonce)
+
+            const nonceNode3 = await providerNode3.getTransactionCount(testParticipants.from)
+            expect(nonceNode3).toBeGreaterThanOrEqual(publicNonce)
+        })
+
+        test('get public transaction receipts', async () => {
+            const txReceiptNode1 = await providerNode1.getTransactionReceipt(txHash)
+            expect(txReceiptNode1.status).toEqual(1)
+            expect(txReceiptNode1.transactionHash).toEqual(txHash)
+            expect(txReceiptNode1.contractAddress).toBeNull()
+
+            const txReceiptNode2 = await providerNode2.getTransactionReceipt(txHash)
+            expect(txReceiptNode2.status).toEqual(1)
+            expect(txReceiptNode2.transactionHash).toEqual(txHash)
+            expect(txReceiptNode2.contractAddress).toBeNull()
+
+            const txReceiptNode3 = await providerNode3.getTransactionReceipt(txHash)
+            expect(txReceiptNode3.status).toEqual(1)
+            expect(txReceiptNode3.transactionHash).toEqual(txHash)
+            expect(txReceiptNode3.contractAddress).toBeNull()
+        })
+
+        test('get private transaction receipts', async () => {
+            const txReceiptNode1 = await providerNode1.getPrivateTransactionReceipt(txHash)
+            expect(txReceiptNode1.contractAddress).toMatch(RegEx.ethereumAddress)
+            expect(txReceiptNode1.from).toMatch(RegEx.ethereumAddress)
+            expect(txReceiptNode1.to).toBeUndefined()
+
+            const txReceiptNode2 = await providerNode2.getPrivateTransactionReceipt(txHash)
+            expect(txReceiptNode2.contractAddress).toMatch(RegEx.ethereumAddress)
+            expect(txReceiptNode2.from).toMatch(RegEx.ethereumAddress)
+            expect(txReceiptNode2.to).toBeUndefined()
+
+            const txReceiptNode3 = await providerNode3.getPrivateTransactionReceipt(txHash)
+            expect(txReceiptNode3).toBeNull()
+        }, 15000)
     })
 
     describe('Deploy contract using contract factory', () => {
