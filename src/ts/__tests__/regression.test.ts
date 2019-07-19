@@ -58,4 +58,13 @@ describe('Ethers Regression', () => {
         // send a transaction
         // get an event
     })
+
+    describe('getTransactionReceipt', () => {
+        describe('Failed getTransactionReceipt', () => {
+            test('missing hash', async () => {
+                const result = await provider.getTransactionReceipt('0x0000000000000000000000000000000000000000000000000000000000000001')
+                expect(result).toBeNull()
+            })
+        })
+    })
 })

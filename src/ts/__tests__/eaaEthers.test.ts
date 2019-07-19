@@ -70,6 +70,13 @@ describe('EEA Ethers', () => {
         expect(parsedTransaction.data).toEqual(unsignedTransaction.data)
     })
 
+    describe('getPrivateTransactionReceipt', () => {
+        test('missing hash', async () => {
+            const result = await providerNode1.getPrivateTransactionReceipt('0x0000000000000000000000000000000000000000000000000000000000000001')
+            expect(result).toBeNull()
+        })
+    })
+
     describe('private for only one other party', () => {
 
         const testParticipants = {
@@ -184,6 +191,7 @@ describe('EEA Ethers', () => {
             const txReceiptNode3 = await providerNode3.getPrivateTransactionReceipt(txHash)
             expect(txReceiptNode3).toBeNull()
         }, 15000)
+
     })
 
     describe('Deploy contract using contract factory', () => {
