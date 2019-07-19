@@ -1,0 +1,37 @@
+{
+  "config":{
+    "chainId":1981,
+    "constantinoplefixblock": 0,
+    "clique":{
+      "blockperiodseconds":5,
+      "epochlength":30000
+    }
+  },
+  "coinbase":"0x0000000000000000000000000000000000000000",
+  "difficulty":"0x1",
+  "extraData":"0x0000000000000000000000000000000000000000000000000000000000000000fe3b557e8fb62b89f4916b721be55ceb828dbd730000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "gasLimit":"0xa00000",
+  "mixHash":"0x0000000000000000000000000000000000000000000000000000000000000000",
+  "nonce":"0x0",
+  "timestamp":"0x5c51a607",
+  "alloc": {
+    "14791697260E4c9A71f18484C9f997B308e59325": {
+      "privateKey": "0123456789012345678901234567890123456789012345678901234567890123",
+      "comment": "private key and this comment are ignored.  In a real chain, the private key should NOT be stored",
+      "balance": "0xad78ebc5ac6200000"
+    },
+    "7E5F4552091A69125d5DfCb7b8C2659029395Bdf": {
+      "privateKey": "0000000000000000000000000000000000000000000000000000000000000001",
+      "comment": "private key and this comment are ignored.  In a real chain, the private key should NOT be stored",
+      "balance": "90000000000000000000000"
+    },
+    "2B5AD5c4795c026514f8317c7a215E218DcCD6cF": {
+      "privateKey": "0000000000000000000000000000000000000000000000000000000000000002",
+      "comment": "private key and this comment are ignored.  In a real chain, the private key should NOT be stored",
+      "balance": "90000000000000000000000"
+    }
+  },
+  "number":"0x0",
+  "gasUsed":"0x0",
+  "parentHash":"0x0000000000000000000000000000000000000000000000000000000000000000"
+}

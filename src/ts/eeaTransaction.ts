@@ -1,4 +1,5 @@
 
+import { TransactionReceipt } from '@ethersproject/abstract-provider'
 import { getAddress } from "@ethersproject/address"
 import { BigNumber, BigNumberish } from "@ethersproject/bignumber"
 import {
@@ -15,6 +16,7 @@ import * as errors from "@ethersproject/errors"
 import { keccak256 } from "@ethersproject/keccak256"
 import { computePublicKey, recoverPublicKey } from "@ethersproject/signing-key"
 
+import { getPrivateAddress } from './privateAddress'
 import { arrayify, hexlify } from './bytes'
 import * as RLP from "./rlp"
 
@@ -26,6 +28,31 @@ function handleAddress(value: string): string {
 function handleNumber(value: string): BigNumber {
     if (value === "0x") { return Zero; }
     return BigNumber.from(value);
+}
+
+function handlePrivateAddress(value: string): string {
+    return getPrivateAddress(value);
+}
+
+function handleAddressArray(arrayOfPrivateAddresses: string[]): string[] {
+    if (!Array.isArray(arrayOfPrivateAddresses)) {
+        errors.throwArgumentError("invalid array of private addresses", "arrayOfPrivateAddresses", arrayOfPrivateAddresses);
+    }
+
+    let result: string[] = []
+    arrayOfPrivateAddresses.forEach(address => {
+        result.push(handlePrivateAddress(address))
+    })
+
+    return result
+}
+
+// converts hexadecimal encoded string back into a string
+function handleString(value: string): string {
+    // strip the 0x prefix before converting hex string to a Buffer
+    const stringBuf = Buffer.from(value.substring(2), 'hex')
+    // convert Buffer to a utf8 string
+    return stringBuf.toString()
 }
 
 const transactionFields = [
@@ -58,8 +85,8 @@ export function recoverAddress(digest: BytesLike, signature: SignatureLike): str
     return computeAddress(recoverPublicKey(arrayify(digest), signature));
 }
 
-
-export type UnsignedTransaction = {
+// TODO move these into type definition file
+export type EeaUnsignedTransaction = {
     to?: string;
     nonce?: number;
 
@@ -72,11 +99,11 @@ export type UnsignedTransaction = {
 
     // Extra EEA privacy properties
     privateFrom?: string;
-    privateFor?: [string];
+    privateFor?: string[];
     restriction?: string;
 }
 
-export interface Transactions {
+export interface EeaTransaction {
     hash?: string;
 
     to?: string;
@@ -91,8 +118,8 @@ export interface Transactions {
     chainId: number;
 
     // Extra EEA privacy properties
-    privateFrom?: string;
-    privateFor?: [string];
+    privateFrom: string;
+    privateFor: string[];
     restriction?: string;
 
     r?: string;
@@ -100,13 +127,27 @@ export interface Transactions {
     v?: number;
 }
 
-export function serialize(transaction: UnsignedTransaction, signature?: SignatureLike): string {
+export interface EeaTransactionResponse extends EeaTransaction {
+    blockNumber?: number;
+    blockHash?: string;
+    timestamp?: number;
+    confirmations: number;
+    from: string;
+    raw?: string;
+    wait: (confirmations?: number) => Promise<TransactionReceipt>;
+}
+
+export function serialize(transaction: EeaUnsignedTransaction, signature?: SignatureLike): string {
     checkProperties(transaction, allowedTransactionKeys);
 
     let raw: Array<string | Uint8Array | string[]> = [];
 
     transactionFields.forEach(fieldInfo => {
         let value = (<any>transaction)[fieldInfo.name] || ([]);
+
+        if (fieldInfo.name === 'restriction' && !value) {
+            value = 'restricted';
+        }
 
         // Convert transaction fields like privateFor that are an array
         if (fieldInfo.base64Array) {
@@ -174,14 +215,13 @@ export function serialize(transaction: UnsignedTransaction, signature?: Signatur
     return RLP.encode(raw);
 }
 
-// TODO this needs to be implemented properly
-export function parse(rawTransaction: BytesLike): Transactions {
+export function parse(rawTransaction: BytesLike): EeaTransaction {
     let transaction = RLP.decode(rawTransaction);
-    if (transaction.length !== 9 && transaction.length !== 6) {
+    if (transaction.length !== 12) {
         errors.throwError("invalid raw transaction", errors.INVALID_ARGUMENT, { arg: "rawTransactin", value: rawTransaction });
     }
 
-    let tx: Transactions = {
+    let tx: EeaTransaction = {
         nonce:    handleNumber(transaction[0]).toNumber(),
         gasPrice: handleNumber(transaction[1]),
         gasLimit: handleNumber(transaction[2]),
@@ -189,9 +229,9 @@ export function parse(rawTransaction: BytesLike): Transactions {
         value:    handleNumber(transaction[4]),
         data:     transaction[5],
         chainId:  0,
-        privateFrom: handleAddress(transaction[9]),
-        // privateFor: handleAddressArray(transaction[10]),
-        // restriction: handleString(transaction[11]),
+        privateFrom: handlePrivateAddress(transaction[9]),
+        privateFor: handleAddressArray(transaction[10]),
+        restriction: handleString(transaction[11]),
     };
 
     // Legacy unsigned transaction

@@ -1,6 +1,6 @@
 
-import { BytesLike, Hexable, DataOptions, isBytes, isHexString } from '@ethersproject/bytes'
-import * as errors from "@ethersproject/errors"
+import { BytesLike, Hexable, DataOptions, isBytes, isHexString } from '@ethersproject/bytes';
+import * as errors from "@ethersproject/errors";
 
 // the following two functions are not currently exported from @ethersproject/bytes
 // so need to declare here
