@@ -15,8 +15,6 @@ npm install eea-ethers
 
 See [Ethers.js version 5](https://docs.ethers.io/ethers.js/v5-beta/) documentation for details on how the Ethers.js library works.
 
-Differences with this extensions are
-
 ## Pantheon
 
 This library will only work against Pantheon 1.2 and above. It will not work against the 1.1.x releases.
@@ -28,15 +26,14 @@ See [Pantheon Privacy](https://docs.pantheon.pegasys.tech/en/latest/Privacy/Priv
 git clone https://github.com/PegaSysEng/pantheon-quickstart.git
 cd pantheon-quickstart/privacy
 ./run.sh
-cd ..
-git clone https://github.com/PegaSysEng/eeajs.git
-cd eeajs
-npm i
 ```
 
 You can see the logs from the nodes running on docker-compose with
 ```bash
-docker-compose logs -f
+./list.sh   # lists the status of the docker servers. ie are they up or down
+./logs.sh   # tail the logs of each of the docker services
+./stop.sh   # shuts down all of the docker sercices
+./remove.sh # stops and then removes the server volumes so the chain will start back at block 0
 ```
 
 A blockchain explorer will be at http://localhost:32768

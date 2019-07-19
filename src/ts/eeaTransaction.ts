@@ -153,7 +153,7 @@ export function serialize(transaction: EeaUnsignedTransaction, signature?: Signa
     transactionFields.forEach(fieldInfo => {
         let value = (<any>transaction)[fieldInfo.name] || ([]);
 
-        if (fieldInfo.name === 'restriction' && !value) {
+        if (fieldInfo.name === 'restriction' && !transaction.restriction) {
             value = 'restricted';
         }
 

@@ -77,121 +77,120 @@ describe('EEA Ethers', () => {
         })
     })
 
-    describe('private for only one other party', () => {
+    describe.each`
+        testDescription | txFromAddress | privacyGroup
+        ${'private for only one other party using privateFrom and privateFor'} | ${'fe3b557e8fb62b89f4916b721be55ceb828dbd73'} | ${ {privateFrom: node1, privateFor: [node2]} }
+        ${'private for only one other party using privacyGroupId'} | ${'fe3b557e8fb62b89f4916b721be55ceb828dbd73'} | ${'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='}
+        
+    `('$testDescription from $txFromAddress',
+        ({testDescription, txFromAddress, privacyGroup}) => {
 
-        const testParticipants = {
-            from: 'fe3b557e8fb62b89f4916b721be55ceb828dbd73',
-            privateFrom: node1,
-            privateFor: [node2],
-        }
+            // TODO remove ignore
+            // @ts-ignore
+            let eeaWallet: eeaEthers.EeaWallet
+            let privateNonce: number
+            let publicNonce: number
+            let txHash: string
 
-        // @ts-ignore
-        let eeaWallet: eeaEthers.EeaWallet
-        let privateNonce: number
-        let publicNonce: number
-        let txHash: string
+            beforeAll(() => {
+                // fe3b557e8fb62b89f4916b721be55ceb828dbd73
+                const privateKey = '0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63'
+                eeaWallet = new eeaEthers.EeaWallet(privateKey)
+            })
 
-        beforeAll(() => {
-            // fe3b557e8fb62b89f4916b721be55ceb828dbd73
-            const privateKey = '0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63'
-            eeaWallet = new eeaEthers.EeaWallet(privateKey)
-        })
+            test('get private transaction count', async () => {
+                privateNonce = await providerNode1.getPrivateTransactionCount(txFromAddress, privacyGroup)
+                expect(privateNonce).toBeGreaterThanOrEqual(0)
+            })
 
-        test('get private transaction count', async () => {
-            privateNonce = await providerNode1.getPrivateTransactionCount(testParticipants.from, testParticipants)
-            expect(privateNonce).toBeGreaterThanOrEqual(0)
-        })
+            test('get public transaction count', async () => {
+                publicNonce = await providerNode1.getTransactionCount(txFromAddress)
+                expect(publicNonce).toEqual(0)
+            })
 
-        test('get public transaction count', async () => {
-            publicNonce = await providerNode1.getTransactionCount(testParticipants.from)
-            expect(publicNonce).toEqual(0)
-        })
+            test('send signed deploy transaction', async () => {
 
-        test('send signed deploy transaction', async () => {
+                // deploy a contract
+                const unsignedTransaction = {
+                    nonce: privateNonce,
+                    gasPrice: 0,
+                    gasLimit: 3000000,
+                    // to: undefined,
+                    value: 0,
+                    data: '0x608060405234801561001057600080fd5b50336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550610221806100606000396000f300608060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680633fa4f2451461005c5780636057361d1461008757806367e404ce146100b4575b600080fd5b34801561006857600080fd5b5061007161010b565b6040518082815260200191505060405180910390f35b34801561009357600080fd5b506100b260048036038101908080359060200190929190505050610115565b005b3480156100c057600080fd5b506100c96101cb565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b6000600254905090565b7fc9db20adedc6cf2b5d25252b101ab03e124902a73fcb12b753f3d1aaa2d8f9f53382604051808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018281526020019250505060405180910390a18060028190555033600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b6000600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff169050905600a165627a7a723058208efaf938851fb2d235f8bf9a9685f149129a30fe0f4b20a6c1885dc02f639eba0029',
+                    chainId: 2018,
+                    privateFrom: node1,
+                    privateFor: [node2],
+                }
 
-            // deploy a contract
-            const unsignedTransaction = {
-                nonce: privateNonce,
-                gasPrice: 0,
-                gasLimit: 3000000,
-                // to: undefined,
-                value: 0,
-                data: '0x608060405234801561001057600080fd5b50336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550610221806100606000396000f300608060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680633fa4f2451461005c5780636057361d1461008757806367e404ce146100b4575b600080fd5b34801561006857600080fd5b5061007161010b565b6040518082815260200191505060405180910390f35b34801561009357600080fd5b506100b260048036038101908080359060200190929190505050610115565b005b3480156100c057600080fd5b506100c96101cb565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b6000600254905090565b7fc9db20adedc6cf2b5d25252b101ab03e124902a73fcb12b753f3d1aaa2d8f9f53382604051808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018281526020019250505060405180910390a18060028190555033600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b6000600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff169050905600a165627a7a723058208efaf938851fb2d235f8bf9a9685f149129a30fe0f4b20a6c1885dc02f639eba0029',
-                chainId: 2018,
-                privateFrom: node1,
-                privateFor: [node2],
-                restriction: 'restricted',
-            }
+                const signedTransaction = await eeaWallet.signTransaction(unsignedTransaction)
 
-            const signedTransaction = await eeaWallet.signTransaction(unsignedTransaction)
+                const tx = await providerNode1.sendPrivateTransaction(signedTransaction)
+                expect(tx.hash).toMatch(RegEx.transactionHash)
+                txHash = tx.hash
 
-            const tx = await providerNode1.sendPrivateTransaction(signedTransaction)
-            expect(tx.hash).toMatch(RegEx.transactionHash)
-            txHash = tx.hash
+                console.log(`Server tx hash: ${tx.hash}`)
+                console.log(`Client tx hash: ${keccak256(signedTransaction)}`)
 
-            console.log(`Server tx hash: ${tx.hash}`)
-            console.log(`Client tx hash: ${keccak256(signedTransaction)}`)
+                // wait for the transaction to be mined
+                const txReceipt = await providerNode1.waitForTransaction(tx.hash)
+                expect(txReceipt.status).toEqual(1)
+                expect(txReceipt.contractAddress).toBeNull()
+            }, 30000)
 
-            // wait for the transaction to be mined
-            const txReceipt = await providerNode1.waitForTransaction(tx.hash)
-            expect(txReceipt.status).toEqual(1)
-            expect(txReceipt.contractAddress).toBeNull()
-        }, 30000)
+            test('get private transaction counts', async () => {
+                const nonceNode1 = await providerNode1.getPrivateTransactionCount(txFromAddress, privacyGroup)
+                expect(nonceNode1).toBeGreaterThanOrEqual(privateNonce + 1)
 
-        test('get private transaction counts', async () => {
-            const nonceNode1 = await providerNode1.getPrivateTransactionCount(testParticipants.from, testParticipants)
-            expect(nonceNode1).toBeGreaterThanOrEqual(privateNonce + 1)
+                const nonceNode2 = await providerNode2.getPrivateTransactionCount(txFromAddress, privacyGroup)
+                expect(nonceNode2).toBeGreaterThanOrEqual(privateNonce + 1)
 
-            const nonceNode2 = await providerNode2.getPrivateTransactionCount(testParticipants.from, testParticipants)
-            expect(nonceNode2).toBeGreaterThanOrEqual(privateNonce + 1)
+                const nonceNode3 = await providerNode3.getPrivateTransactionCount(txFromAddress, privacyGroup)
+                expect(nonceNode3).toBeGreaterThanOrEqual(publicNonce)
+            })
 
-            const nonceNode3 = await providerNode3.getPrivateTransactionCount(testParticipants.from, testParticipants)
-            expect(nonceNode3).toBeGreaterThanOrEqual(publicNonce)
-        })
+            test('get public transaction count', async () => {
+                const nonceNode1 = await providerNode1.getTransactionCount(txFromAddress)
+                expect(nonceNode1).toBeGreaterThanOrEqual(publicNonce)
 
-        test('get public transaction count', async () => {
-            const nonceNode1 = await providerNode1.getTransactionCount(testParticipants.from)
-            expect(nonceNode1).toBeGreaterThanOrEqual(publicNonce)
+                const nonceNode2 = await providerNode2.getTransactionCount(txFromAddress)
+                expect(nonceNode2).toBeGreaterThanOrEqual(publicNonce)
 
-            const nonceNode2 = await providerNode2.getTransactionCount(testParticipants.from)
-            expect(nonceNode2).toBeGreaterThanOrEqual(publicNonce)
+                const nonceNode3 = await providerNode3.getTransactionCount(txFromAddress)
+                expect(nonceNode3).toBeGreaterThanOrEqual(publicNonce)
+            })
 
-            const nonceNode3 = await providerNode3.getTransactionCount(testParticipants.from)
-            expect(nonceNode3).toBeGreaterThanOrEqual(publicNonce)
-        })
+            test('get public transaction receipts', async () => {
+                const txReceiptNode1 = await providerNode1.getTransactionReceipt(txHash)
+                expect(txReceiptNode1.status).toEqual(1)
+                expect(txReceiptNode1.transactionHash).toEqual(txHash)
+                expect(txReceiptNode1.contractAddress).toBeNull()
 
-        test('get public transaction receipts', async () => {
-            const txReceiptNode1 = await providerNode1.getTransactionReceipt(txHash)
-            expect(txReceiptNode1.status).toEqual(1)
-            expect(txReceiptNode1.transactionHash).toEqual(txHash)
-            expect(txReceiptNode1.contractAddress).toBeNull()
+                const txReceiptNode2 = await providerNode2.getTransactionReceipt(txHash)
+                expect(txReceiptNode2.status).toEqual(1)
+                expect(txReceiptNode2.transactionHash).toEqual(txHash)
+                expect(txReceiptNode2.contractAddress).toBeNull()
 
-            const txReceiptNode2 = await providerNode2.getTransactionReceipt(txHash)
-            expect(txReceiptNode2.status).toEqual(1)
-            expect(txReceiptNode2.transactionHash).toEqual(txHash)
-            expect(txReceiptNode2.contractAddress).toBeNull()
+                const txReceiptNode3 = await providerNode3.getTransactionReceipt(txHash)
+                expect(txReceiptNode3.status).toEqual(1)
+                expect(txReceiptNode3.transactionHash).toEqual(txHash)
+                expect(txReceiptNode3.contractAddress).toBeNull()
+            })
 
-            const txReceiptNode3 = await providerNode3.getTransactionReceipt(txHash)
-            expect(txReceiptNode3.status).toEqual(1)
-            expect(txReceiptNode3.transactionHash).toEqual(txHash)
-            expect(txReceiptNode3.contractAddress).toBeNull()
-        })
+            test('get private transaction receipts', async () => {
+                const txReceiptNode1 = await providerNode1.getPrivateTransactionReceipt(txHash)
+                expect(txReceiptNode1.contractAddress).toMatch(RegEx.ethereumAddress)
+                expect(txReceiptNode1.from).toMatch(RegEx.ethereumAddress)
+                expect(txReceiptNode1.to).toBeUndefined()
 
-        test('get private transaction receipts', async () => {
-            const txReceiptNode1 = await providerNode1.getPrivateTransactionReceipt(txHash)
-            expect(txReceiptNode1.contractAddress).toMatch(RegEx.ethereumAddress)
-            expect(txReceiptNode1.from).toMatch(RegEx.ethereumAddress)
-            expect(txReceiptNode1.to).toBeUndefined()
+                const txReceiptNode2 = await providerNode2.getPrivateTransactionReceipt(txHash)
+                expect(txReceiptNode2.contractAddress).toMatch(RegEx.ethereumAddress)
+                expect(txReceiptNode2.from).toMatch(RegEx.ethereumAddress)
+                expect(txReceiptNode2.to).toBeUndefined()
 
-            const txReceiptNode2 = await providerNode2.getPrivateTransactionReceipt(txHash)
-            expect(txReceiptNode2.contractAddress).toMatch(RegEx.ethereumAddress)
-            expect(txReceiptNode2.from).toMatch(RegEx.ethereumAddress)
-            expect(txReceiptNode2.to).toBeUndefined()
-
-            const txReceiptNode3 = await providerNode3.getPrivateTransactionReceipt(txHash)
-            expect(txReceiptNode3).toBeNull()
-        }, 15000)
-
+                const txReceiptNode3 = await providerNode3.getPrivateTransactionReceipt(txHash)
+                expect(txReceiptNode3).toBeNull()
+            }, 15000)
     })
 
     describe('Deploy contract using contract factory', () => {

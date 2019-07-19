@@ -15,7 +15,7 @@ import { EeaTransaction } from './eeaTransaction'
 
 const allowedTransactionKeys: { [ key: string ]: boolean } = {
     chainId: true, data: true, gasLimit: true, gasPrice:true, nonce: true, to: true, value: true,
-    privateFrom: true, privateFor: true, restructed: true,
+    privateFrom: true, privateFor: true, restricted: true,
 }
 
 export class EeaJsonRpcSigner extends JsonRpcSigner {
@@ -291,7 +291,6 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
 
             default:
                 return super.perform(method, params)
-                break;
         }
     }
 
