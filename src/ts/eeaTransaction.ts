@@ -92,7 +92,6 @@ export function recoverAddress(digest: BytesLike, signature: SignatureLike): str
     return computeAddress(recoverPublicKey(arrayify(digest), signature));
 }
 
-// TODO move these into type definition file
 export type EeaUnsignedTransaction = {
     to?: string;
     nonce?: number;

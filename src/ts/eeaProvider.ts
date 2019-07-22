@@ -12,6 +12,7 @@ import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
 import { EeaFormatter } from './eeaFormatter'
 import { PrivacyGroupOptions, generatePrivacyGroup } from './privacyGroup'
 import { EeaTransaction, allowedTransactionKeys } from './eeaTransaction'
+import * as RegEx from './utils/RegEx'
 
 export class EeaJsonRpcSigner extends JsonRpcSigner {
 
@@ -197,26 +198,33 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         return result;
     }
 
-    _getPrivacyGroupId(privacyGroupOptions: PrivacyGroupOptions | string): Promise<string> {
+    _getPrivacyGroupId(privacyGroupOptions: PrivacyGroupOptions): Promise<string> {
 
         let privacyGroupId: string
 
-        if (typeof(privacyGroupOptions) === 'string') {
-            if (privacyGroupOptions.length === 44) {
-                privacyGroupId = privacyGroupOptions
+        if (typeof(privacyGroupOptions) !== 'object') {
+            errors.throwArgumentError("invalid privacyGroupOptions. Has to be object with privateFrom and either privateFor or privacyGroupId.", "privacyGroupOptions", privacyGroupOptions);
+        }
+
+        if (privacyGroupOptions.hasOwnProperty('privacyGroupId')) {
+            if (typeof(privacyGroupOptions.privacyGroupId) === 'string' &&
+                privacyGroupOptions.privacyGroupId.match(RegEx.base64) &&
+                privacyGroupOptions.privacyGroupId.length === 44) {
+
+                privacyGroupId = privacyGroupOptions.privacyGroupId;
             }
             else {
-                errors.throwArgumentError("invalid privacyGroupOptions. Has to be base64 encoded if a string.", "privacyGroupOptions", privacyGroupOptions);
+                errors.throwArgumentError("invalid privacyGroupId. Has to be base64 encoded string of 44 characters.", "privacyGroupId", privacyGroupOptions);
             }
         }
-        else if (typeof(privacyGroupOptions) === 'object' &&
-            typeof(privacyGroupOptions.privateFrom) === 'string' &&
-            Array.isArray(privacyGroupOptions.privateFor)
+        // No privacyGroupId so need to generate from privateFrom and privateFor properties
+        else if (privacyGroupOptions.hasOwnProperty('privateFrom') &&
+            privacyGroupOptions.hasOwnProperty('privateFor')
         ) {
             privacyGroupId = generatePrivacyGroup(privacyGroupOptions)
         }
         else {
-            errors.throwArgumentError("invalid privacyGroupOptions.", "privacyGroupOptions", privacyGroupOptions);
+            errors.throwArgumentError("invalid privacyGroupOptions. Either privacyGroupId or privateFrom and privateFor properties must exist", "privacyGroupOptions", privacyGroupOptions);
         }
 
         return Promise.resolve(privacyGroupId);
@@ -224,7 +232,7 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
 
     getPrivateTransactionCount(
         addressOrName: string | Promise<string>,
-        privacyGroupOptions: PrivacyGroupOptions | string,
+        privacyGroupOptions: PrivacyGroupOptions,
     ): Promise<number> {
         return this._runPerform("getPrivateTransactionCount", {
             address: () => this._getAddress(addressOrName),

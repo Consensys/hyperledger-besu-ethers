@@ -5,9 +5,10 @@ import { keccak256 } from "@ethersproject/keccak256";
 import * as RLP from "./rlp"
 import * as RegEx from './utils/RegEx'
 
-export declare type PrivacyGroupOptions = {
-    privateFrom: string;
-    privateFor: string[];
+export interface PrivacyGroupOptions {
+    privateFrom?: string;
+    privateFor?: string[];
+    privacyGroupId?: string;
 }
 
 // This logic has been derived from the PagaSys's EEA Web3js client
@@ -21,18 +22,19 @@ export function generatePrivacyGroup(privacyGroupOptions: PrivacyGroupOptions): 
         !privacyGroupOptions.privateFrom.match(RegEx.base64) ||
         privacyGroupOptions.privateFrom.length !== 44)
     {
-        errors.throwArgumentError("invalid privateFrom in PrivacyGroupOptions. Has to be base64 encoded", "privacyGroupOptions.privateFrom", privacyGroupOptions.privateFrom);
+        errors.throwArgumentError("invalid privateFrom. Has to be base64 encoded string of 44 characters", "privacyGroupOptions.privateFrom", privacyGroupOptions);
     }
     if (!Array.isArray(privacyGroupOptions.privateFor) ||
         privacyGroupOptions.privateFor.length === 0) {
-        errors.throwArgumentError("invalid privateFor in PrivacyGroupOptions. Has to be array of base64 encoded addresses", "privacyGroupOptions.privateFor", privacyGroupOptions.privateFor);
+        errors.throwArgumentError("invalid privateFor. Has to be array of base64 encoded strings of 44 characters", "privacyGroupOptions.privateFor", privacyGroupOptions);
     }
 
     privacyGroupOptions.privateFor.forEach(privateAddress => {
-        if (!privateAddress.match(RegEx.base64) &&
+        if (typeof(privateAddress) !== 'string' ||
+            !privateAddress.match(RegEx.base64) ||
             privateAddress.length !== 44)
         {
-            errors.throwArgumentError("invalid privateFor in PrivacyGroupOptions. Has to be array of base64 encoded addresses", "privacyGroupOptions.privateFor", privacyGroupOptions.privateFor);
+            errors.throwArgumentError("invalid privateFor in PrivacyGroupOptions. Has to be array of base64 encoded strings of 44 characters", "privacyGroupOptions.privateFor", privacyGroupOptions);
         }
     })
 

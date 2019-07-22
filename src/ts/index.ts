@@ -12,11 +12,16 @@ import * as eeaTransactions from './eeaTransaction'
 export * from './eeaTransaction'
 import * as bytes from './bytes'
 import * as RLP from './rlp'
+import * as RegEx from './utils/RegEx'
+export * from './privacyGroup'
 
 export const utils = {
     ...ethers.utils,
     ...bytes,
     ...RLP,
+    RegEx: {
+        ...RegEx,
+    },
     ...eeaTransactions
 }
 

@@ -2,8 +2,7 @@
 import { keccak256 } from "@ethersproject/keccak256"
 
 import * as eeaEthers from '../index'
-import { EeaWallet, providers, EeaTransactionRequest } from '../index'
-import * as RegEx from '../utils/RegEx'
+import { EeaWallet, providers, EeaTransactionRequest, PrivacyGroupOptions, utils } from '../index'
 
 jest.setTimeout(15000)
 
@@ -100,7 +99,7 @@ describe('EEA Ethers', () => {
                     'Node2_3',
                     'node2, [node2, node3]',
                     [node2, node3])
-                expect(firstPrivacyGroupId).toMatch(RegEx.base64)
+                expect(firstPrivacyGroupId).toMatch(utils.RegEx.base64)
                 expect(firstPrivacyGroupId).toHaveLength(44)
             })
 
@@ -125,7 +124,7 @@ describe('EEA Ethers', () => {
                     'Node2_3',
                     'node2, [node2, node3]',
                     [node2, node3])
-                expect(duplicatePrivacyGroupId).toMatch(RegEx.base64)
+                expect(duplicatePrivacyGroupId).toMatch(utils.RegEx.base64)
                 expect(duplicatePrivacyGroupId).toHaveLength(44)
                 expect(duplicatePrivacyGroupId).toEqual(firstPrivacyGroupId)
             })
@@ -182,7 +181,7 @@ describe('EEA Ethers', () => {
             `('$reason when privateFrom $privateFrom, name $name, description $description and addresses $addresses',
                 async ({privateFrom, name, description, addresses}) => {
                     const privacyGroupId = await providerNode1.createPrivacyGroup(privateFrom, name, description, addresses)
-                    expect(privacyGroupId).toMatch(RegEx.base64)
+                    expect(privacyGroupId).toMatch(utils.RegEx.base64)
                     expect(privacyGroupId).toHaveLength(44)
 
                     privacyGroups.push(privacyGroupId)
@@ -224,7 +223,7 @@ describe('EEA Ethers', () => {
 
     describe('Create privacy group and send transactions', () => {
 
-        let testPrivacyGroupId: string
+        let testPrivacyGroupOptions: PrivacyGroupOptions
         let privateNonceNode3: number
         let publicNonce: number
         let txHash: string
@@ -234,28 +233,32 @@ describe('EEA Ethers', () => {
         let eeaWallet = new EeaWallet(privateKey)
 
         test('Create new privacy group', async () => {
-            testPrivacyGroupId = await providerNode3.createPrivacyGroup(
+            const testPrivacyGroupId = await providerNode3.createPrivacyGroup(
                 node3,
                 'Node 1 & 3',
                 'node3, [node1, node3]',
                 [node1, node3])
-            expect(testPrivacyGroupId).toMatch(RegEx.base64)
+            expect(testPrivacyGroupId).toMatch(utils.RegEx.base64)
             expect(testPrivacyGroupId).toHaveLength(44)
+
+            testPrivacyGroupOptions = {
+                privacyGroupId: testPrivacyGroupId
+            }
         })
 
         describe('pre transaction checks', () => {
             test('get private transaction count from node 3', async () => {
-                const privateNonce = await providerNode3.getPrivateTransactionCount(txFromAddress, testPrivacyGroupId)
+                const privateNonce = await providerNode3.getPrivateTransactionCount(txFromAddress, testPrivacyGroupOptions)
                 expect(privateNonce).toBeGreaterThanOrEqual(0)
             })
 
             test('get private transaction count from node 2', async () => {
-                const privateNonce = await providerNode2.getPrivateTransactionCount(txFromAddress, testPrivacyGroupId)
+                const privateNonce = await providerNode2.getPrivateTransactionCount(txFromAddress, testPrivacyGroupOptions)
                 expect(privateNonce).toBeGreaterThanOrEqual(0)
             })
 
             test('get private transaction count from node 1', async () => {
-                const privateNonce = await providerNode1.getPrivateTransactionCount(txFromAddress, testPrivacyGroupId)
+                const privateNonce = await providerNode1.getPrivateTransactionCount(txFromAddress, testPrivacyGroupOptions)
                 expect(privateNonce).toBeGreaterThanOrEqual(0)
             })
 
@@ -277,13 +280,13 @@ describe('EEA Ethers', () => {
                 data: '0x608060405234801561001057600080fd5b50336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550610221806100606000396000f300608060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680633fa4f2451461005c5780636057361d1461008757806367e404ce146100b4575b600080fd5b34801561006857600080fd5b5061007161010b565b6040518082815260200191505060405180910390f35b34801561009357600080fd5b506100b260048036038101908080359060200190929190505050610115565b005b3480156100c057600080fd5b506100c96101cb565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b6000600254905090565b7fc9db20adedc6cf2b5d25252b101ab03e124902a73fcb12b753f3d1aaa2d8f9f53382604051808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018281526020019250505060405180910390a18060028190555033600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b6000600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff169050905600a165627a7a723058208efaf938851fb2d235f8bf9a9685f149129a30fe0f4b20a6c1885dc02f639eba0029',
                 chainId: 2018,
                 privateFrom: node3,
-                privateFor: testPrivacyGroupId
+                privateFor: testPrivacyGroupOptions.privacyGroupId
             }
 
             const signedTransaction = await eeaWallet.signTransaction(unsignedTransaction)
 
             const tx = await providerNode3.sendPrivateTransaction(signedTransaction)
-            expect(tx.hash).toMatch(RegEx.transactionHash)
+            expect(tx.hash).toMatch(utils.RegEx.transactionHash)
             txHash = tx.hash
 
             // wait for the transaction to be mined
@@ -294,17 +297,17 @@ describe('EEA Ethers', () => {
 
         describe('Post transaction count checks', () => {
             test('get private transaction count from node 3', async () => {
-                privateNonceNode3 = await providerNode3.getPrivateTransactionCount(txFromAddress, testPrivacyGroupId)
+                privateNonceNode3 = await providerNode3.getPrivateTransactionCount(txFromAddress, testPrivacyGroupOptions)
                 expect(privateNonceNode3).toBeGreaterThanOrEqual(1)
             })
 
             test('get private transaction count from node 2', async () => {
-                privateNonceNode3 = await providerNode2.getPrivateTransactionCount(txFromAddress, testPrivacyGroupId)
+                privateNonceNode3 = await providerNode2.getPrivateTransactionCount(txFromAddress, testPrivacyGroupOptions)
                 expect(privateNonceNode3).toBeGreaterThanOrEqual(0)
             })
 
             test('get private transaction count from node 1', async () => {
-                privateNonceNode3 = await providerNode1.getPrivateTransactionCount(txFromAddress, testPrivacyGroupId)
+                privateNonceNode3 = await providerNode1.getPrivateTransactionCount(txFromAddress, testPrivacyGroupOptions)
                 expect(privateNonceNode3).toBeGreaterThanOrEqual(1)
             })
 
@@ -327,7 +330,7 @@ describe('EEA Ethers', () => {
         describe('Get private transaction receipt', () => {
             test('from node 3', async() => {
                 const txReceipt = await providerNode3.getPrivateTransactionReceipt(txHash)
-                expect(txReceipt.contractAddress).toMatch(RegEx.ethereumAddress)
+                expect(txReceipt.contractAddress).toMatch(utils.RegEx.ethereumAddress)
                 expect(txReceipt.from).toEqual('0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf')
                 expect(txReceipt.to).toBeUndefined()
             })
@@ -339,7 +342,7 @@ describe('EEA Ethers', () => {
 
             test('from node 1', async() => {
                 const txReceipt = await providerNode1.getPrivateTransactionReceipt(txHash)
-                expect(txReceipt.contractAddress).toMatch(RegEx.ethereumAddress)
+                expect(txReceipt.contractAddress).toMatch(utils.RegEx.ethereumAddress)
                 expect(txReceipt.from).toEqual('0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf')
                 expect(txReceipt.to).toBeUndefined()
             })
@@ -393,7 +396,7 @@ describe('EEA Ethers', () => {
                     const signedTransaction = await eeaWallet.signTransaction(unsignedTransaction)
 
                     const tx = await providerNode1.sendPrivateTransaction(signedTransaction)
-                    expect(tx.hash).toMatch(RegEx.transactionHash)
+                    expect(tx.hash).toMatch(utils.RegEx.transactionHash)
                     txHash = tx.hash
 
                     console.log(`Server tx hash: ${txHash}`)
@@ -446,13 +449,13 @@ describe('EEA Ethers', () => {
 
                 test('get private transaction receipts from each node', async () => {
                     const txReceiptNode1 = await providerNode1.getPrivateTransactionReceipt(txHash)
-                    expect(txReceiptNode1.contractAddress).toMatch(RegEx.ethereumAddress)
-                    expect(txReceiptNode1.from).toMatch(RegEx.ethereumAddress)
+                    expect(txReceiptNode1.contractAddress).toMatch(utils.RegEx.ethereumAddress)
+                    expect(txReceiptNode1.from).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceiptNode1.to).toBeUndefined()
 
                     const txReceiptNode2 = await providerNode2.getPrivateTransactionReceipt(txHash)
-                    expect(txReceiptNode2.contractAddress).toMatch(RegEx.ethereumAddress)
-                    expect(txReceiptNode2.from).toMatch(RegEx.ethereumAddress)
+                    expect(txReceiptNode2.contractAddress).toMatch(utils.RegEx.ethereumAddress)
+                    expect(txReceiptNode2.from).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceiptNode2.to).toBeUndefined()
 
                     // TODO currently failing. Have raised https://pegasys1.atlassian.net/browse/PAN-2928
@@ -465,12 +468,12 @@ describe('EEA Ethers', () => {
 
     describe('Deploy contract using contract factory', () => {
 
-        // let eeaWallet: eeaEthers.EeaWallet
+        // let eeaWallet: EeaWallet
         //
         // beforeAll(() => {
         //     // fe3b557e8fb62b89f4916b721be55ceb828dbd73
         //     const privateKey = '0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63'
-        //     eeaWallet = new eeaEthers.EeaWallet(privateKey)
+        //     eeaWallet = new EeaWallet(privateKey)
         // })
         //
         // test('deploy test contract', async() => {
