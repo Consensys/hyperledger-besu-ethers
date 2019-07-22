@@ -11,12 +11,7 @@ import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
 
 import { EeaFormatter } from './eeaFormatter'
 import { PrivacyGroupOptions, generatePrivacyGroup } from './privacyGroup'
-import { EeaTransaction } from './eeaTransaction'
-
-const allowedTransactionKeys: { [ key: string ]: boolean } = {
-    chainId: true, data: true, gasLimit: true, gasPrice:true, nonce: true, to: true, value: true,
-    privateFrom: true, privateFor: true, restricted: true,
-}
+import { EeaTransaction, allowedTransactionKeys } from './eeaTransaction'
 
 export class EeaJsonRpcSigner extends JsonRpcSigner {
 
@@ -120,22 +115,26 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
             jsonrpc: "2.0"
         };
 
-        try {
-            return fetchJson(this.connection, JSON.stringify(request), getResult).then((result) => {
+        return fetchJson(this.connection, JSON.stringify(request), getResult)
+            .then((result) => {
                 this.emit("debug", {
                     action: "send",
                     request: request,
                     response: result,
                     provider: this
                 });
+
+                if (result && result.message) {
+                    throw errors.makeError(result.message, result.code, {})
+                }
+
                 return result;
+            })
+            .catch((err) => {
+                throw errors.makeError(`Failed JSON-RPC call.`, err.code, {
+                    method, params, cause: err,
+                });
             });
-        }
-        catch(err) {
-            return errors.throwError(`Failed to send ${method} with params ${JSON.stringify(params)} and id ${id}.`, err.code, {
-                method, params, error: err,
-            });
-        }
     }
 
     sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<TransactionResponse> {
@@ -223,7 +222,10 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         return Promise.resolve(privacyGroupId);
     }
 
-    getPrivateTransactionCount(addressOrName: string | Promise<string>, privacyGroupOptions: PrivacyGroupOptions | string): Promise<number> {
+    getPrivateTransactionCount(
+        addressOrName: string | Promise<string>,
+        privacyGroupOptions: PrivacyGroupOptions | string,
+    ): Promise<number> {
         return this._runPerform("getPrivateTransactionCount", {
             address: () => this._getAddress(addressOrName),
             privacyGroupId: () => this._getPrivacyGroupId(privacyGroupOptions),
@@ -243,11 +245,6 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
                                 return null;
                             }
                             return undefined;
-                        } else if (result.code) {
-                            errors.throwError(`Failed to get private transaction receipt for tx hash ${transactionHash}. Server error: ${result.message}.`, result.code,{
-                                error: result.message,
-                                transactionHash,
-                            });
                         }
 
                         return this.formatter.privateReceipt(result);
@@ -256,6 +253,38 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
                     });
                 }, { onceBlock: this });
             });
+        });
+    }
+
+    createPrivacyGroup(
+        privateFrom: string | Promise<string>,
+        name: string | Promise<string>,
+        description: string | Promise<string>,
+        addresses: string[] | Promise<string[]>,
+    ): Promise<string> {
+        return this._runPerform("createPrivacyGroup", {
+            privateFrom: () => Promise.resolve(privateFrom),
+            name: () => Promise.resolve(name),
+            description: () => Promise.resolve(description),
+            addresses: () => Promise.resolve(addresses),
+        });
+    }
+
+    deletePrivacyGroup(
+        privateFrom: string | Promise<string>,
+        privacyGroupId: string | Promise<string>,
+    ): Promise<string> {
+        return this._runPerform("deletePrivacyGroup", {
+            privateFrom: () => Promise.resolve(privateFrom),
+            privacyGroupId: () => Promise.resolve(privacyGroupId),
+        });
+    }
+
+    findPrivacyGroup(
+        addresses: string[] | Promise<string[]>,
+    ): Promise<string[]> {
+        return this._runPerform("findPrivacyGroup", {
+            addresses: () => Promise.resolve(addresses),
         });
     }
 
@@ -288,6 +317,19 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
 
             case "getPrivateTransactionReceipt":
                 return this.send("eea_getTransactionReceipt", [ params.transactionHash ]);
+
+            case "createPrivacyGroup":
+                return this.send("eea_createPrivacyGroup", [
+                    params.privateFrom,
+                    params.name,
+                    params.description,
+                    params.addresses]);
+
+            case "deletePrivacyGroup":
+                return this.send("eea_deletePrivacyGroup", [ params.privateFrom, params.privacyGroupId ]);
+
+            case "findPrivacyGroup":
+                return this.send("eea_findPrivacyGroup", [ params.addresses ]);
 
             default:
                 return super.perform(method, params)

@@ -31,20 +31,26 @@ function handleNumber(value: string): BigNumber {
 }
 
 function handlePrivateAddress(value: string): string {
+    if (value === "0x") { return value }
     return getPrivateAddress(value);
 }
 
-function handleAddressArray(arrayOfPrivateAddresses: string[]): string[] {
-    if (!Array.isArray(arrayOfPrivateAddresses)) {
-        errors.throwArgumentError("invalid array of private addresses", "arrayOfPrivateAddresses", arrayOfPrivateAddresses);
+function handlePrivateFor(privateFor: string | string[]): string | string[] {
+
+    if (Array.isArray(privateFor)) {
+
+        let result: string[] = []
+
+        privateFor.forEach(address => {
+            result.push(handlePrivateAddress(address))
+        })
+
+        return result
     }
-
-    let result: string[] = []
-    arrayOfPrivateAddresses.forEach(address => {
-        result.push(handlePrivateAddress(address))
-    })
-
-    return result
+    else {
+        // privateFor must contain privacyGroupId
+        return handlePrivateAddress(privateFor)
+    }
 }
 
 // converts hexadecimal encoded string back into a string
@@ -66,14 +72,15 @@ const transactionFields = [
     { name: 'chainId'},
 
     // Extra EEA privacy properties
-    { name: 'privateFrom', base64: true},
-    { name: 'privateFor', base64Array: true},
+    { name: 'privateFrom'},
+    { name: 'privateFor'},
     { name: 'restriction'},
 ]
 
-const allowedTransactionKeys: { [ key: string ]: boolean } = {
+export const allowedTransactionKeys: { [ key: string ]: boolean } = {
     chainId: true, data: true, gasLimit: true, gasPrice:true, nonce: true, to: true, value: true,
-    privateFrom: true, privateFor: true, restriction: true,
+    // EEA fields
+    privateFrom: true, privateFor: true, restriction: true
 }
 
 export function computeAddress(key: BytesLike | string): string {
@@ -99,7 +106,7 @@ export type EeaUnsignedTransaction = {
 
     // Extra EEA privacy properties
     privateFrom?: string;
-    privateFor?: string[];
+    privateFor?: string | string[];
     restriction?: string;
 }
 
@@ -119,7 +126,7 @@ export interface EeaTransaction {
 
     // Extra EEA privacy properties
     privateFrom: string;
-    privateFor: string[];
+    privateFor: string | string[];
     restriction?: string;
 
     r?: string;
@@ -157,16 +164,20 @@ export function serialize(transaction: EeaUnsignedTransaction, signature?: Signa
             value = 'restricted';
         }
 
-        // Convert transaction fields like privateFor that are an array
-        if (fieldInfo.base64Array) {
-            // Convert items of the array to bytes
-            value = value.map((v: any) => {
-                return Buffer.from(v, 'base64');
-            });
-            raw.push(value);
-            return;
+        if (fieldInfo.name === 'privateFor') {
+            if (Array.isArray(value)) {
+                // Convert items of the array to bytes
+                value = value.map((v: any) => {
+                    return Buffer.from(v, 'base64');
+                });
+                raw.push(value);
+                return;
+            }
+            else {
+                value = Buffer.from(value, 'base64');
+            }
         }
-        else if (fieldInfo.base64) {
+        else if (fieldInfo.name === 'privateFrom') {
             value = Buffer.from(value, 'base64');
         }
         else {
@@ -199,7 +210,6 @@ export function serialize(transaction: EeaUnsignedTransaction, signature?: Signa
         else {
             raw.push(hexlify(value));
         }
-
     });
 
     let unsignedTransaction = RLP.encode(raw);
@@ -226,7 +236,7 @@ export function serialize(transaction: EeaUnsignedTransaction, signature?: Signa
 export function parse(rawTransaction: BytesLike): EeaTransaction {
     let transaction = RLP.decode(rawTransaction);
     if (transaction.length !== 12) {
-        errors.throwError("invalid raw transaction", errors.INVALID_ARGUMENT, { arg: "rawTransactin", value: rawTransaction });
+        errors.throwError("invalid raw transaction", errors.INVALID_ARGUMENT, { arg: "rawTransaction", value: rawTransaction });
     }
 
     let tx: EeaTransaction = {
@@ -238,16 +248,12 @@ export function parse(rawTransaction: BytesLike): EeaTransaction {
         data:     transaction[5],
         chainId:  0,
         privateFrom: handlePrivateAddress(transaction[9]),
-        privateFor: handleAddressArray(transaction[10]),
+        privateFor: handlePrivateFor(transaction[10]),
         restriction: handleString(transaction[11]),
     };
 
-    // Legacy unsigned transaction
-    if (transaction.length === 6) { return tx; }
-
     try {
         tx.v = BigNumber.from(transaction[6]).toNumber();
-
     } catch (error) {
         console.log(error);
         return tx;
@@ -262,7 +268,7 @@ export function parse(rawTransaction: BytesLike): EeaTransaction {
         tx.v = 0;
 
     } else {
-        // Signed Tranasaction
+        // Signed Transaction
 
         tx.chainId = Math.floor((tx.v - 35) / 2);
         if (tx.chainId < 0) { tx.chainId = 0; }

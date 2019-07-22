@@ -20,7 +20,7 @@ export interface EeaTransactionRequest {
 
     // Extra EEA privacy properties
     privateFrom: string
-    privateFor: string[]
+    privateFor?: string | string[]
     restriction?: string
 };
 
