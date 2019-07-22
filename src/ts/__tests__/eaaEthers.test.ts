@@ -2,25 +2,25 @@
 import { keccak256 } from "@ethersproject/keccak256"
 
 import * as eeaEthers from '../index'
+import { EeaWallet, providers, EeaTransactionRequest } from '../index'
 import * as RegEx from '../utils/RegEx'
-import {EeaTransactionRequest} from '../eeaWallet'
 
 jest.setTimeout(15000)
 
 const urlNode1 = "http://localhost:20000";
-const providerNode1 = new eeaEthers.providers.EeaJsonRpcProvider(urlNode1);
+const providerNode1 = new providers.EeaJsonRpcProvider(urlNode1);
 providerNode1.on('debug', (info) => {
     console.log(`Sent "${info.action}" action to node 1 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
 
 const urlNode2 = "http://localhost:20002";
-const providerNode2 = new eeaEthers.providers.EeaJsonRpcProvider(urlNode2);
+const providerNode2 = new providers.EeaJsonRpcProvider(urlNode2);
 providerNode2.on('debug', (info) => {
     console.log(`Sent "${info.action}" action to node 2 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
 
 const urlNode3 = "http://localhost:20004";
-const providerNode3 = new eeaEthers.providers.EeaJsonRpcProvider(urlNode3);
+const providerNode3 = new providers.EeaJsonRpcProvider(urlNode3);
 providerNode3.on('debug', (info) => {
     console.log(`Sent "${info.action}" action to node 3 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
@@ -45,10 +45,10 @@ describe('EEA Ethers', () => {
 
         // fe3b557e8fb62b89f4916b721be55ceb828dbd73
         const privateKey = '0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63'
-        let wallet = new eeaEthers.EeaWallet(privateKey)
+        let wallet = new EeaWallet(privateKey)
 
         // deploy a contract
-        const unsignedTransaction = {
+        const unsignedTransaction: EeaTransactionRequest = {
             nonce: 0,
             gasPrice: 0,
             gasLimit: 3000000,
@@ -231,7 +231,7 @@ describe('EEA Ethers', () => {
 
         const txFromAddress = '0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf'
         const privateKey = '0x0000000000000000000000000000000000000000000000000000000000000001'
-        let eeaWallet = new eeaEthers.EeaWallet(privateKey)
+        let eeaWallet = new EeaWallet(privateKey)
 
         test('Create new privacy group', async () => {
             testPrivacyGroupId = await providerNode3.createPrivacyGroup(
@@ -355,9 +355,7 @@ describe('EEA Ethers', () => {
     `('$testDescription. Params: privacyGroup $privacyGroup, txOptions $txOptions and from $txFromAddress',
             ({testDescription, txFromAddress, privacyGroup, txOptions}) => {
 
-                // TODO remove ignore
-                // @ts-ignore
-                let eeaWallet: eeaEthers.EeaWallet
+                let eeaWallet: EeaWallet
                 let privateNonce: number
                 let publicNonce: number
                 let txHash: string
@@ -365,7 +363,7 @@ describe('EEA Ethers', () => {
                 beforeAll(() => {
                     // fe3b557e8fb62b89f4916b721be55ceb828dbd73
                     const privateKey = '0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63'
-                    eeaWallet = new eeaEthers.EeaWallet(privateKey)
+                    eeaWallet = new EeaWallet(privateKey)
                 })
 
                 test('get private transaction count from node1', async () => {

@@ -1,8 +1,10 @@
-import { Wallet } from 'ethers'
 
 import { getAddress } from "@ethersproject/address"
 import { keccak256 } from "@ethersproject/keccak256"
 import { resolveProperties } from "@ethersproject/properties"
+import { Wallet } from '@ethersproject/wallet'
+
+// Import types
 import { BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
 
@@ -23,7 +25,6 @@ export interface EeaTransactionRequest {
     privateFor?: string | string[]
     restriction?: string
 };
-
 
 export class EeaWallet extends Wallet {
 

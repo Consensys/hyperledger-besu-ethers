@@ -1,26 +1,23 @@
-import {ethers} from 'ethers'
+import * as ethers from 'ethers'
+export * from 'ethers'
+
 // Import the overridden transaction functions
 import * as eeaProviders from './eeaProvider'
-import * as eeaTransactions from './eeaTransaction'
-import * as bytes from './bytes'
-import * as RLP from './rlp'
-import { EeaWallet } from './eeaWallet'
-
-export {  }
-
-const eeaEthers = {
-    ...ethers,
-    providers: {
-        ...ethers.providers,
-        ...eeaProviders,
-    },
-    utils: {
-        ...ethers.utils,
-        ...bytes,
-        ...RLP,
-        ...eeaTransactions
-    },
-    EeaWallet,
+export const providers = {
+    ...ethers.providers,
+    ...eeaProviders,
 }
 
-export = eeaEthers
+import * as eeaTransactions from './eeaTransaction'
+export * from './eeaTransaction'
+import * as bytes from './bytes'
+import * as RLP from './rlp'
+
+export const utils = {
+    ...ethers.utils,
+    ...bytes,
+    ...RLP,
+    ...eeaTransactions
+}
+
+export * from './eeaWallet'
