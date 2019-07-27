@@ -1,5 +1,5 @@
 
-import { TransactionReceipt, TransactionRequest, TransactionResponse } from "@ethersproject/abstract-provider";
+import { TransactionReceipt, TransactionRequest } from "@ethersproject/abstract-provider";
 import { BigNumber } from "@ethersproject/bignumber";
 import { hexDataLength, hexValue } from "@ethersproject/bytes";
 import { hexlify } from "./bytes";
@@ -11,12 +11,25 @@ import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
 
 import { EeaFormatter } from './eeaFormatter'
 import { PrivacyGroupOptions, generatePrivacyGroup } from './privacyGroup'
-import { EeaTransaction, allowedTransactionKeys } from './eeaTransaction'
-import * as RegEx from './utils/RegEx'
+import { allowedTransactionKeys, EeaTransaction, EeaTransactionResponse } from './eeaTransaction'
+import { EeaTransactionRequest } from './eeaWallet'
+
+const _constructorGuard = {};
 
 export class EeaJsonRpcSigner extends JsonRpcSigner {
 
-    sendUncheckedTransaction(transaction: TransactionRequest): Promise<string> {
+    readonly provider: EeaJsonRpcProvider
+
+    constructor(constructorGuard: any, provider: EeaJsonRpcProvider, addressOrIndex?: string | number) {
+
+        if (constructorGuard !== _constructorGuard) {
+            throw new Error("do not call the EeaJsonRpcSigner constructor directly; use provider.getSigner");
+        }
+
+        super(constructorGuard, provider, addressOrIndex);
+    }
+
+    sendPrivateUncheckedTransaction(transaction: EeaTransactionRequest): Promise<string> {
         transaction = shallowCopy(transaction);
 
         let fromAddress = this.getAddress().then((address) => {
@@ -63,6 +76,20 @@ export class EeaJsonRpcSigner extends JsonRpcSigner {
                         });
                     }
                 }
+                throw error;
+            });
+        });
+    }
+
+    sendPrivateTransaction(transaction: EeaTransactionRequest): Promise<EeaTransactionResponse> {
+        return this.sendUncheckedTransaction(transaction).then((hash) => {
+            return poll(() => {
+                return this.provider.getPrivateTransaction(hash).then((tx: EeaTransactionResponse) => {
+                    if (tx === null) { return undefined; }
+                    return this.provider._wrapPrivateTransaction(tx, hash);
+                });
+            }, { onceBlock: this.provider }).catch((error: Error) => {
+                (<any>error).transactionHash = hash;
                 throw error;
             });
         });
@@ -138,12 +165,12 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
             });
     }
 
-    sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<TransactionResponse> {
+    sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<EeaTransactionResponse> {
         return this._runPerform("sendPrivateTransaction", {
             signedTransaction: () => Promise.resolve(signedTransaction).then(t => hexlify(t))
         }).then((result) => {
             const parsedTransaction = this.formatter.transaction(signedTransaction)
-            return this._wrapTransaction(parsedTransaction, result);
+            return this._wrapPrivateTransaction(parsedTransaction, result);
         }, (error) => {
             error.transaction = this.formatter.transaction(signedTransaction);
             if (error.transaction.hash) {
@@ -153,11 +180,11 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         });
     }
 
-    _wrapTransaction(tx: EeaTransaction, hash?: string): TransactionResponse {
+    _wrapPrivateTransaction(tx: EeaTransaction, hash?: string): EeaTransactionResponse {
         if (hash != null && hexDataLength(hash) !== 32) { throw new Error("invalid response - sendPrivateTransaction"); }
 
         // @ts-ignore
-        let result = <TransactionResponse>tx;
+        let result = <EeaTransactionResponse>tx;
 
         // Check the hash we expect is the same as the hash the server reported
         if (hash != null && tx.hash !== hash) {
@@ -198,45 +225,13 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         return result;
     }
 
-    _getPrivacyGroupId(privacyGroupOptions: PrivacyGroupOptions): Promise<string> {
-
-        let privacyGroupId: string
-
-        if (typeof(privacyGroupOptions) !== 'object') {
-            errors.throwArgumentError("invalid privacyGroupOptions. Has to be object with privateFrom and either privateFor or privacyGroupId.", "privacyGroupOptions", privacyGroupOptions);
-        }
-
-        if (privacyGroupOptions.hasOwnProperty('privacyGroupId')) {
-            if (typeof(privacyGroupOptions.privacyGroupId) === 'string' &&
-                privacyGroupOptions.privacyGroupId.match(RegEx.base64) &&
-                privacyGroupOptions.privacyGroupId.length === 44) {
-
-                privacyGroupId = privacyGroupOptions.privacyGroupId;
-            }
-            else {
-                errors.throwArgumentError("invalid privacyGroupId. Has to be base64 encoded string of 44 characters.", "privacyGroupId", privacyGroupOptions);
-            }
-        }
-        // No privacyGroupId so need to generate from privateFrom and privateFor properties
-        else if (privacyGroupOptions.hasOwnProperty('privateFrom') &&
-            privacyGroupOptions.hasOwnProperty('privateFor')
-        ) {
-            privacyGroupId = generatePrivacyGroup(privacyGroupOptions)
-        }
-        else {
-            errors.throwArgumentError("invalid privacyGroupOptions. Either privacyGroupId or privateFrom and privateFor properties must exist", "privacyGroupOptions", privacyGroupOptions);
-        }
-
-        return Promise.resolve(privacyGroupId);
-    }
-
     getPrivateTransactionCount(
         addressOrName: string | Promise<string>,
         privacyGroupOptions: PrivacyGroupOptions,
     ): Promise<number> {
         return this._runPerform("getPrivateTransactionCount", {
             address: () => this._getAddress(addressOrName),
-            privacyGroupId: () => this._getPrivacyGroupId(privacyGroupOptions),
+            privacyGroupId: () => Promise.resolve(generatePrivacyGroup(privacyGroupOptions)),
         }).then((result: any) => {
             return BigNumber.from(result).toNumber();
         });
@@ -258,6 +253,43 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
                         return this.formatter.privateReceipt(result);
                     }).catch((err) => {
                         errors.throwError(`Failed to get private transaction receipt for tx hash ${transactionHash}. Error: ${err.message}`, err.code, err);
+                    });
+                }, { onceBlock: this });
+            });
+        });
+    }
+
+    getPrivateTransaction(transactionHash: string): Promise<EeaTransactionResponse> {
+        return this.ready.then(() => {
+            return resolveProperties({ transactionHash: transactionHash }).then(({ transactionHash }) => {
+                let params = { transactionHash: this.formatter.hash(transactionHash, true) };
+                return poll(() => {
+                    return this.perform("getPrivateTransaction", params).then((result) => {
+                        if (result == null) {
+                            if (this._emitted["t:" + transactionHash] == null) {
+                                return null;
+                            }
+                            return undefined;
+                        }
+
+                        let tx = this.formatter.privateTransactionResponse(result);
+
+                        if (tx.blockNumber == null) {
+                            tx.confirmations = 0;
+
+                        } else if (tx.confirmations == null) {
+                            return this._getFastBlockNumber().then((blockNumber) => {
+
+                                // Add the confirmations using the fast block number (pessimistic)
+                                let confirmations = (blockNumber - tx.blockNumber) + 1;
+                                if (confirmations <= 0) { confirmations = 1; }
+                                tx.confirmations = confirmations;
+
+                                return this._wrapPrivateTransaction(tx);
+                            });
+                        }
+
+                        return this._wrapPrivateTransaction(tx);
                     });
                 }, { onceBlock: this });
             });
@@ -325,6 +357,9 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
 
             case "getPrivateTransactionReceipt":
                 return this.send("eea_getTransactionReceipt", [ params.transactionHash ]);
+
+            case "getPrivateTransaction":
+                return this.send("eea_getPrivateTransaction", [ params.transactionHash ]);
 
             case "createPrivacyGroup":
                 return this.send("eea_createPrivacyGroup", [

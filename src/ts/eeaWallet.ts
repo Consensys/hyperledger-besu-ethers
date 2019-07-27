@@ -21,7 +21,7 @@ export interface EeaTransactionRequest {
     chainId?: number | Promise<number>
 
     // Extra EEA privacy properties
-    privateFrom: string
+    privateFrom?: string
     privateFor?: string | string[]
     restriction?: string
 };

@@ -24,6 +24,16 @@ describe('Privacy Group', () => {
 
             expect(privacyGroup.generatePrivacyGroup(testOptions)).toEqual('95yIn/OYTZ1xN7SiBX1MdBJv9Bqk6Oq7fy+7XSaInyY=')
         })
+
+        test('with privateFor the privacy group id', () => {
+
+            const testOptions = {
+                privateFrom: 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=',
+                privateFor: '95yIn/OYTZ1xN7SiBX1MdBJv9Bqk6Oq7fy+7XSaInyY=',
+            }
+
+            expect(privacyGroup.generatePrivacyGroup(testOptions)).toEqual('95yIn/OYTZ1xN7SiBX1MdBJv9Bqk6Oq7fy+7XSaInyY=')
+        })
     })
 
     describe('Failed generate privacy group id', () => {
@@ -35,7 +45,6 @@ describe('Privacy Group', () => {
         ${'empty privateFor array'} | ${'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo='}  | ${[]}  | ${/invalid privateFor/}
         ${'privateFor not base64 encoded'} | ${'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo='}  | ${['0x‌2a8d9b56a0fe9cd94d60be4413bcb721d3a7be27ed8e28b3a6346df874ee141b']}  | ${/invalid privateFor/}
         ${'privateFor wrong length'} | ${'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo='}  | ${['o2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs=']}  | ${/invalid privateFor/}
-        ${'privateFor base64 string'} | ${'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo='}  | ${'Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='}  | ${/invalid privateFor/}
         
    
         ${'privateFrom undefined'} | ${undefined}  | ${['Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs=']}  | ${/invalid privateFrom/}

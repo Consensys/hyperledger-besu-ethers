@@ -1,8 +1,10 @@
-"use strict";
+'use strict'
 
-import { Formatter } from "@ethersproject/providers";
+import { Formatter } from '@ethersproject/providers'
+import * as errors from '@ethersproject/errors'
 
-import { parse as parseTransaction, EeaTransactionReceipt } from "./eeaTransaction";
+import { parse as parseTransaction, EeaTransactionResponse, EeaTransactionReceipt } from './eeaTransaction'
+import * as RegEx from './utils/RegEx'
 
 // Copied from the Formatter declaration in @ethersproject/providers
 export type FormatFunc = (value: any) => any;
@@ -17,21 +19,22 @@ export type EeaFormats = {
     blockWithTransactions: FormatFuncs,
     filter: FormatFuncs,
     filterLog: FormatFuncs,
-    // Add extra EEA format for private transaction receipts
+    // Add extra EEA formats
     privateReceipt: FormatFuncs,
+    privateTransaction: FormatFuncs,
 };
 
 // Override the formatting of the transaction as it now includes the new EEA
 export class EeaFormatter extends Formatter {
 
-    readonly formats: EeaFormats;
+    readonly formats: EeaFormats
 
     getDefaultFormats(): EeaFormats {
 
         const address = this.address.bind(this);
         const data = this.data.bind(this);
 
-        const superFormats = super.getDefaultFormats()
+        const superFormats = super.getDefaultFormats();
 
         // Override default formats with EeaFormat
         return {
@@ -45,8 +48,56 @@ export class EeaFormatter extends Formatter {
                 contractAddress: Formatter.allowNull(address, null),
                 logs: Formatter.arrayOf(this.receiptLog.bind(this)),
                 output: Formatter.allowNull(data)
+            },
+
+            privateTransaction: {
+                ...superFormats.transaction,
+                privateFrom: Formatter.allowNull(this.privateAddress),
+                privateFor: Formatter.allowNull(this.privateFor.bind(this)),
+                restriction: Formatter.allowNull(this.restriction),
             }
         }
+    }
+
+    privateAddress(privateAddress?: string): string | null {
+        if (!privateAddress) { return null }
+
+        if (typeof privateAddress === 'string' &&
+            privateAddress.match(RegEx.base64) &&
+            privateAddress.length === 44) {
+
+            return privateAddress;
+        }
+
+        throw errors.makeError('invalid private address. Has to be base64 encoded string of 44 characters.', 'privateAddress', privateAddress);
+    }
+
+    privateFor(privateFor: any): string[] | string | null {
+        if (!privateFor) { return null }
+
+        try {
+            if (Array.isArray(privateFor)) {
+                for (const privAddress of privateFor) {
+                    this.privateAddress(privAddress);
+                }
+
+                return privateFor;
+            }
+
+            return this.privateAddress(privateFor);
+        }
+        catch (err) {
+            throw errors.makeError('invalid privateFor. Has to be base64 encoded string or an array of base64 encoded strings.', 'privateFor', privateFor);
+        }
+    }
+
+    restriction(restriction?: string): string | null {
+        if (!restriction) { return null }
+        if (restriction === 'restricted' || restriction === 'unrestricted') {
+            return restriction;
+        }
+
+        throw errors.makeError('invalid restriction. Must be either \'restricted\' or \'unrestricted\'.', 'InvalidRestriction', { restriction });
     }
 
     transaction(value: any): any {
@@ -55,5 +106,19 @@ export class EeaFormatter extends Formatter {
 
     privateReceipt(value: any): EeaTransactionReceipt {
         return Formatter.check(this.formats.privateReceipt, value);
+    }
+
+    privateTransactionResponse(transaction: any): EeaTransactionResponse {
+
+        // Rename gas to gasLimit
+        if (transaction.gas != null && transaction.gasLimit == null) {
+            transaction.gasLimit = transaction.gas;
+        }
+
+        // dirty hack for now as getPrivateTransaction does not currently return the data field
+        transaction.data = '0x';
+        let result = Formatter.check(this.formats.privateTransaction, transaction);
+
+        return result;
     }
 }

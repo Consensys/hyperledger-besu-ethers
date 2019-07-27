@@ -1,8 +1,6 @@
 
-import { keccak256 } from "@ethersproject/keccak256"
-
 import * as eeaEthers from '../index'
-import { EeaWallet, providers, EeaTransactionRequest, PrivacyGroupOptions, utils } from '../index'
+import {EeaWallet, providers, EeaTransactionRequest, PrivacyGroupOptions, utils, generatePrivacyGroup} from '../index'
 
 jest.setTimeout(15000)
 
@@ -30,6 +28,13 @@ const node3 = 'k2zXEin4Ip/qBGlRkJejnGWdP9cjkK+DAvKNW31L2C8='
 const invalidNode = '00000000000000000000000000000000000000000001'
 
 describe('EEA Ethers', () => {
+
+    let node1EnodeUrl: string
+
+    beforeAll(async () => {
+        node1EnodeUrl = await providerNode1.send('net_enode', [])
+        console.log(`enode url ${node1EnodeUrl}\nnode1 public key: ${node1EnodeUrl.substring(9, 136)}`)
+    })
 
     test('Check overridden functions have been exported', ()=> {
         expect(eeaEthers).toBeDefined()
@@ -60,10 +65,7 @@ describe('EEA Ethers', () => {
             restriction: 'restricted',
         }
 
-        // From web3js-eea eventEmitter example BEFORE fixing base64 encoding of the privateFrom and privateFor fields.
-        // const eeaSignedRlpEncoded = '0xf903378080832dc6c08080b90281608060405234801561001057600080fd5b50336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550610221806100606000396000f300608060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680633fa4f2451461005c5780636057361d1461008757806367e404ce146100b4575b600080fd5b34801561006857600080fd5b5061007161010b565b6040518082815260200191505060405180910390f35b34801561009357600080fd5b506100b260048036038101908080359060200190929190505050610115565b005b3480156100c057600080fd5b506100c96101cb565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b6000600254905090565b7fc9db20adedc6cf2b5d25252b101ab03e124902a73fcb12b753f3d1aaa2d8f9f53382604051808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018281526020019250505060405180910390a18060028190555033600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b6000600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff169050905600a165627a7a723058208efaf938851fb2d235f8bf9a9685f149129a30fe0f4b20a6c1885dc02f639eba0029820fe8a0c6ed0b2b08e0e65bdda3a239e546e215e62dd15086d3b2c3fc1d6996d47a71bea065b30e766ab58eca8dd758d9e05cf2d98536c68b9ab1607bc2a1d7ef37bd279cac41316156744d784c4355486d425648586f5a7a7a42675062572f776a3561784470573958386c393153476f3dedac4b6f32625671442b6e4e6c4e594c35454537793349644f6e766966746a69697a706a52742b4854754642733d8a72657374726963746564'
-        // From web3js-eea eventEmitter example AFTER fixing base64 encoding of the privateFrom and privateFor fields.
-        // see https://pegasys1.atlassian.net/browse/PAN-2814
+        // From web3js-eea eventEmitter example
         const eeaSignedRlpEncoded = '0xf9031f8080832dc6c08080b90281608060405234801561001057600080fd5b50336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550610221806100606000396000f300608060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680633fa4f2451461005c5780636057361d1461008757806367e404ce146100b4575b600080fd5b34801561006857600080fd5b5061007161010b565b6040518082815260200191505060405180910390f35b34801561009357600080fd5b506100b260048036038101908080359060200190929190505050610115565b005b3480156100c057600080fd5b506100c96101cb565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b6000600254905090565b7fc9db20adedc6cf2b5d25252b101ab03e124902a73fcb12b753f3d1aaa2d8f9f53382604051808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018281526020019250505060405180910390a18060028190555033600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b6000600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff169050905600a165627a7a723058208efaf938851fb2d235f8bf9a9685f149129a30fe0f4b20a6c1885dc02f639eba0029820fe7a0ea2340ef4a0d32e2c44fed9b8d880a38a1ecfbef618ca0234a404c2360719617a063acf2ee8286787f3ebb640da56ded5952c8bdc8d1bf374e2dfe5afdeb79bea8a0035695b4cc4b0941e60551d7a19cf30603db5bfc23e5ac43a56f57f25f75486ae1a02a8d9b56a0fe9cd94d60be4413bcb721d3a7be27ed8e28b3a6346df874ee141b8a72657374726963746564'
 
         const signedTransaction = await wallet.signTransaction(unsignedTransaction)
@@ -242,7 +244,7 @@ describe('EEA Ethers', () => {
             expect(testPrivacyGroupId).toHaveLength(44)
 
             testPrivacyGroupOptions = {
-                privacyGroupId: testPrivacyGroupId
+                privateFor: testPrivacyGroupId
             }
         })
 
@@ -280,7 +282,7 @@ describe('EEA Ethers', () => {
                 data: '0x608060405234801561001057600080fd5b50336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550610221806100606000396000f300608060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680633fa4f2451461005c5780636057361d1461008757806367e404ce146100b4575b600080fd5b34801561006857600080fd5b5061007161010b565b6040518082815260200191505060405180910390f35b34801561009357600080fd5b506100b260048036038101908080359060200190929190505050610115565b005b3480156100c057600080fd5b506100c96101cb565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b6000600254905090565b7fc9db20adedc6cf2b5d25252b101ab03e124902a73fcb12b753f3d1aaa2d8f9f53382604051808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018281526020019250505060405180910390a18060028190555033600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b6000600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff169050905600a165627a7a723058208efaf938851fb2d235f8bf9a9685f149129a30fe0f4b20a6c1885dc02f639eba0029',
                 chainId: 2018,
                 privateFrom: node3,
-                privateFor: testPrivacyGroupOptions.privacyGroupId
+                privateFor: testPrivacyGroupOptions.privateFor
             }
 
             const signedTransaction = await eeaWallet.signTransaction(unsignedTransaction)
@@ -352,21 +354,29 @@ describe('EEA Ethers', () => {
     describe('private for only one other party', () => {
         describe.each`
         testDescription | privacyGroup | txOptions | txFromAddress
-        ${'find count and receipt using privateFrom and privateFor'} | ${ {privateFrom: node1, privateFor: [node2]} } | ${ {privateFrom: node1, privateFor: [node2]} } | ${'fe3b557e8fb62b89f4916b721be55ceb828dbd73'}
-        ${'find count and receipt using privacy group id'} | ${'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='} | ${ {privateFrom: node1, privateFor: [node2]} } | ${'fe3b557e8fb62b89f4916b721be55ceb828dbd73'}
-        ${'privateFor using privacyGroupId'} | ${'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='} | ${ {privateFrom: node1, privateFor: 'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='} } | ${'fe3b557e8fb62b89f4916b721be55ceb828dbd73'}
+        ${'find count and receipt using privateFrom and privateFor'} | ${ {privateFrom: node1, privateFor: [node2]} } | ${ {privateFrom: node1, privateFor: [node2]} } | ${'0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF'}
+        ${'find count and receipt using privacy group id'} | ${ {privateFor: 'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='} }  | ${ {privateFrom: node1, privateFor: [node2]} } | ${'0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF'}
+        ${'privateFor using privacyGroupId'} | ${ {privateFor: 'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='} } | ${ {privateFrom: node1, privateFor: 'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='} } | ${'0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF'}
     `('$testDescription. Params: privacyGroup $privacyGroup, txOptions $txOptions and from $txFromAddress',
             ({testDescription, txFromAddress, privacyGroup, txOptions}) => {
 
                 let eeaWallet: EeaWallet
                 let privateNonce: number
                 let publicNonce: number
-                let txHash: string
+                let publicTxHash: string
+                let privateTxHash: string
+                let unsignedTransaction: EeaTransactionRequest
 
                 beforeAll(() => {
-                    // fe3b557e8fb62b89f4916b721be55ceb828dbd73
-                    const privateKey = '0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63'
+                    // 0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF
+                    const privateKey = '0x0000000000000000000000000000000000000000000000000000000000000002'
                     eeaWallet = new EeaWallet(privateKey)
+                })
+
+                test('Check privacy group', () => {
+                    if (typeof privacyGroup === 'string') {
+                        expect(generatePrivacyGroup(txOptions)).toEqual(privacyGroup)
+                    }
                 })
 
                 test('get private transaction count from node1', async () => {
@@ -382,7 +392,7 @@ describe('EEA Ethers', () => {
                 test('send signed deploy transaction', async () => {
 
                     // deploy a contract
-                    const unsignedTransaction: EeaTransactionRequest = {
+                    unsignedTransaction = {
                         nonce: privateNonce,
                         gasPrice: 0,
                         gasLimit: 3000000,
@@ -397,10 +407,15 @@ describe('EEA Ethers', () => {
 
                     const tx = await providerNode1.sendPrivateTransaction(signedTransaction)
                     expect(tx.hash).toMatch(utils.RegEx.transactionHash)
-                    txHash = tx.hash
-
-                    console.log(`Server tx hash: ${txHash}`)
-                    console.log(`Client tx hash: ${keccak256(signedTransaction)}`)
+                    publicTxHash = tx.hash
+                    expect(tx.nonce).toEqual(unsignedTransaction.nonce)
+                    expect(tx.data).toEqual(unsignedTransaction.data)
+                    // TODO need to fix
+                    // expect(tx.privateFor).toEqual(unsignedTransaction.privateFor)
+                    // expect(tx.privateFrom).toEqual(unsignedTransaction.privateFrom)
+                    expect(tx.chainId).toEqual(unsignedTransaction.chainId)
+                    // expect(tx.gasPrice).toEqual(unsignedTransaction.gasPrice)
+                    // expect(tx.gasLimit).toEqual(unsignedTransaction.gasLimit)
 
                     // wait for the transaction to be mined
                     const txReceipt = await providerNode1.waitForTransaction(tx.hash)
@@ -431,68 +446,67 @@ describe('EEA Ethers', () => {
                 })
 
                 test('get public transaction receipts from each node', async () => {
-                    const txReceiptNode1 = await providerNode1.getTransactionReceipt(txHash)
+                    const txReceiptNode1 = await providerNode1.getTransactionReceipt(publicTxHash)
                     expect(txReceiptNode1.status).toEqual(1)
-                    expect(txReceiptNode1.transactionHash).toEqual(txHash)
+                    expect(txReceiptNode1.transactionHash).toEqual(publicTxHash)
                     expect(txReceiptNode1.contractAddress).toBeNull()
 
-                    const txReceiptNode2 = await providerNode2.getTransactionReceipt(txHash)
+                    const txReceiptNode2 = await providerNode2.getTransactionReceipt(publicTxHash)
                     expect(txReceiptNode2.status).toEqual(1)
-                    expect(txReceiptNode2.transactionHash).toEqual(txHash)
+                    expect(txReceiptNode2.transactionHash).toEqual(publicTxHash)
                     expect(txReceiptNode2.contractAddress).toBeNull()
 
-                    const txReceiptNode3 = await providerNode3.getTransactionReceipt(txHash)
+                    const txReceiptNode3 = await providerNode3.getTransactionReceipt(publicTxHash)
                     expect(txReceiptNode3.status).toEqual(1)
-                    expect(txReceiptNode3.transactionHash).toEqual(txHash)
+                    expect(txReceiptNode3.transactionHash).toEqual(publicTxHash)
                     expect(txReceiptNode3.contractAddress).toBeNull()
                 })
 
                 test('get private transaction receipts from each node', async () => {
-                    const txReceiptNode1 = await providerNode1.getPrivateTransactionReceipt(txHash)
+                    const txReceiptNode1 = await providerNode1.getPrivateTransactionReceipt(publicTxHash)
                     expect(txReceiptNode1.contractAddress).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceiptNode1.from).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceiptNode1.to).toBeUndefined()
 
-                    const txReceiptNode2 = await providerNode2.getPrivateTransactionReceipt(txHash)
+                    const txReceiptNode2 = await providerNode2.getPrivateTransactionReceipt(publicTxHash)
                     expect(txReceiptNode2.contractAddress).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceiptNode2.from).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceiptNode2.to).toBeUndefined()
 
                     // TODO currently failing. Have raised https://pegasys1.atlassian.net/browse/PAN-2928
-                    const txReceiptNode3 = await providerNode3.getPrivateTransactionReceipt(txHash)
+                    const txReceiptNode3 = await providerNode3.getPrivateTransactionReceipt(publicTxHash)
                     expect(txReceiptNode3).toBeNull()
                 }, 15000)
+
+                test('get public transaction by hash', async () => {
+                    const txNode1 = await providerNode1.getTransaction(publicTxHash)
+                    const txNode2 = await providerNode2.getTransaction(publicTxHash)
+                    const txNode3 = await providerNode3.getTransaction(publicTxHash)
+
+                    privateTxHash = txNode1.data
+                    expect(txNode1.data).toMatch(utils.RegEx.bytes32)
+                    // TODO validate against node 1 public key
+                    expect(txNode1.from).toMatch(utils.RegEx.ethereumAddress)
+
+                    expect(txNode2.from).toMatch(utils.RegEx.ethereumAddress)
+                    expect(txNode2.data).toMatch(txNode1.data)
+
+                    expect(txNode3.from).toMatch(utils.RegEx.ethereumAddress)
+                    expect(txNode3.data).toMatch(txNode1.data)
+                })
+
+                test('get private transaction by hash', async () => {
+                    const txNode1 = await providerNode1.getPrivateTransaction(privateTxHash)
+                    expect(txNode1.privateFrom).toEqual(txOptions.privateFrom)
+                    expect(txNode1.privateFor).toEqual(txOptions.privateFor)
+
+                    const txNode2 = await providerNode2.getPrivateTransaction(privateTxHash)
+                    expect(txNode2.privateFrom).toEqual(txOptions.privateFrom)
+                    expect(txNode2.privateFor).toEqual(txOptions.privateFor)
+
+                    const txNode3 = await providerNode3.getPrivateTransaction(privateTxHash)
+                    expect(txNode3).toEqual(null)
+                })
             })
     })
-
-
-    describe('Deploy contract using contract factory', () => {
-
-        // let eeaWallet: EeaWallet
-        //
-        // beforeAll(() => {
-        //     // fe3b557e8fb62b89f4916b721be55ceb828dbd73
-        //     const privateKey = '0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63'
-        //     eeaWallet = new EeaWallet(privateKey)
-        // })
-        //
-        // test('deploy test contract', async() => {
-        //
-        //     const testContractAbi = readFileSync('./src/abis/TestContract.abi', 'utf8')
-        //     const bytecode = readFileSync('./src/abis/TestContract.bin', 'utf8')
-        //
-        //     const factory = new ContractFactory(testContractAbi, bytecode, eeaWallet);
-        //
-        //     let contract = await factory.deploy();
-        //
-        //     expect(contract.address).toMatch(ethereumAddress)
-        //     expect(contract.deployTransaction.hash).toMatch(transactionHash)
-        //
-        //     const txReceipt = await contract.deployTransaction.wait()
-        //
-        //     expect(txReceipt.status).toEqual(1)
-        //
-        // }, 30000)
-    })
-
 })

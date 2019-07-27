@@ -1,6 +1,8 @@
 import * as ethers from 'ethers'
 export * from 'ethers'
 
+export * from './contract'
+
 // Import the overridden transaction functions
 import * as eeaProviders from './eeaProvider'
 export const providers = {
