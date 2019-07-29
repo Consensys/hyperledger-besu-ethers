@@ -31,9 +31,6 @@ export class EeaFormatter extends Formatter {
 
     getDefaultFormats(): EeaFormats {
 
-        const address = this.address.bind(this);
-        const data = this.data.bind(this);
-
         const superFormats = super.getDefaultFormats();
 
         // Override default formats with EeaFormat
@@ -45,13 +42,14 @@ export class EeaFormatter extends Formatter {
             privateReceipt: {
                 to: Formatter.allowNull(this.address),
                 from: Formatter.allowNull(this.address),
-                contractAddress: Formatter.allowNull(address, null),
+                contractAddress: Formatter.allowNull(this.address.bind(this), null),
                 logs: Formatter.arrayOf(this.receiptLog.bind(this)),
-                output: Formatter.allowNull(data)
+                output: Formatter.allowNull(this.data.bind(this))
             },
 
             privateTransaction: {
                 ...superFormats.transaction,
+                // Add extra EEA fields
                 privateFrom: Formatter.allowNull(this.privateAddress),
                 privateFor: Formatter.allowNull(this.privateFor.bind(this)),
                 restriction: Formatter.allowNull(this.restriction),
@@ -110,13 +108,16 @@ export class EeaFormatter extends Formatter {
 
     privateTransactionResponse(transaction: any): EeaTransactionResponse {
 
+        // Rename input to data
+        if (transaction.input != null && transaction.data == null) {
+            transaction.data = transaction.input;
+        }
+
         // Rename gas to gasLimit
         if (transaction.gas != null && transaction.gasLimit == null) {
             transaction.gasLimit = transaction.gas;
         }
 
-        // dirty hack for now as getPrivateTransaction does not currently return the data field
-        transaction.data = '0x';
         let result = Formatter.check(this.formats.privateTransaction, transaction);
 
         return result;

@@ -48,6 +48,11 @@ To bash into the to the Pantheon image used by the quickstart
 docker run -it --entrypoint=sh quickstart/pantheon:develop-privacy
 ```
 
+To bash into a running docker compose service. eg node1
+```
+docker-compose exec node1 sh
+```
+
 ### Web3.js
 Pantheon has an [EEA JavaScript library](https://github.com/PegaSysEng/web3js-eea#eea-javascript-libraries---eeajs) that is an extension of the [Web3.js](https://web3js.readthedocs.io/en/1.0/) JavaScript library. The EEA JavaScript library is an alternative to this Ethers.js extended library. It can also be used as a reference to how Pantheon privacy transactions are encoded.
 
