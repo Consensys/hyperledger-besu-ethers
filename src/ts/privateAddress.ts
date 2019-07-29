@@ -14,7 +14,8 @@ export function getPrivateAddress(privateAddress: string): string {
         // 32 bytes hexadecimal encoded with 0x prefix gives 64 + 2 = 66 characters
         if (privateAddress.length === 66) {
             // convert to hex to string in base64 encoding
-            return privateAddress;
+            const buf = Buffer.from(privateAddress.substring(2), 'hex')
+            return buf.toString('base64');
         }
         else {
             return errors.throwArgumentError(`invalid hexadecimal encoded private address. Length ${privateAddress.length} and not 66`, "private address", privateAddress);

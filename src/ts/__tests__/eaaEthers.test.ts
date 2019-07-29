@@ -144,7 +144,7 @@ describe('EEA Ethers', () => {
                 privateFor: testPrivacyGroupOptions.privateFor
             }
 
-            const signedTransaction = await eeaWallet.signTransaction(unsignedTransaction)
+            const signedTransaction = await eeaWallet.signPrivateTransaction(unsignedTransaction)
 
             const tx = await providerNode3.sendPrivateTransaction(signedTransaction)
             expect(tx.hash).toMatch(utils.RegEx.transactionHash)
@@ -262,16 +262,15 @@ describe('EEA Ethers', () => {
                         ...txOptions
                     }
 
-                    const signedTransaction = await eeaWallet.signTransaction(unsignedTransaction)
+                    const signedTransaction = await eeaWallet.signPrivateTransaction(unsignedTransaction)
 
                     const tx = await providerNode1.sendPrivateTransaction(signedTransaction)
                     expect(tx.hash).toMatch(utils.RegEx.transactionHash)
                     publicTxHash = tx.hash
                     expect(tx.nonce).toEqual(unsignedTransaction.nonce)
                     expect(tx.data).toEqual(unsignedTransaction.data)
-                    // TODO need to fix
-                    // expect(tx.privateFor).toEqual(unsignedTransaction.privateFor)
-                    // expect(tx.privateFrom).toEqual(unsignedTransaction.privateFrom)
+                    expect(tx.privateFor).toEqual(unsignedTransaction.privateFor)
+                    expect(tx.privateFrom).toEqual(unsignedTransaction.privateFrom)
                     expect(tx.chainId).toEqual(unsignedTransaction.chainId)
                     // expect(tx.gasPrice).toEqual(unsignedTransaction.gasPrice)
                     // expect(tx.gasLimit).toEqual(unsignedTransaction.gasLimit)
@@ -331,11 +330,13 @@ describe('EEA Ethers', () => {
                     expect(txReceiptNode2.contractAddress).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceiptNode2.from).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceiptNode2.to).toBeUndefined()
+                })
 
+                test('try and get private transaction receipt from node not in transaction', async() => {
                     // TODO currently failing. Have raised https://pegasys1.atlassian.net/browse/PAN-2928
                     const txReceiptNode3 = await providerNode3.getPrivateTransactionReceipt(publicTxHash)
                     expect(txReceiptNode3).toBeNull()
-                }, 15000)
+                })
 
                 test('get public transaction by hash', async () => {
                     const txNode1 = await providerNode1.getTransaction(publicTxHash)
