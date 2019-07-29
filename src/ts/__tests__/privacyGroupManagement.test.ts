@@ -67,6 +67,7 @@ describe('Privacy Group Management APIs', () => {
                 expect(results).toHaveLength(1)
             })
 
+            // TODO this test grinds Docker to halt
             // test('find privacy group from node1 that is NOT a member', async () => {
             //     const results = await providerNode1.findPrivacyGroup([node2, node3])
             //     expect(results).toHaveLength(0)
@@ -99,27 +100,27 @@ describe('Privacy Group Management APIs', () => {
                 expect(deletedPrivacyGroupId).toEqual(firstPrivacyGroupId)
 
                 const results = await providerNode2.findPrivacyGroup([node2, node3])
+                expect(results).toHaveLength(1)
+            })
+
+            test('deleted privacy group has propagated to node3', async () => {
+                const results = await providerNode3.findPrivacyGroup([node2, node3])
+                expect(results).toHaveLength(1)
+            })
+
+            // TODO delete once create does not duplicate
+            test('node3 deletes duplicate privacy group', async () => {
+                const result = await providerNode3.deletePrivacyGroup(node3, duplicatePrivacyGroupId)
+                expect(result).toEqual(duplicatePrivacyGroupId)
+
+                const results = await providerNode3.findPrivacyGroup([node2, node3])
                 expect(results).toHaveLength(0)
             })
 
-            // test('deleted privacy group has propagated to node3', async () => {
-            //     const results = await providerNode3.findPrivacyGroup([node2, node3])
-            //     expect(results).toHaveLength(1)
-            // })
-            //
-            // // TODO delete once create does not duplicate
-            // test('node3 deletes duplicate privacy group', async () => {
-            //     const result = await providerNode3.deletePrivacyGroup(node3, duplicatePrivacyGroupId)
-            //     expect(result).toEqual(duplicatePrivacyGroupId)
-            //
-            //     const results = await providerNode3.findPrivacyGroup([node2, node3])
-            //     expect(results).toHaveLength(0)
-            // })
-            //
-            // test('deleted privacy group has propagated to node2', async () => {
-            //     const results = await providerNode2.findPrivacyGroup([node2, node3])
-            //     expect(results).toHaveLength(0)
-            // })
+            test('deleted privacy group has propagated to node2', async () => {
+                const results = await providerNode2.findPrivacyGroup([node2, node3])
+                expect(results).toHaveLength(0)
+            })
         })
 
         // describe('Successful', () => {
