@@ -40,7 +40,7 @@ A blockchain explorer will be at http://localhost:32768
 
 To tail the logs of a specific docker servive. eg node 1
 ```bash
-docker-compose logs -f node1
+docker-compose logs -f node1 orion1
 ```
 
 To bash into the to the Pantheon image used by the quickstart
@@ -49,9 +49,16 @@ docker run -it --entrypoint=sh quickstart/pantheon:develop-privacy
 ```
 
 To bash into a running docker compose service. eg node1
-```
+```bash
 docker-compose exec node1 sh
 ```
+
+To pull the latest Pantheon docker image from the `develop` branch
+```bash
+docker image pull pegasyseng/pantheon:develop
+```
+
+There are three pre-funded accounts if you run Pantheon in dev mode. See the alloc section in https://github.com/PegaSysEng/pantheon/blob/master/config/src/main/resources/dev.json
 
 ### Web3.js
 Pantheon has an [EEA JavaScript library](https://github.com/PegaSysEng/web3js-eea#eea-javascript-libraries---eeajs) that is an extension of the [Web3.js](https://web3js.readthedocs.io/en/1.0/) JavaScript library. The EEA JavaScript library is an alternative to this Ethers.js extended library. It can also be used as a reference to how Pantheon privacy transactions are encoded.
@@ -59,6 +66,11 @@ Pantheon has an [EEA JavaScript library](https://github.com/PegaSysEng/web3js-ee
 ## Ethers.js version
 
 Currently, Ethers.js version 5 is used as it is more module making it easier to extend the transaction serialization and parsing. See Richard's blog on [Beta Release: ethers.js v5](https://blog.ricmoo.com/beta-release-ethers-js-v5-59d0db222d7b) for more details.
+
+For regression testing purposes, ethers version 4 is also installed in the devDependencies. This uses a npm alias which is available from npm version 6.9.0. See (this)[https://stackoverflow.com/a/56495895/3144809] Stack Overflow answer for more information.
+```bash
+npm i ethers-4@npm:ethers@4.0.33
+```
 
 Ethers version 5
 * [Documentation](https://docs.ethers.io/ethers.js/v5-beta/)

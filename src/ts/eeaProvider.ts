@@ -82,7 +82,7 @@ export class EeaJsonRpcSigner extends JsonRpcSigner {
     }
 
     sendPrivateTransaction(transaction: EeaTransactionRequest): Promise<EeaTransactionResponse> {
-        return this.sendUncheckedTransaction(transaction).then((hash) => {
+        return this.sendPrivateUncheckedTransaction(transaction).then((hash) => {
             return poll(() => {
                 return this.provider.getPrivateTransaction(hash).then((tx: EeaTransactionResponse) => {
                     if (tx === null) { return undefined; }
@@ -353,26 +353,26 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
                     });
 
             case "getPrivateTransactionCount":
-                return this.send("eea_getTransactionCount", [ getLowerCase(params.address), params.privacyGroupId ]);
+                return this.send("priv_getTransactionCount", [ getLowerCase(params.address), params.privacyGroupId ]);
 
             case "getPrivateTransactionReceipt":
                 return this.send("eea_getTransactionReceipt", [ params.transactionHash ]);
 
             case "getPrivateTransaction":
-                return this.send("eea_getPrivateTransaction", [ params.transactionHash ]);
+                return this.send("priv_getPrivateTransaction", [ params.transactionHash ]);
 
             case "createPrivacyGroup":
-                return this.send("eea_createPrivacyGroup", [
+                return this.send("priv_createPrivacyGroup", [
                     params.privateFrom,
                     params.name,
                     params.description,
                     params.addresses]);
 
             case "deletePrivacyGroup":
-                return this.send("eea_deletePrivacyGroup", [ params.privateFrom, params.privacyGroupId ]);
+                return this.send("priv_deletePrivacyGroup", [ params.privateFrom, params.privacyGroupId ]);
 
             case "findPrivacyGroup":
-                return this.send("eea_findPrivacyGroup", [ params.addresses ]);
+                return this.send("priv_findPrivacyGroup", [ params.addresses ]);
 
             default:
                 return super.perform(method, params)

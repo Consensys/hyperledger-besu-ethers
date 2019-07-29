@@ -1,7 +1,7 @@
 
 import * as privacyGroup from '../privacyGroup'
 
-describe('Privacy Group', () => {
+describe('Privacy Group unit tests', () => {
 
     describe('generate privacy group id', () => {
 

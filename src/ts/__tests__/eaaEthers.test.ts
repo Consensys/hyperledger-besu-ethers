@@ -25,7 +25,6 @@ providerNode3.on('debug', (info) => {
 const node1 = 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo='
 const node2 = 'Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='
 const node3 = 'k2zXEin4Ip/qBGlRkJejnGWdP9cjkK+DAvKNW31L2C8='
-const invalidNode = '00000000000000000000000000000000000000000001'
 
 describe('EEA Ethers', () => {
 
@@ -68,7 +67,7 @@ describe('EEA Ethers', () => {
         // From web3js-eea eventEmitter example
         const eeaSignedRlpEncoded = '0xf9031f8080832dc6c08080b90281608060405234801561001057600080fd5b50336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550610221806100606000396000f300608060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680633fa4f2451461005c5780636057361d1461008757806367e404ce146100b4575b600080fd5b34801561006857600080fd5b5061007161010b565b6040518082815260200191505060405180910390f35b34801561009357600080fd5b506100b260048036038101908080359060200190929190505050610115565b005b3480156100c057600080fd5b506100c96101cb565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b6000600254905090565b7fc9db20adedc6cf2b5d25252b101ab03e124902a73fcb12b753f3d1aaa2d8f9f53382604051808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018281526020019250505060405180910390a18060028190555033600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b6000600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff169050905600a165627a7a723058208efaf938851fb2d235f8bf9a9685f149129a30fe0f4b20a6c1885dc02f639eba0029820fe7a0ea2340ef4a0d32e2c44fed9b8d880a38a1ecfbef618ca0234a404c2360719617a063acf2ee8286787f3ebb640da56ded5952c8bdc8d1bf374e2dfe5afdeb79bea8a0035695b4cc4b0941e60551d7a19cf30603db5bfc23e5ac43a56f57f25f75486ae1a02a8d9b56a0fe9cd94d60be4413bcb721d3a7be27ed8e28b3a6346df874ee141b8a72657374726963746564'
 
-        const signedTransaction = await wallet.signTransaction(unsignedTransaction)
+        const signedTransaction = await wallet.signPrivateTransaction(unsignedTransaction)
         expect(signedTransaction).toEqual(eeaSignedRlpEncoded)
 
         const parsedTransaction = providerNode1.formatter.transaction(signedTransaction)
@@ -80,146 +79,6 @@ describe('EEA Ethers', () => {
         test('missing hash', async () => {
             const result = await providerNode1.getPrivateTransactionReceipt('0x0000000000000000000000000000000000000000000000000000000000000001')
             expect(result).toBeNull()
-        })
-    })
-
-    describe('privacy group management', () => {
-
-        describe('Create, find and delete', () => {
-
-            let firstPrivacyGroupId: string
-            let duplicatePrivacyGroupId: string
-
-            test('no existing privacy groups', async () => {
-                const results = await providerNode2.findPrivacyGroup([node2, node3])
-                expect(results).toHaveLength(0)
-            })
-
-            test('Create privacy group', async () => {
-                firstPrivacyGroupId = await providerNode2.createPrivacyGroup(
-                    node2,
-                    'Node2_3',
-                    'node2, [node2, node3]',
-                    [node2, node3])
-                expect(firstPrivacyGroupId).toMatch(utils.RegEx.base64)
-                expect(firstPrivacyGroupId).toHaveLength(44)
-            })
-
-            test('find privacy group from node2 that created it', async () => {
-                const results = await providerNode2.findPrivacyGroup([node2, node3])
-                expect(results).toHaveLength(1)
-            })
-
-            test('find privacy group from node3 that is a member', async () => {
-                const results = await providerNode3.findPrivacyGroup([node2, node3])
-                expect(results).toHaveLength(1)
-            })
-
-            test('find privacy group from node1 that is NOT a member', async () => {
-                const results = await providerNode1.findPrivacyGroup([node2, node3])
-                expect(results).toHaveLength(0)
-            })
-
-            test('Duplicate privacy group', async () => {
-                duplicatePrivacyGroupId = await providerNode2.createPrivacyGroup(
-                    node2,
-                    'Node2_3',
-                    'node2, [node2, node3]',
-                    [node2, node3])
-                expect(duplicatePrivacyGroupId).toMatch(utils.RegEx.base64)
-                expect(duplicatePrivacyGroupId).toHaveLength(44)
-                expect(duplicatePrivacyGroupId).toEqual(firstPrivacyGroupId)
-            })
-
-            test('node1 can\'t delete a privacy group they are not a member of', async () => {
-                expect.assertions(2)
-                try {
-                    await providerNode1.deletePrivacyGroup(node2, firstPrivacyGroupId)
-                }
-                catch (err) {
-                    expect(err).toBeInstanceOf(Error)
-                    expect(err.message).toMatch(/Error deleting privacy group/)
-                }
-            })
-
-            test('node2 deletes first privacy group', async () => {
-                const deletedPrivacyGroupId = await providerNode2.deletePrivacyGroup(node2, firstPrivacyGroupId)
-                expect(deletedPrivacyGroupId).toEqual(firstPrivacyGroupId)
-
-                const results = await providerNode2.findPrivacyGroup([node2, node3])
-                expect(results).toHaveLength(1)
-            })
-
-            test('deleted privacy group has propagated to node3', async () => {
-                const results = await providerNode3.findPrivacyGroup([node2, node3])
-                expect(results).toHaveLength(1)
-            })
-
-            // TODO delete once create does not duplicate
-            test('node3 deletes duplicate privacy group', async () => {
-                const result = await providerNode3.deletePrivacyGroup(node3, duplicatePrivacyGroupId)
-                expect(result).toEqual(duplicatePrivacyGroupId)
-
-                const results = await providerNode3.findPrivacyGroup([node2, node3])
-                expect(results).toHaveLength(0)
-            })
-
-            test('deleted privacy group has propagated to node2', async () => {
-                const results = await providerNode2.findPrivacyGroup([node2, node3])
-                expect(results).toHaveLength(0)
-            })
-        })
-
-        describe('Successful', () => {
-
-            const privacyGroups: string[] = []
-
-            test.each`
-            reason | privateFrom | name | description | addresses
-            ${'all three nodes'} | ${node1} | ${'Short name'} | ${'Top secret stuff in this long description'} | ${[node1, node2, node3]}
-            ${'duplicate'} | ${node1}  | ${'Short name'} | ${'Top secret stuff in this long description'} | ${[node1, node2, node3]}
-            ${'all three nodes diff name and desc'} | ${node1}  | ${'Second group'} | ${'Second group with the same members'} | ${[node1, node2, node3]}
-            ${'only self in group'} | ${node3} | ${'Self'} | ${'Only self in group'} | ${[node3]}
-            `('$reason when privateFrom $privateFrom, name $name, description $description and addresses $addresses',
-                async ({privateFrom, name, description, addresses}) => {
-                    const privacyGroupId = await providerNode1.createPrivacyGroup(privateFrom, name, description, addresses)
-                    expect(privacyGroupId).toMatch(utils.RegEx.base64)
-                    expect(privacyGroupId).toHaveLength(44)
-
-                    privacyGroups.push(privacyGroupId)
-                })
-
-            test('delete each groups', () => {
-                privacyGroups.forEach(async (privacyGroupId) => {
-                    const result = await providerNode1.deletePrivacyGroup(node1, privacyGroupId)
-                    expect(result).toEqual(privacyGroupId)
-                })
-            })
-        })
-
-        describe('Failed', () => {
-            test.each`
-            reason | errorRegEx | privateFrom | name | description | addresses
-            ${'privateFrom undefined'} | ${/Invalid params/} | ${undefined}  | ${'Test'} | ${'Test desc'} | ${[node2, node3]}
-            ${'addresses undefined'} | ${/Invalid params/} | ${node1}  | ${'Test'} | ${'Test desc'} | ${undefined}
-            ${'addresses empty array'} | ${/Error creating privacy group/} | ${node1}  | ${'Test'} | ${'Test desc'} | ${[]}
-            ${'invalid node in addresses'} | ${/Error creating privacy group/} | ${node2}  | ${'Test'} | ${'Test desc'} | ${[node2, invalidNode]}
-            ${'invalid privateFrom'} | ${/Error creating privacy group/} | ${invalidNode}  | ${'Test'} | ${'Test desc'} | ${[node2, node3]}
-            ${'privateFrom not in addresses'} | ${/the list of addresses should include self/} | ${node1}  | ${'Second group'} | ${'Second group with the same members'} | ${[node2, node3]}
-            `('$reason to fail with $errorRegEx when privateFrom $privateFrom, name $name, description $description and addresses $addresses',
-
-                async ({privateFrom, errorRegEx, name, description, addresses}) => {
-
-                    expect.assertions(2)
-
-                    try {
-                        await providerNode1.createPrivacyGroup(privateFrom, name, description, addresses)
-                    }
-                    catch (err) {
-                        expect(err).toBeInstanceOf(Error)
-                        expect(err.message).toMatch(errorRegEx)
-                    }
-                })
         })
     })
 

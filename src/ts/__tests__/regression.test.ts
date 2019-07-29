@@ -1,6 +1,8 @@
 import { readFileSync } from 'fs'
 
 import { Contract, ContractFactory, Wallet, providers } from '../index'
+// import { Contract, ContractFactory, Wallet, providers } from 'ethers'   // version 5
+// import { Contract, ContractFactory, Wallet, providers } from 'ethers-4'
 import { ethereumAddress, transactionHash } from '../utils/RegEx'
 
 const url = "http://localhost:20000";
@@ -13,7 +15,9 @@ provider.on('debug', (info) => {
 describe('Ethers Regression', () => {
 
     const noEtherWallet = new Wallet('0x1000000000000000000000000000000000000000000000000000000000000000')
-    const etherWallet = new Wallet('0x0000000000000000000000000000000000000000000000000000000000000001')
+    // one of the three pre-funded dev accounts
+    // https://github.com/PegaSysEng/pantheon/blob/master/config/src/main/resources/dev.json
+    const etherWallet = new Wallet('0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63')
 
     describe('account', () => {
 
@@ -64,8 +68,8 @@ describe('Ethers Regression', () => {
             const txReceipt = await provider.getTransactionReceipt(txHash)
             expect(txReceipt.transactionHash).toEqual(txHash)
             expect(txReceipt.from).toEqual(await contractWallet.getAddress())
-            expect(txReceipt.to).toBeUndefined()
             expect(txReceipt.contractAddress).toEqual(contract.address)
+            expect(txReceipt.to).toBeNull()
         })
 
         test('get transaction', async () => {
@@ -73,7 +77,7 @@ describe('Ethers Regression', () => {
             expect(tx.hash).toEqual(txHash)
             expect(tx.from).toEqual(await contractWallet.getAddress())
             expect(tx.data).toEqual(contract.deployTransaction.data)
-            // expect(tx.to).toEqual('0x0')
+            expect(tx.to).toEqual(contract.address)
         })
 
         // call a function
