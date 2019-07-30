@@ -1,0 +1,16 @@
+@startuml
+participant dApp
+participant Pantheon
+participant Orion
+
+note left of Pantheon: JSON-RPC
+dApp -> Pantheon: priv_createPrivacyGroup(creator Orion pub key, name, desc, members[])
+activate Pantheon
+note left of Orion : REST
+Pantheon -> Orion: createPrivacyGroup(creator Orion pub key, name, desc, members[])
+activate Orion
+return privacyGroupId, type = PANTHEON
+return privacyGroupId
+
+
+@enduml

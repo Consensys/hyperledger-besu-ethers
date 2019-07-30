@@ -1,0 +1,70 @@
+@startuml
+skinparam maxMessageSize 350 
+
+participant dApp
+participant Pantheon
+participant Orion
+
+note left of Pantheon #aqua: JSON-RPC
+
+' reatePrivacyGroup
+dApp -> Pantheon: priv_createPrivacyGroup(creator Orion pub key, name, desc, members[])
+activate Pantheon
+note left of Orion #aqua: REST
+Pantheon -> Orion: createPrivacyGroup(creator Orion pub key, name, desc, members[])
+activate Orion
+return privacyGroupId, type = PANTHEON
+return privacyGroupId
+
+' getTransactionCount
+dApp -> Pantheon: priv_getTransactionCount(signer address, privacyGroupId)
+activate Pantheon
+return quantity
+note left: nonce = quantity
+
+dApp->dApp: RLP encode(data, nonce, privateFrom = Orion pub key, privateFor = privacyGroupId, restriction = restricted)
+note left
+    data is rlp encoded
+    contract deployment
+    or call
+end note
+dApp->dApp: sign(rlp encoded private transaction, signer private key)
+
+' sendRawTransaction
+dApp -> Pantheon: eea_sendRawTransaction(rlp encoded signed private transaction)
+activate Pantheon
+Pantheon -> Pantheon: base64 encode(rlp encoded signed private transaction)
+Pantheon -> Orion: send(payload = base64 encoded private transaction, from = Orion pub key, privacyGroupId)
+activate Orion
+loop each member
+Orion -> Orion: encrypt(member Orion public key, payload)
+Orion -> Orion: sendToMember(member Orion public key, encrypted payload)
+end
+return private transaction key
+Pantheon -> Pantheon: sign public transaction(node private key, data = private tx hash)
+Pantheon -> Pantheon: add public transaction to mempool
+return public tx hash
+
+' getTransactionByHash
+dApp -> Pantheon: eth_getTransactionByHash(public tx hash)
+activate Pantheon
+return public market transaction
+note left
+    private tx hash =
+    input field of
+    public marker
+    transaction
+end note
+
+' getPrivateTransaction
+dApp -> Pantheon: priv_getPrivateTransaction(private tx hash)
+activate Pantheon
+Pantheon -> Pantheon: getPrivacyGroupId(private tx hash)
+Pantheon -> Pantheon: getPrivateTxKey(private tx hash)
+Pantheon -> Orion: receive(key = private transaction key, to = privacyGroupId)
+activate Orion
+return payload = base64 encoded private transaction
+Pantheon -> Pantheon: decode(base64 encoded private transaction): private transaction
+return private transaction
+
+@enduml
