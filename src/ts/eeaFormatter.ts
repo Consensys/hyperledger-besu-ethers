@@ -40,8 +40,8 @@ export class EeaFormatter extends Formatter {
             // Format of API response of eea_getTransactionReceipt
             // which is called in EeaJsonRpcProvider.getPrivateTransactionReceipt
             privateReceipt: {
-                to: Formatter.allowNull(this.address),
-                from: Formatter.allowNull(this.address),
+                to: Formatter.allowNull(this.address, null),
+                from: Formatter.allowNull(this.address, null),
                 contractAddress: Formatter.allowNull(this.address.bind(this), null),
                 logs: Formatter.arrayOf(this.receiptLog.bind(this)),
                 output: Formatter.allowNull(this.data.bind(this))
@@ -49,10 +49,12 @@ export class EeaFormatter extends Formatter {
 
             privateTransaction: {
                 ...superFormats.transaction,
+                publicHash: Formatter.allowNull(null, null),
+                privateHash: this.hash.bind(this),
                 // Add extra EEA fields
-                privateFrom: Formatter.allowNull(this.privateAddress),
-                privateFor: Formatter.allowNull(this.privateFor.bind(this)),
-                restriction: Formatter.allowNull(this.restriction),
+                privateFrom: Formatter.allowNull(this.privateAddress, null),
+                privateFor: this.privateFor.bind(this),
+                restriction: this.restriction,
             }
         }
     }
@@ -117,6 +119,14 @@ export class EeaFormatter extends Formatter {
         if (transaction.gas != null && transaction.gasLimit == null) {
             transaction.gasLimit = transaction.gas;
         }
+
+        // Rename hash to privateHash
+        if (transaction.hash != null && transaction.privateHash == null) {
+            transaction.privateHash = transaction.hash
+        }
+
+        // we don't have enough information to set the hash of the public market transaction
+        transaction.publicHash = null
 
         let result = Formatter.check(this.formats.privateTransaction, transaction);
 

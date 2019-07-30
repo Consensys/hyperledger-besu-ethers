@@ -1,5 +1,5 @@
 
-import { TransactionReceipt, TransactionRequest } from "@ethersproject/abstract-provider";
+import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { BigNumber } from "@ethersproject/bignumber";
 import { hexDataLength, hexValue } from "@ethersproject/bytes";
 import { hexlify } from "./bytes";
@@ -11,7 +11,7 @@ import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
 
 import { EeaFormatter } from './eeaFormatter'
 import { PrivacyGroupOptions, generatePrivacyGroup } from './privacyGroup'
-import { allowedTransactionKeys, EeaTransaction, EeaTransactionResponse } from './eeaTransaction'
+import { allowedTransactionKeys, EeaTransaction, EeaTransactionReceipt, EeaTransactionResponse } from './eeaTransaction'
 import { EeaTransactionRequest } from './eeaWallet'
 
 const _constructorGuard = {};
@@ -180,21 +180,14 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         });
     }
 
-    _wrapPrivateTransaction(tx: EeaTransaction, hash?: string): EeaTransactionResponse {
-        if (hash != null && hexDataLength(hash) !== 32) { throw new Error("invalid response - sendPrivateTransaction"); }
+    _wrapPrivateTransaction(tx: EeaTransaction, publicHash?: string): EeaTransactionResponse {
+        if (publicHash != null && hexDataLength(publicHash) !== 32) {
+            errors.throwArgumentError("invalid public hash", "publicHash" , publicHash);
+        }
 
-        // @ts-ignore
         let result = <EeaTransactionResponse>tx;
 
-        // Check the hash we expect is the same as the hash the server reported
-        if (hash != null && tx.hash !== hash) {
-            // TODO do not throw an error for now.
-            // Pantheon derives the transaction hash differently for private transactions so will remove this check for now
-            // Pantheon transaction hash code
-            // https://github.com/PegaSysEng/pantheon/blob/8d43c888491e10905c42be9a4feedbb1332c4ef5/ethereum/core/src/main/java/tech/pegasys/pantheon/ethereum/privacy/PrivateTransaction.java#L385
-            tx.hash = hash
-            // errors.throwError("Transaction hash mismatch from Provider.sendPrivateTransaction.", errors.UNKNOWN_ERROR, { expectedHash: tx.hash, returnedHash: hash });
-        }
+        tx.publicHash = publicHash
 
         // @TODO: (confirmations? number, timeout? number)
         result.wait = (confirmations?: number) => {
@@ -203,18 +196,18 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
             // another story), so setting an emitted value forces us to
             // wait even if the node returns null for the receipt
             if (confirmations !== 0) {
-                this._emitted["t:" + tx.hash] = "pending";
+                this._emitted["t:" + tx.publicHash] = "pending";
             }
 
-            return this.waitForTransaction(tx.hash, confirmations).then((receipt) => {
+            return this.waitForTransaction(tx.publicHash, confirmations).then((receipt) => {
                 if (receipt == null && confirmations === 0) { return null; }
 
                 // No longer pending, allow the polling loop to garbage collect this
-                this._emitted["t:" + tx.hash] = receipt.blockNumber;
+                this._emitted["t:" + tx.publicHash] = receipt.blockNumber;
 
                 if (receipt.status === 0) {
                     errors.throwError("transaction failed", errors.CALL_EXCEPTION, {
-                        transactionHash: tx.hash,
+                        publicHash: tx.publicHash,
                         transaction: tx
                     });
                 }
@@ -237,9 +230,9 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         });
     }
 
-    getPrivateTransactionReceipt(transactionHash: string): Promise<TransactionReceipt> {
+    getPrivateTransactionReceipt(privateTransactionHash: string): Promise<EeaTransactionReceipt> {
         return this.ready.then(() => {
-            return resolveProperties({ transactionHash: transactionHash }).then(({ transactionHash }) => {
+            return resolveProperties({ transactionHash: privateTransactionHash }).then(({ transactionHash }) => {
                 let params = { transactionHash: this.formatter.hash(transactionHash, true) };
                 return poll(() => {
                     return this.perform("getPrivateTransactionReceipt", params).then((result) => {
@@ -252,7 +245,10 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
 
                         return this.formatter.privateReceipt(result);
                     }).catch((err) => {
-                        errors.throwError(`Failed to get private transaction receipt for tx hash ${transactionHash}. Error: ${err.message}`, err.code, err);
+                        errors.throwError(`Failed to get private transaction receipt. Error: ${err.message}`, err.code, {
+                            err,
+                            privateTransactionHash,
+                        });
                     });
                 }, { onceBlock: this });
             });

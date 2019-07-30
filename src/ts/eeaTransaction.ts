@@ -110,7 +110,8 @@ export type EeaUnsignedTransaction = {
 }
 
 export interface EeaTransaction {
-    hash?: string;
+    publicHash?: string;
+    privateHash?: string;
 
     to?: string;
     from?: string;
@@ -290,7 +291,7 @@ export function parse(rawTransaction: BytesLike): EeaTransaction {
             console.log(error);
         }
 
-        tx.hash = keccak256(rawTransaction);
+        tx.privateHash = keccak256(rawTransaction);
     }
 
     return tx;

@@ -11,6 +11,7 @@ import { BytesLike } from "@ethersproject/bytes";
 
 import { EeaTransactionResponse, serialize } from './eeaTransaction'
 import { EeaJsonRpcProvider } from './eeaProvider'
+import {PrivacyGroupOptions} from './privacyGroup'
 
 export interface EeaTransactionRequest {
     to?: string | Promise<string>
@@ -70,7 +71,7 @@ export class EeaWallet extends Wallet {
 
             if (tx.to != null) { tx.to = Promise.resolve(tx.to).then((to) => this.resolveName(to)); }
             if (tx.gasPrice == null) { tx.gasPrice = this.getGasPrice(); }
-            if (tx.nonce == null) { tx.nonce = this.getTransactionCount("pending"); }
+            if (tx.nonce == null) { tx.nonce = this.getPrivateTransactionCount(transaction); }
 
             // Make sure any provided address matches this signer
             if (tx.from == null) {
@@ -92,6 +93,11 @@ export class EeaWallet extends Wallet {
 
             return resolveProperties(tx);
         });
+    }
+
+    getPrivateTransactionCount(privacyGroupOptions: PrivacyGroupOptions): Promise<number> {
+        this._checkProvider("getPrivateTransactionCount");
+        return this.provider.getPrivateTransactionCount(this.getAddress(), privacyGroupOptions);
     }
 
     checkTransaction(transaction: EeaTransactionRequest): EeaTransactionRequest {
