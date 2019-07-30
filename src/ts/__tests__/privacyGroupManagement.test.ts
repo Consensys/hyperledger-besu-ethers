@@ -86,7 +86,7 @@ describe('Privacy Group Management APIs', () => {
             test('node1 can\'t delete a privacy group they are not a member of', async () => {
                 expect.assertions(2)
                 try {
-                    await providerNode1.deletePrivacyGroup(node2, firstPrivacyGroupId)
+                    await providerNode1.deletePrivacyGroup(firstPrivacyGroupId)
                 }
                 catch (err) {
                     expect(err).toBeInstanceOf(Error)
@@ -95,7 +95,7 @@ describe('Privacy Group Management APIs', () => {
             })
 
             test('node2 deletes first privacy group', async () => {
-                const deletedPrivacyGroupId = await providerNode2.deletePrivacyGroup(node2, firstPrivacyGroupId)
+                const deletedPrivacyGroupId = await providerNode2.deletePrivacyGroup(firstPrivacyGroupId)
                 expect(deletedPrivacyGroupId).toEqual(firstPrivacyGroupId)
 
                 const results = await providerNode2.findPrivacyGroup([node2, node3])
@@ -109,7 +109,7 @@ describe('Privacy Group Management APIs', () => {
 
             // TODO delete once create does not duplicate
             test('node3 deletes duplicate privacy group', async () => {
-                const result = await providerNode3.deletePrivacyGroup(node3, duplicatePrivacyGroupId)
+                const result = await providerNode3.deletePrivacyGroup(duplicatePrivacyGroupId)
                 expect(result).toEqual(duplicatePrivacyGroupId)
 
                 const results = await providerNode3.findPrivacyGroup([node2, node3])
@@ -143,7 +143,7 @@ describe('Privacy Group Management APIs', () => {
 
             test('delete each groups', () => {
                 privacyGroups.forEach(async (privacyGroupId) => {
-                    const result = await providerNode1.deletePrivacyGroup(node1, privacyGroupId)
+                    const result = await providerNode1.deletePrivacyGroup(privacyGroupId)
                     expect(result).toEqual(privacyGroupId)
                 })
             })

@@ -57,10 +57,10 @@ note left
 end note
 
 ' getPrivateTransaction
-dApp -> Pantheon: priv_getPrivateTransaction(private tx hash)
+dApp -> Pantheon: priv_getPrivateTransaction(public tx hash)
 activate Pantheon
-Pantheon -> Pantheon: getPrivacyGroupId(private tx hash)
-Pantheon -> Pantheon: getPrivateTxKey(private tx hash)
+Pantheon -> Pantheon: getPrivacyGroupId(public tx hash)
+Pantheon -> Pantheon: getPrivateTxKey(public tx hash)
 Pantheon -> Orion: receive(key = private transaction key, to = privacyGroupId)
 activate Orion
 return payload = base64 encoded private transaction

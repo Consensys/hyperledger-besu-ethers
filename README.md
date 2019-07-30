@@ -53,9 +53,10 @@ To bash into a running docker compose service. eg node1
 docker-compose exec node1 sh
 ```
 
-To pull the latest Pantheon docker image from the `develop` branch
+To pull the latest Pantheon docker image from the `develop` branch and build a `quickstart/pantheon:develop-privacy` image
 ```bash
 docker image pull pegasyseng/pantheon:develop
+docker-compose build bootnode
 ```
 
 There are three pre-funded accounts if you run Pantheon in dev mode. See the alloc section in https://github.com/PegaSysEng/pantheon/blob/master/config/src/main/resources/dev.json

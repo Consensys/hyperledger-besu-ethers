@@ -307,11 +307,9 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
     }
 
     deletePrivacyGroup(
-        privateFrom: string | Promise<string>,
         privacyGroupId: string | Promise<string>,
     ): Promise<string> {
         return this._runPerform("deletePrivacyGroup", {
-            privateFrom: () => Promise.resolve(privateFrom),
             privacyGroupId: () => Promise.resolve(privacyGroupId),
         });
     }
@@ -369,6 +367,9 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
 
             case "findPrivacyGroup":
                 return this.send("priv_findPrivacyGroup", [ params.addresses ]);
+
+            case "getPrivacyPrecompileAddress":
+                return this.send("priv_getPrivacyPrecompileAddress", []);
 
             default:
                 return super.perform(method, params)
