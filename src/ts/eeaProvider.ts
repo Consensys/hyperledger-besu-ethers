@@ -16,6 +16,13 @@ import { EeaTransactionRequest } from './eeaWallet'
 
 const _constructorGuard = {};
 
+export interface FindPrivacyGroup {
+    privacyGroupId: string,
+    members: string[],
+    name?: string,
+    description?: string,
+}
+
 export class EeaJsonRpcSigner extends JsonRpcSigner {
 
     readonly provider: EeaJsonRpcProvider
@@ -316,10 +323,14 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
 
     findPrivacyGroup(
         addresses: string[] | Promise<string[]>,
-    ): Promise<string[]> {
+    ): Promise<FindPrivacyGroup[]> {
         return this._runPerform("findPrivacyGroup", {
             addresses: () => Promise.resolve(addresses),
         });
+    }
+
+    getPrivacyPrecompileAddress(): Promise<string> {
+        return this._runPerform("getPrivacyPrecompileAddress", {});
     }
 
     // Override the base perform method to add the eea calls
@@ -363,7 +374,7 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
                     params.addresses]);
 
             case "deletePrivacyGroup":
-                return this.send("priv_deletePrivacyGroup", [ params.privateFrom, params.privacyGroupId ]);
+                return this.send("priv_deletePrivacyGroup", [ params.privacyGroupId ]);
 
             case "findPrivacyGroup":
                 return this.send("priv_findPrivacyGroup", [ params.addresses ]);

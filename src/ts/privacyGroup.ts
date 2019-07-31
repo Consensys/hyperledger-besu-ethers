@@ -5,7 +5,7 @@ import { keccak256 } from "@ethersproject/keccak256";
 import * as RLP from "./rlp"
 import * as RegEx from './utils/RegEx'
 
-export declare type PrivacyGroupOptions = {
+export interface PrivacyGroupOptions {
     privateFrom?: string;
     privateFor?: string[] | string;
     privacyGroupId?: string;

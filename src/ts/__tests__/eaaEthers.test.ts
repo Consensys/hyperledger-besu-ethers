@@ -1,7 +1,6 @@
 
 import * as eeaEthers from '../index'
 import {EeaWallet, generatePrivacyGroup, providers, EeaTransactionRequest, PrivacyGroupOptions, utils} from '../index'
-// import { EeaWallet, providers, EeaTransactionRequest } from '../index'
 
 jest.setTimeout(15000)
 
@@ -23,10 +22,11 @@ providerNode3.on('debug', (info) => {
     console.log(`Sent "${info.action}" action to node 3 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
 
+const preCompiledContractAddress = '0x000000000000000000000000000000000000007E'
 const node1 = 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo='
 const node2 = 'Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='
 const node3 = 'k2zXEin4Ip/qBGlRkJejnGWdP9cjkK+DAvKNW31L2C8='
-const node3Address = '0x8585DF6971EC5BE22543Dd8d46F97D100CcFE41E'
+const node3Address = '0x97193fAbEBfBF5bC3dd884d52472Cd76Ac986b09'
 
 describe('EEA Ethers', () => {
 
@@ -91,6 +91,11 @@ describe('EEA Ethers', () => {
             const result = await providerNode1.getPrivateTransactionReceipt('0x0000000000000000000000000000000000000000000000000000000000000001')
             expect(result).toBeNull()
         })
+    })
+
+    test('get precompiled contract', async () => {
+        const result = await providerNode1.getPrivacyPrecompileAddress()
+        expect(result).toEqual(preCompiledContractAddress.toLowerCase())
     })
 
     describe('Create privacy group and send transactions', () => {
@@ -182,7 +187,7 @@ describe('EEA Ethers', () => {
             const txReceipt = await providerNode3.waitForTransaction(tx.publicHash)
             expect(txReceipt.status).toEqual(1)
             expect(txReceipt.contractAddress).toBeNull()
-            expect(txReceipt.to).toEqual('0x000000000000000000000000000000000000007E')
+            expect(txReceipt.to).toEqual(preCompiledContractAddress)
         })
 
         describe('Post transaction count checks', () => {
@@ -273,7 +278,7 @@ describe('EEA Ethers', () => {
                     expect(txReceipt.status).toEqual(1)
                     expect(txReceipt.contractAddress).toBeNull()
                     expect(txReceipt.from).toEqual(node3Address)
-                    expect(txReceipt.to).toEqual('0x000000000000000000000000000000000000007E')
+                    expect(txReceipt.to).toEqual(preCompiledContractAddress)
                     expect(txReceipt.logs).toEqual([])
                 })
 
@@ -282,9 +287,8 @@ describe('EEA Ethers', () => {
                     expect(txReceipt.status).toEqual(1)
                     expect(txReceipt.contractAddress).toBeNull()
                     expect(txReceipt.from).toEqual(node3Address)
-                    expect(txReceipt.to).toEqual('0x000000000000000000000000000000000000007E')
+                    expect(txReceipt.to).toEqual(preCompiledContractAddress)
                     expect(txReceipt.logs).toEqual([])
-                    expect(txReceipt).toBeNull()
                 })
 
                 test('node 1', async() => {
@@ -292,7 +296,7 @@ describe('EEA Ethers', () => {
                     expect(txReceipt.status).toEqual(1)
                     expect(txReceipt.contractAddress).toBeNull()
                     expect(txReceipt.from).toEqual(node3Address)
-                    expect(txReceipt.to).toEqual('0x000000000000000000000000000000000000007E')
+                    expect(txReceipt.to).toEqual(preCompiledContractAddress)
                     expect(txReceipt.logs).toEqual([])
                 })
             })
@@ -347,9 +351,9 @@ describe('EEA Ethers', () => {
                 })
             })
 
-            describe('Get private transaction using private tx hash from', () => {
+            describe('Get private transaction using public tx hash from', () => {
                 test('node 3', async() => {
-                    const tx = await providerNode3.getPrivateTransaction(privateTxHash)
+                    const tx = await providerNode3.getPrivateTransaction(publicTxHash)
                     expect(tx.nonce).toEqual(prePrivateNonce)
                     // expect(tx.publicHash).toBeNull()
                     // expect(tx.privateHash).toEqual(privateTxHash)
@@ -367,12 +371,12 @@ describe('EEA Ethers', () => {
                 })
 
                 test('node 2', async() => {
-                    const tx = await providerNode2.getTransaction(privateTxHash)
+                    const tx = await providerNode2.getPrivateTransaction(publicTxHash)
                     expect(tx).toBeNull()
                 })
 
                 test('node 1', async() => {
-                    const tx = await providerNode1.getPrivateTransaction(privateTxHash)
+                    const tx = await providerNode1.getPrivateTransaction(publicTxHash)
                     expect(tx.nonce).toEqual(prePrivateNonce)
                     // expect(tx.publicHash).toBeNull()
                     // expect(tx.privateHash).toEqual(privateTxHash)
@@ -390,19 +394,19 @@ describe('EEA Ethers', () => {
                 })
             })
 
-            describe('Get private transaction using public tx hash from', () => {
+            describe('Get private transaction using private tx hash from', () => {
                 test('node 3', async() => {
-                    const txReceipt = await providerNode3.getPrivateTransaction(publicTxHash)
+                    const txReceipt = await providerNode3.getPrivateTransaction(privateTxHash)
                     expect(txReceipt).toBeNull()
                 })
 
                 test('node 2', async() => {
-                    const txReceipt = await providerNode2.getPrivateTransaction(publicTxHash)
+                    const txReceipt = await providerNode2.getPrivateTransaction(privateTxHash)
                     expect(txReceipt).toBeNull()
                 })
 
                 test('node 1', async() => {
-                    const txReceipt = await providerNode1.getPrivateTransaction(publicTxHash)
+                    const txReceipt = await providerNode1.getPrivateTransaction(privateTxHash)
                     expect(txReceipt).toBeNull()
                 })
             })
@@ -422,7 +426,6 @@ describe('EEA Ethers', () => {
                 let privateNonce: number
                 let publicNonce: number
                 let publicTxHash: string
-                let privateTxHash: string
                 let unsignedTransaction: EeaTransactionRequest
 
                 beforeAll(() => {
@@ -465,7 +468,7 @@ describe('EEA Ethers', () => {
 
                     const tx = await providerNode1.sendPrivateTransaction(signedTransaction)
                     expect(tx.privateHash).toMatch(utils.RegEx.transactionHash)
-                    publicTxHash = tx.privateHash
+                    publicTxHash = tx.publicHash
                     expect(tx.nonce).toEqual(unsignedTransaction.nonce)
                     expect(tx.data).toEqual(unsignedTransaction.data)
                     expect(tx.privateFor).toEqual(unsignedTransaction.privateFor)
@@ -474,8 +477,8 @@ describe('EEA Ethers', () => {
                     // expect(tx.gasPrice).toEqual(unsignedTransaction.gasPrice)
                     // expect(tx.gasLimit).toEqual(unsignedTransaction.gasLimit)
 
-                    // wait for the transaction to be mined
-                    const txReceipt = await providerNode1.waitForTransaction(tx.privateHash)
+                    // wait for the public transaction to be mined
+                    const txReceipt = await providerNode1.waitForTransaction(tx.publicHash)
                     expect(txReceipt.status).toEqual(1)
                     expect(txReceipt.contractAddress).toBeNull()
                 }, 30000)
@@ -523,12 +526,12 @@ describe('EEA Ethers', () => {
                     const txReceiptNode1 = await providerNode1.getPrivateTransactionReceipt(publicTxHash)
                     expect(txReceiptNode1.contractAddress).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceiptNode1.from).toMatch(utils.RegEx.ethereumAddress)
-                    expect(txReceiptNode1.to).toBeUndefined()
+                    expect(txReceiptNode1.to).toBeNull()
 
                     const txReceiptNode2 = await providerNode2.getPrivateTransactionReceipt(publicTxHash)
                     expect(txReceiptNode2.contractAddress).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceiptNode2.from).toMatch(utils.RegEx.ethereumAddress)
-                    expect(txReceiptNode2.to).toBeUndefined()
+                    expect(txReceiptNode2.to).toBeNull()
                 })
 
                 test('try and get private transaction receipt from node not in transaction', async() => {
@@ -542,7 +545,6 @@ describe('EEA Ethers', () => {
                     const txNode2 = await providerNode2.getTransaction(publicTxHash)
                     const txNode3 = await providerNode3.getTransaction(publicTxHash)
 
-                    privateTxHash = txNode1.data
                     expect(txNode1.data).toMatch(utils.RegEx.bytes32)
                     // TODO validate against node 1 public key
                     expect(txNode1.from).toMatch(utils.RegEx.ethereumAddress)
@@ -555,15 +557,15 @@ describe('EEA Ethers', () => {
                 })
 
                 test('get private transaction by hash', async () => {
-                    const txNode1 = await providerNode1.getPrivateTransaction(privateTxHash)
+                    const txNode1 = await providerNode1.getPrivateTransaction(publicTxHash)
                     expect(txNode1.privateFrom).toEqual(txOptions.privateFrom)
                     expect(txNode1.privateFor).toEqual(txOptions.privateFor)
 
-                    const txNode2 = await providerNode2.getPrivateTransaction(privateTxHash)
+                    const txNode2 = await providerNode2.getPrivateTransaction(publicTxHash)
                     expect(txNode2.privateFrom).toEqual(txOptions.privateFrom)
                     expect(txNode2.privateFor).toEqual(txOptions.privateFor)
 
-                    const txNode3 = await providerNode3.getPrivateTransaction(privateTxHash)
+                    const txNode3 = await providerNode3.getPrivateTransaction(publicTxHash)
                     expect(txNode3).toEqual(null)
                 })
             })

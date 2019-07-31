@@ -60,11 +60,19 @@ describe('Privacy Group Management APIs', () => {
             test('find privacy group from node2 that created it', async () => {
                 const results = await providerNode2.findPrivacyGroup([node2, node3])
                 expect(results).toHaveLength(1)
+                expect(results[0].privacyGroupId).toEqual(firstPrivacyGroupId)
+                expect(results[0].name).toEqual('Node2_3')
+                expect(results[0].description).toEqual('node2, [node2, node3]')
+                expect(results[0].members).toEqual([node2, node3])
             })
 
             test('find privacy group from node3 that is a member', async () => {
                 const results = await providerNode3.findPrivacyGroup([node2, node3])
                 expect(results).toHaveLength(1)
+                expect(results[0].privacyGroupId).toEqual(firstPrivacyGroupId)
+                expect(results[0].name).toEqual('Node2_3')
+                expect(results[0].description).toEqual('node2, [node2, node3]')
+                expect(results[0].members).toEqual([node2, node3])
             })
 
             test('find privacy group from node1 that is NOT a member', async () => {
