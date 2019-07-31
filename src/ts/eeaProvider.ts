@@ -2,13 +2,13 @@
 import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { BigNumber } from "@ethersproject/bignumber";
 import { hexDataLength, hexValue } from "@ethersproject/bytes";
-import { hexlify } from "./bytes";
 import * as errors from "@ethersproject/errors";
 import { Networkish } from "@ethersproject/networks";
 import { checkProperties, resolveProperties, shallowCopy } from "@ethersproject/properties";
 import { JsonRpcProvider, JsonRpcSigner } from "@ethersproject/providers";
 import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
 
+import { hexlify } from "./bytes";
 import { EeaFormatter } from './eeaFormatter'
 import { PrivacyGroupOptions, generatePrivacyGroup } from './privacyGroup'
 import { allowedTransactionKeys, EeaTransaction, EeaTransactionReceipt, EeaTransactionResponse } from './eeaTransaction'
@@ -206,23 +206,45 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
                 this._emitted["t:" + tx.publicHash] = "pending";
             }
 
-            return this.waitForTransaction(tx.publicHash, confirmations).then((receipt) => {
+            return this.waitForPrivateTransaction(tx.publicHash, confirmations).then((receipt) => {
                 if (receipt == null && confirmations === 0) { return null; }
 
                 // No longer pending, allow the polling loop to garbage collect this
                 this._emitted["t:" + tx.publicHash] = receipt.blockNumber;
 
-                if (receipt.status === 0) {
-                    errors.throwError("transaction failed", errors.CALL_EXCEPTION, {
-                        publicHash: tx.publicHash,
-                        transaction: tx
-                    });
-                }
+                // FIXME add once eea_getTransactionReceipt includes the status gasUsed and cumulativeGasUsed
+                // if (receipt.status === 0) {
+                //     errors.throwError("transaction failed", errors.CALL_EXCEPTION, {
+                //         publicHash: tx.publicHash,
+                //         transaction: tx
+                //     });
+                // }
                 return receipt;
             });
         };
 
         return result;
+    }
+
+    waitForPrivateTransaction(transactionHash: string, confirmations?: number): Promise<EeaTransactionReceipt> {
+        if (confirmations == null) { confirmations = 1; }
+
+        if (confirmations === 0) {
+            return this.getPrivateTransactionReceipt(transactionHash);
+        }
+
+        return new Promise((resolve) => {
+            let handler = (receipt: EeaTransactionReceipt) => {
+                // is this a private or public transaction?
+                // We only want want private transactions which do not have a gasUsed property on the receipt
+                if (!receipt.hasOwnProperty('gasUsed')) {
+                    if (receipt.confirmations < confirmations) { return; }
+                    this.removeListener(transactionHash, handler);
+                    resolve(receipt);
+                }
+            }
+            this.on(transactionHash, handler);
+        });
     }
 
     getPrivateTransactionCount(
@@ -250,7 +272,25 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
                             return undefined;
                         }
 
-                        return this.formatter.privateReceipt(result);
+                        const receipt = this.formatter.privateReceipt(result);
+
+                        if (receipt.blockNumber == null) {
+                            receipt.confirmations = 0;
+
+                        } else if (receipt.confirmations == null) {
+                            return this._getFastBlockNumber().then((blockNumber) => {
+
+                                // Add the confirmations using the fast block number (pessimistic)
+                                let confirmations = (blockNumber - receipt.blockNumber) + 1;
+                                if (confirmations <= 0) { confirmations = 1; }
+                                receipt.confirmations = confirmations;
+
+                                return receipt;
+                            });
+                        }
+
+                        return receipt;
+
                     }).catch((err) => {
                         errors.throwError(`Failed to get private transaction receipt. Error: ${err.message}`, err.code, {
                             err,
@@ -275,7 +315,7 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
                             return undefined;
                         }
 
-                        let tx = this.formatter.privateTransactionResponse(result);
+                        const tx = this.formatter.privateTransactionResponse(result);
 
                         if (tx.blockNumber == null) {
                             tx.confirmations = 0;

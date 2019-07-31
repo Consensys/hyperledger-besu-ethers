@@ -140,6 +140,9 @@ export interface EeaTransactionReceipt {
     contractAddress?: string;
     logs?: Array<Log>;
     output?: string;
+
+    blockNumber?: number;
+    confirmations?: number,
 }
 
 export interface EeaTransactionResponse extends EeaTransaction {

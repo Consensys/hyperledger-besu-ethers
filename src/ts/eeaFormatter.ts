@@ -44,7 +44,10 @@ export class EeaFormatter extends Formatter {
                 from: Formatter.allowNull(this.address, null),
                 contractAddress: Formatter.allowNull(this.address.bind(this), null),
                 logs: Formatter.arrayOf(this.receiptLog.bind(this)),
-                output: Formatter.allowNull(this.data.bind(this))
+                output: Formatter.allowNull(this.data.bind(this)),
+
+                blockNumber: Formatter.allowNull(this.number, null),
+                confirmations: Formatter.allowNull(this.number, null),
             },
 
             privateTransaction: {
