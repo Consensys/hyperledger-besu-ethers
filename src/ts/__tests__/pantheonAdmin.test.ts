@@ -9,6 +9,11 @@ provider.on('debug', (info) => {
 
 describe('Pantheon Admin APIs', () => {
 
+    test('change log level', async() => {
+        const result = await provider.changeLogLevel('TRACE')
+        expect(result).toBeTruthy()
+    })
+
     test('get nodeInfo', async() => {
         const nodeInfo = await provider.getNodeInfo()
 
@@ -32,11 +37,8 @@ describe('Pantheon Admin APIs', () => {
         expect(typeof peers[0].network.remoteAddress).toEqual('string')
     })
 
-    test('change log level', async() => {
-        let result = await provider.changeLogLevel('TRACE')
-        expect(result).toBeTruthy()
-
-        result = await provider.changeLogLevel('DEBUG')
+    test('change log level back', async() => {
+        const result = await provider.changeLogLevel('INFO')
         expect(result).toBeTruthy()
     })
 
