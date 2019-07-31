@@ -23,6 +23,30 @@ export interface FindPrivacyGroup {
     description?: string,
 }
 
+export interface NodeInfo {
+    enode: string,
+    listenAddr: string,
+    name : string,
+    id: string,
+    ports: {
+        discovery: number
+        listener: number
+    },
+    protocols: object[]
+}
+
+export interface PeerInfo {
+    version: string,
+    name: string,
+    caps : string[],
+    network: {
+        localAddress: string,
+        remoteAddress: string,
+    },
+    port: string,
+    id: string,
+}
+
 export class EeaJsonRpcSigner extends JsonRpcSigner {
 
     readonly provider: EeaJsonRpcProvider
@@ -237,11 +261,11 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
             let handler = (receipt: EeaTransactionReceipt) => {
                 // is this a private or public transaction?
                 // We only want want private transactions which do not have a gasUsed property on the receipt
-                if (!receipt.hasOwnProperty('gasUsed')) {
+                // if (!receipt.hasOwnProperty('gasUsed')) {
                     if (receipt.confirmations < confirmations) { return; }
                     this.removeListener(transactionHash, handler);
                     resolve(receipt);
-                }
+                // }
             }
             this.on(transactionHash, handler);
         });
@@ -371,9 +395,43 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         return this._runPerform("getPrivacyPrecompileAddress", {});
     }
 
+    // Pantheon administration
+    addPeer(
+        enodeUrl: string | Promise<string>,
+    ): Promise<boolean> {
+        return this._runPerform("addPeer", {
+            enodeUrl: () => Promise.resolve(enodeUrl)
+        });
+    }
+
+    changeLogLevel(
+        level: string | Promise<string>,
+    ): Promise<boolean> {
+        return this._runPerform("changeLogLevel", {
+            level: () => Promise.resolve(level)
+        });
+    }
+
+    getNodeInfo(): Promise<NodeInfo> {
+        return this._runPerform("getNodeInfo", {});
+    }
+
+    getPeers(): Promise<PeerInfo[]> {
+        return this._runPerform("getPeers", {});
+    }
+
+    removePeer(
+        enodeUrl: string | Promise<string>,
+    ): Promise<PeerInfo[]> {
+        return this._runPerform("removePeer", {
+            enodeUrl: () => Promise.resolve(enodeUrl)
+        });
+    }
+
     // Override the base perform method to add the eea calls
     perform(method: string, params: any): Promise<any> {
         switch (method) {
+            // privacy transactions
             case "sendPrivateTransaction":
                 // method overridden to use EEA send raw transaction
                 return this.send("eea_sendRawTransaction", [ params.signedTransaction ])
@@ -404,6 +462,7 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
             case "getPrivateTransaction":
                 return this.send("priv_getPrivateTransaction", [ params.transactionHash ]);
 
+            // Privacy group management
             case "createPrivacyGroup":
                 return this.send("priv_createPrivacyGroup", [
                     params.members,
@@ -418,6 +477,28 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
 
             case "getPrivacyPrecompileAddress":
                 return this.send("priv_getPrivacyPrecompileAddress", []);
+
+            // Pantheon administration
+            case "addPeer":
+                return this.send("admin_addPeer", [
+                    params.enodeUrl
+                ]);
+
+            case "changeLogLevel":
+                return this.send("admin_changeLogLevel", [
+                    params.level
+                ]);
+
+            case "getNodeInfo":
+                return this.send("admin_nodeInfo", []);
+
+            case "getPeers":
+                return this.send("admin_peers", []);
+
+            case "removePeer":
+                return this.send("admin_removePeer", [
+                    params.enodeUrl
+                ]);
 
             default:
                 return super.perform(method, params)
