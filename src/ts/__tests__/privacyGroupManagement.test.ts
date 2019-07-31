@@ -47,12 +47,11 @@ describe('Privacy Group Management APIs', () => {
                 expect(results).toHaveLength(0)
             })
 
-            test('Create privacy group', async () => {
+            test('Create privacy group for node2 and node3', async () => {
                 firstPrivacyGroupId = await providerNode2.createPrivacyGroup(
-                    node2,
+                    [node2, node3],
                     'Node2_3',
-                    'node2, [node2, node3]',
-                    [node2, node3])
+                    'Secret for node2 and node3')
                 expect(firstPrivacyGroupId).toMatch(utils.RegEx.base64)
                 expect(firstPrivacyGroupId).toHaveLength(44)
             })
@@ -62,7 +61,7 @@ describe('Privacy Group Management APIs', () => {
                 expect(results).toHaveLength(1)
                 expect(results[0].privacyGroupId).toEqual(firstPrivacyGroupId)
                 expect(results[0].name).toEqual('Node2_3')
-                expect(results[0].description).toEqual('node2, [node2, node3]')
+                expect(results[0].description).toEqual('Secret for node2 and node3')
                 expect(results[0].members).toEqual([node2, node3])
             })
 
@@ -71,7 +70,7 @@ describe('Privacy Group Management APIs', () => {
                 expect(results).toHaveLength(1)
                 expect(results[0].privacyGroupId).toEqual(firstPrivacyGroupId)
                 expect(results[0].name).toEqual('Node2_3')
-                expect(results[0].description).toEqual('node2, [node2, node3]')
+                expect(results[0].description).toEqual('Secret for node2 and node3')
                 expect(results[0].members).toEqual([node2, node3])
             })
 
@@ -80,12 +79,16 @@ describe('Privacy Group Management APIs', () => {
                 expect(results).toHaveLength(0)
             })
 
+            test('find privacy group just for node2 and not node3', async () => {
+                const results = await providerNode1.findPrivacyGroup([node2])
+                expect(results).toHaveLength(0)
+            })
+
             test('Duplicate privacy group', async () => {
                 duplicatePrivacyGroupId = await providerNode2.createPrivacyGroup(
-                    node2,
+                    [node2, node3],
                     'Node2_3',
-                    'node2, [node2, node3]',
-                    [node2, node3])
+                    'Secret for node2 and node3')
                 expect(duplicatePrivacyGroupId).toMatch(utils.RegEx.base64)
                 expect(duplicatePrivacyGroupId).toHaveLength(44)
                 expect(duplicatePrivacyGroupId).toEqual(firstPrivacyGroupId)
@@ -135,14 +138,13 @@ describe('Privacy Group Management APIs', () => {
             const privacyGroups: string[] = []
 
             test.each`
-            reason | privateFrom | name | description | addresses
-            ${'all three nodes'} | ${node1} | ${'Short name'} | ${'Top secret stuff in this long description'} | ${[node1, node2, node3]}
-            ${'duplicate'} | ${node1}  | ${'Short name'} | ${'Top secret stuff in this long description'} | ${[node1, node2, node3]}
-            ${'all three nodes diff name and desc'} | ${node1}  | ${'Second group'} | ${'Second group with the same members'} | ${[node1, node2, node3]}
-            ${'only self in group'} | ${node3} | ${'Self'} | ${'Only self in group'} | ${[node3]}
-            `('$reason when privateFrom $privateFrom, name $name, description $description and addresses $addresses',
-                async ({privateFrom, name, description, addresses}) => {
-                    const privacyGroupId = await providerNode1.createPrivacyGroup(privateFrom, name, description, addresses)
+            reason  | name | description | members
+            ${'all three nodes'} | ${'Short name'} | ${'Top secret stuff in this long description'} | ${[node1, node2, node3]}
+            ${'duplicate'} | ${'Short name'} | ${'Top secret stuff in this long description'} | ${[node1, node2, node3]}
+            ${'all three nodes diff name and desc'} | ${'Second group'} | ${'Second group with the same members'} | ${[node1, node2, node3]}
+            `('$reason when name $name, description $description and members $members',
+                async ({name, description, members}) => {
+                    const privacyGroupId = await providerNode1.createPrivacyGroup(members, name, description)
                     expect(privacyGroupId).toMatch(utils.RegEx.base64)
                     expect(privacyGroupId).toHaveLength(44)
 
@@ -159,21 +161,19 @@ describe('Privacy Group Management APIs', () => {
 
         describe('Failed', () => {
             test.each`
-            reason | errorRegEx | privateFrom | name | description | addresses
-            ${'privateFrom undefined'} | ${/Invalid params/} | ${undefined}  | ${'Test'} | ${'Test desc'} | ${[node2, node3]}
-            ${'addresses undefined'} | ${/Invalid params/} | ${node1}  | ${'Test'} | ${'Test desc'} | ${undefined}
-            ${'addresses empty array'} | ${/Error creating privacy group/} | ${node1}  | ${'Test'} | ${'Test desc'} | ${[]}
-            ${'invalid node in addresses'} | ${/Error creating privacy group/} | ${node2}  | ${'Test'} | ${'Test desc'} | ${[node2, invalidNode]}
-            ${'invalid privateFrom'} | ${/Error creating privacy group/} | ${invalidNode}  | ${'Test'} | ${'Test desc'} | ${[node2, node3]}
-            ${'privateFrom not in addresses'} | ${/the list of addresses should include self/} | ${node1}  | ${'Second group'} | ${'Second group with the same members'} | ${[node2, node3]}
-            `('$reason to fail with $errorRegEx when privateFrom $privateFrom, name $name, description $description and addresses $addresses',
+            reason | errorRegEx | name | description | members
+            ${'members undefined'} | ${/Invalid params/} | ${'Test'} | ${'Test desc'} | ${undefined}
+            ${'members empty array'} | ${/Error creating privacy group/} | ${'Test'} | ${'Test desc'} | ${[]}
+            ${'invalid node in members'} | ${/Error creating privacy group/} | ${'Test'} | ${'Test desc'} | ${[node2, invalidNode]}
+            ${'privateFrom not in members'} | ${/Error creating privacy group/} | ${'Second group'} | ${'Second group with the same members'} | ${[node2, node3]}
+            ${'only self in group'} | ${/Error creating privacy group/} | ${'Self'} | ${'Only self in group'} | ${[node3]}
+            `('$reason to fail with $errorRegEx when name $name, description $description and members $members',
 
-                async ({privateFrom, errorRegEx, name, description, addresses}) => {
-
-                    expect.assertions(2)
+                async ({privateFrom, errorRegEx, name, description, members}) => {
 
                     try {
-                        await providerNode1.createPrivacyGroup(privateFrom, name, description, addresses)
+                        await providerNode1.createPrivacyGroup(members, name, description)
+                        expect(false).toBeTruthy()
                     }
                     catch (err) {
                         expect(err).toBeInstanceOf(Error)

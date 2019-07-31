@@ -139,7 +139,7 @@ describe('RLP', () => {
                     "8568656c6c6f")
             })
 
-            test('array of two addresses', () => {
+            test('array of two members', () => {
                 const result = encode(['0xfe3b557e8fb62b89f4916b721be55ceb828dbd73', '0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf']);
                 expect(result).toEqual(
                     "0xea" + // 0xc0 + 0x14 (20 bytes) + 1 + 0x14 (20 bytes) + 1 = 0xc0 + 0x2a (42)
@@ -158,7 +158,7 @@ describe('RLP', () => {
         })
 
         describe('rule 8 - list with total payload more than 55 bytes', () => {
-            test('array of three addresses', () => {
+            test('array of three members', () => {
                 const result = encode([
                     '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73',
                     '0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf',

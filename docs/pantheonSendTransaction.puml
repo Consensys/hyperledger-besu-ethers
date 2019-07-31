@@ -8,10 +8,10 @@ participant Orion
 note left of Pantheon #aqua: JSON-RPC
 
 ' reatePrivacyGroup
-dApp -> Pantheon: priv_createPrivacyGroup(creator Orion pub key, name, desc, members[])
+dApp -> Pantheon: priv_createPrivacyGroup(name, desc, members[])
 activate Pantheon
 note left of Orion #aqua: REST
-Pantheon -> Orion: createPrivacyGroup(creator Orion pub key, name, desc, members[])
+Pantheon -> Orion: createPrivacyGroup(Orion pub key, name, desc, members[])
 activate Orion
 return privacyGroupId, type = PANTHEON
 return privacyGroupId

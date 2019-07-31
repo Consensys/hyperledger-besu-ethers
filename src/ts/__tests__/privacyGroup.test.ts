@@ -15,7 +15,7 @@ describe('Privacy Group unit tests', () => {
             expect(privacyGroup.generatePrivacyGroup(testOptions)).toEqual('DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w=')
         })
 
-        test('with 2 privateFor addresses', () => {
+        test('with 2 privateFor members', () => {
 
             const testOptions = {
                 privateFrom: 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=',

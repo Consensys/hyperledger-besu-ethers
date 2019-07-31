@@ -300,16 +300,14 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
     }
 
     createPrivacyGroup(
-        privateFrom: string | Promise<string>,
-        name: string | Promise<string>,
-        description: string | Promise<string>,
-        addresses: string[] | Promise<string[]>,
+        members: string[] | Promise<string[]>,
+        name?: string | Promise<string>,
+        description?: string | Promise<string>,
     ): Promise<string> {
         return this._runPerform("createPrivacyGroup", {
-            privateFrom: () => Promise.resolve(privateFrom),
+            members: () => Promise.resolve(members),
             name: () => Promise.resolve(name),
             description: () => Promise.resolve(description),
-            addresses: () => Promise.resolve(addresses),
         });
     }
 
@@ -322,10 +320,10 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
     }
 
     findPrivacyGroup(
-        addresses: string[] | Promise<string[]>,
+        members: string[] | Promise<string[]>,
     ): Promise<FindPrivacyGroup[]> {
         return this._runPerform("findPrivacyGroup", {
-            addresses: () => Promise.resolve(addresses),
+            members: () => Promise.resolve(members),
         });
     }
 
@@ -368,16 +366,15 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
 
             case "createPrivacyGroup":
                 return this.send("priv_createPrivacyGroup", [
-                    params.privateFrom,
+                    params.members,
                     params.name,
-                    params.description,
-                    params.addresses]);
+                    params.description]);
 
             case "deletePrivacyGroup":
                 return this.send("priv_deletePrivacyGroup", [ params.privacyGroupId ]);
 
             case "findPrivacyGroup":
-                return this.send("priv_findPrivacyGroup", [ params.addresses ]);
+                return this.send("priv_findPrivacyGroup", [ params.members ]);
 
             case "getPrivacyPrecompileAddress":
                 return this.send("priv_getPrivacyPrecompileAddress", []);

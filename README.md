@@ -59,6 +59,8 @@ docker image pull pegasyseng/pantheon:develop
 docker-compose build bootnode
 ```
 
+The Pantheon tags for the Docker images can be found at https://hub.docker.com/r/pegasyseng/pantheon/tags
+
 There are three pre-funded accounts if you run Pantheon in dev mode. See the alloc section in https://github.com/PegaSysEng/pantheon/blob/master/config/src/main/resources/dev.json
 
 ### Web3.js
