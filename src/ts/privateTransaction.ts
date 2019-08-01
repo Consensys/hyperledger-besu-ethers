@@ -92,7 +92,7 @@ export function recoverAddress(digest: BytesLike, signature: SignatureLike): str
     return computeAddress(recoverPublicKey(arrayify(digest), signature));
 }
 
-export type EeaUnsignedTransaction = {
+export type PrivateUnsignedTransaction = {
     to?: string;
     nonce?: number;
 
@@ -109,7 +109,7 @@ export type EeaUnsignedTransaction = {
     restriction?: string;
 }
 
-export interface EeaTransaction {
+export interface PrivateTransaction {
     publicHash?: string;
     privateHash?: string;
 
@@ -134,7 +134,7 @@ export interface EeaTransaction {
     v?: number;
 }
 
-export interface EeaTransactionReceipt {
+export interface PrivateTransactionReceipt {
     to?: string;
     from?: string;
     contractAddress?: string;
@@ -145,17 +145,17 @@ export interface EeaTransactionReceipt {
     confirmations?: number,
 }
 
-export interface EeaTransactionResponse extends EeaTransaction {
+export interface PrivateTransactionResponse extends PrivateTransaction {
     blockNumber?: number;
     blockHash?: string;
     timestamp?: number;
     confirmations: number;
     from: string;
     raw?: string;
-    wait: (confirmations?: number) => Promise<EeaTransactionReceipt>;
+    wait: (confirmations?: number) => Promise<PrivateTransactionReceipt>;
 }
 
-export function serialize(transaction: EeaUnsignedTransaction, signature?: SignatureLike): string {
+export function serialize(transaction: PrivateUnsignedTransaction, signature?: SignatureLike): string {
     checkProperties(transaction, allowedTransactionKeys);
 
     let raw: Array<string | Uint8Array | string[]> = [];
@@ -236,13 +236,13 @@ export function serialize(transaction: EeaUnsignedTransaction, signature?: Signa
     return RLP.encode(raw);
 }
 
-export function parse(rawTransaction: BytesLike): EeaTransaction {
+export function parse(rawTransaction: BytesLike): PrivateTransaction {
     let transaction = RLP.decode(rawTransaction);
     if (transaction.length !== 12) {
         errors.throwError("invalid raw transaction", errors.INVALID_ARGUMENT, { arg: "rawTransaction", value: rawTransaction });
     }
 
-    let tx: EeaTransaction = {
+    let tx: PrivateTransaction = {
         nonce:    handleNumber(transaction[0]).toNumber(),
         gasPrice: handleNumber(transaction[1]),
         gasLimit: handleNumber(transaction[2]),

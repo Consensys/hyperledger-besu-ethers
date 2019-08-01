@@ -9,11 +9,11 @@ import { Wallet } from '@ethersproject/wallet'
 import { BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
 
-import { EeaTransactionResponse, serialize } from './eeaTransaction'
-import { EeaJsonRpcProvider } from './eeaProvider'
+import { PrivateTransactionResponse, serialize } from './privateTransaction'
+import { PrivateJsonRpcProvider } from './privateProvider'
 import {PrivacyGroupOptions} from './privacyGroup'
 
-export interface EeaTransactionRequest {
+export interface PrivateTransactionRequest {
     to?: string | Promise<string>
     from?: string | Promise<string>
     nonce?: BigNumberish | Promise<BigNumberish>
@@ -35,11 +35,11 @@ const allowedPrivateTransactionKeys: Array<string> = [
     "privateFrom", "privateFor", "restriction",
 ];
 
-export class EeaWallet extends Wallet {
+export class PrivateWallet extends Wallet {
 
-    readonly provider: EeaJsonRpcProvider;
+    readonly provider: PrivateJsonRpcProvider;
 
-    signPrivateTransaction(transaction: EeaTransactionRequest): Promise<string> {
+    signPrivateTransaction(transaction: PrivateTransactionRequest): Promise<string> {
         return resolveProperties(transaction).then((tx) => {
             if (tx.from != null) {
                 if (getAddress(tx.from) !== this.address) {
@@ -53,7 +53,7 @@ export class EeaWallet extends Wallet {
         });
     }
 
-    sendPrivateTransaction(transaction: EeaTransactionRequest): Promise<EeaTransactionResponse> {
+    sendPrivateTransaction(transaction: PrivateTransactionRequest): Promise<PrivateTransactionResponse> {
         this._checkProvider("sendTransaction");
         return this.populatePrivateTransaction(transaction).then((tx) => {
             return this.signPrivateTransaction(tx).then((signedTx) => {
@@ -66,7 +66,7 @@ export class EeaWallet extends Wallet {
     // this Signer. Should be used by sendTransaction but NOT by signTransaction.
     // By default called from: (overriding these prevents it)
     //   - sendTransaction
-    populatePrivateTransaction(transaction: EeaTransactionRequest): Promise<EeaTransactionRequest> {
+    populatePrivateTransaction(transaction: PrivateTransactionRequest): Promise<PrivateTransactionRequest> {
         return resolveProperties(this.checkTransaction(transaction)).then((tx) => {
 
             if (tx.to != null) { tx.to = Promise.resolve(tx.to).then((to) => this.resolveName(to)); }
@@ -100,7 +100,7 @@ export class EeaWallet extends Wallet {
         return this.provider.getPrivateTransactionCount(this.getAddress(), privacyGroupOptions);
     }
 
-    checkTransaction(transaction: EeaTransactionRequest): EeaTransactionRequest {
+    checkTransaction(transaction: PrivateTransactionRequest): PrivateTransactionRequest {
         for (let key in transaction) {
             if (allowedPrivateTransactionKeys.indexOf(key) === -1) {
                 errors.throwArgumentError("invalid transaction key: " + key, "transaction", transaction);

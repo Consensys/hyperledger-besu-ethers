@@ -9,10 +9,10 @@ import { Zero } from "@ethersproject/constants";
 import * as errors from "@ethersproject/errors";
 import { defineReadOnly, deepCopy, resolveProperties, shallowCopy } from "@ethersproject/properties";
 
-import { EeaJsonRpcProvider, EeaJsonRpcSigner } from './eeaProvider'
-import { allowedTransactionKeys, EeaTransactionReceipt, EeaTransactionResponse } from './eeaTransaction'
+import { PrivateJsonRpcProvider, PrivateJsonRpcSigner } from './privateProvider'
+import { allowedTransactionKeys, PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction'
 import { PrivacyGroupOptions } from './privacyGroup'
-import { EeaWallet } from './eeaWallet'
+import { PrivateWallet } from './privateWallet'
 
 type RunFunction = (...params: Array<any>) => Promise<any>;
 
@@ -42,25 +42,25 @@ export interface PrivateEvent extends Log {
 
     // Get blockchain details about this event's block and transaction
     getBlock: () => Promise<Block>;
-    getPrivateTransaction: () => Promise<EeaTransactionResponse>;
-    getPrivateTransactionReceipt: () => Promise<EeaTransactionReceipt>;
+    getPrivateTransaction: () => Promise<PrivateTransactionResponse>;
+    getPrivateTransactionReceipt: () => Promise<PrivateTransactionReceipt>;
 }
 
-export interface PrivateContractReceipt extends EeaTransactionReceipt {
+export interface PrivateContractReceipt extends PrivateTransactionReceipt {
     events?: Array<PrivateEvent>;
 }
 
 export class EeaContract extends Contract {
 
-    readonly signer: EeaJsonRpcSigner;
-    readonly provider: EeaJsonRpcProvider;
+    readonly signer: PrivateJsonRpcSigner;
+    readonly provider: PrivateJsonRpcProvider;
     readonly privacyGroupId: string;
-    readonly deployPrivateTransaction: EeaTransactionResponse;
+    readonly deployPrivateTransaction: PrivateTransactionResponse;
 
     constructor(
         addressOrName: string,
         contractInterface: ContractInterface,
-        signerOrProvider: EeaJsonRpcSigner | EeaJsonRpcProvider)
+        signerOrProvider: PrivateJsonRpcSigner | PrivateJsonRpcProvider)
     {
         super(addressOrName, contractInterface, signerOrProvider);
 
@@ -203,7 +203,7 @@ function runPrivateMethod(contract: EeaContract, functionName: string, options: 
                 errors.throwError("sending a private transaction require a signer", errors.UNSUPPORTED_OPERATION, { operation: "sendPrivateTransaction" })
             }
 
-            return contract.signer.sendPrivateTransaction(tx).then((tx: EeaTransactionResponse) => {
+            return contract.signer.sendPrivateTransaction(tx).then((tx: PrivateTransactionResponse) => {
                 let wait = tx.wait.bind(tx);
 
                 tx.wait = (confirmations?: number) => {
@@ -273,9 +273,9 @@ function resolveAddresses(signerOrProvider: Signer | Provider, value: any, param
 
 export class PrivateContractFactory extends ContractFactory {
 
-    readonly signer: EeaJsonRpcSigner;
+    readonly signer: PrivateJsonRpcSigner;
 
-    constructor(contractInterface: ContractInterface, bytecode: BytesLike | { object: string }, signer?: EeaWallet) {
+    constructor(contractInterface: ContractInterface, bytecode: BytesLike | { object: string }, signer?: PrivateWallet) {
 
         super(contractInterface, bytecode, signer);
     }
@@ -304,7 +304,7 @@ export class PrivateContractFactory extends ContractFactory {
         });
     }
 
-    static getPrivateContract(address: string, contractInterface: ContractInterface, signer?: EeaJsonRpcSigner): EeaContract {
+    static getPrivateContract(address: string, contractInterface: ContractInterface, signer?: PrivateJsonRpcSigner): EeaContract {
         return new EeaContract(address, contractInterface, signer);
     }
 }

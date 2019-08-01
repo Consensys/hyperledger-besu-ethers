@@ -4,14 +4,14 @@ export * from 'ethers'
 export * from './contract'
 
 // Import the overridden transaction functions
-import * as eeaProviders from './eeaProvider'
+import * as privateProviders from './privateProvider'
 export const providers = {
     ...ethers.providers,
-    ...eeaProviders,
+    ...privateProviders,
 }
 
-import * as eeaTransactions from './eeaTransaction'
-export * from './eeaTransaction'
+import * as privateTransactions from './privateTransaction'
+export * from './privateTransaction'
 import * as bytes from './bytes'
 import * as RLP from './rlp'
 import * as RegEx from './utils/RegEx'
@@ -24,7 +24,7 @@ export const utils = {
     RegEx: {
         ...RegEx,
     },
-    ...eeaTransactions
+    ...privateTransactions
 }
 
-export * from './eeaWallet'
+export * from './privateWallet'

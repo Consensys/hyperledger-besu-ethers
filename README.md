@@ -1,6 +1,6 @@
-# Ethers.js for Enterprise Ethereum Alliance Clients
+# Ethers.js for Pantheon
 
-An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that supports [private transactions](https://entethalliance.github.io/client-spec/spec.html#sec-private-transactions) in accordance to [Enterprise Ethereum Alliance's](https://entethalliance.org/) [Ethereum Client Specification](https://entethalliance.github.io/client-spec/spec.html). Specifically, it adds the `privateFor`, `privateFrom` and `restriction` transaction properties to the [sendTransaction](https://entethalliance.github.io/client-spec/spec.html#sec-eea-sendTransaction) and [sendRawTransaction](https://entethalliance.github.io/client-spec/spec.html#sec-eea-sendRawTransaction) JSON-RPC API calls.
+An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that adds [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/#what-is-pantheon)'s extended APIs. This includes support for [private transactions](https://entethalliance.github.io/client-spec/spec.html#sec-private-transactions) in accordance to [Enterprise Ethereum Alliance's](https://entethalliance.org/) [Ethereum Client Specification](https://entethalliance.github.io/client-spec/spec.html). Specifically, it adds the `privateFor`, `privateFrom` and `restriction` transaction properties to the [sendTransaction](https://entethalliance.github.io/client-spec/spec.html#sec-eea-sendTransaction) and [sendRawTransaction](https://entethalliance.github.io/client-spec/spec.html#sec-eea-sendRawTransaction) JSON-RPC API calls.
 
 Private transactions are supported by PegaSys's [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/) Ethereum client and J.P.Morgan's [Quorum](https://github.com/jpmorganchase/quorum) distributed ledger. Unfortunately, Quorum's JSON-RPC interface for private transactions is different to the EEA specification, so this library only works with Pantheon and not Quorum.
 
@@ -8,12 +8,21 @@ Private transactions are supported by PegaSys's [Pantheon](https://docs.pantheon
 
 To install as a node module
 ```bash
-npm install eea-ethers
+npm install pantheon-ethers
 ```
 
 ## Usage
 
 See [Ethers.js version 5](https://docs.ethers.io/ethers.js/v5-beta/) documentation for details on how the Ethers.js library works.
+
+### Privacy Group Management
+
+```ts
+import { providers } from 'pantheon-ethers'
+
+```
+
+
 
 ## Pantheon
 
@@ -64,6 +73,7 @@ The Pantheon tags for the Docker images can be found at https://hub.docker.com/r
 There are three pre-funded accounts if you run Pantheon in dev mode. See the alloc section in https://github.com/PegaSysEng/pantheon/blob/master/config/src/main/resources/dev.json
 
 ### Web3.js
+
 Pantheon has an [EEA JavaScript library](https://github.com/PegaSysEng/web3js-eea#eea-javascript-libraries---eeajs) that is an extension of the [Web3.js](https://web3js.readthedocs.io/en/1.0/) JavaScript library. The EEA JavaScript library is an alternative to this Ethers.js extended library. It can also be used as a reference to how Pantheon privacy transactions are encoded.
 
 ## Ethers.js version

@@ -3,14 +3,14 @@
 import { Formatter } from '@ethersproject/providers'
 import * as errors from '@ethersproject/errors'
 
-import { parse as parseTransaction, EeaTransactionResponse, EeaTransactionReceipt } from './eeaTransaction'
+import { parse as parseTransaction, PrivateTransactionResponse, PrivateTransactionReceipt } from './privateTransaction'
 import * as RegEx from './utils/RegEx'
 
 // Copied from the Formatter declaration in @ethersproject/providers
 export type FormatFunc = (value: any) => any;
 export type FormatFuncs = { [ key: string ]: FormatFunc };
 
-export type EeaFormats = {
+export type PrivateFormats = {
     transaction: FormatFuncs,
     transactionRequest: FormatFuncs,
     receipt: FormatFuncs,
@@ -25,11 +25,11 @@ export type EeaFormats = {
 };
 
 // Override the formatting of the transaction as it now includes the new EEA
-export class EeaFormatter extends Formatter {
+export class PrivateFormatter extends Formatter {
 
-    readonly formats: EeaFormats
+    readonly formats: PrivateFormats
 
-    getDefaultFormats(): EeaFormats {
+    getDefaultFormats(): PrivateFormats {
 
         const superFormats = super.getDefaultFormats();
 
@@ -38,7 +38,7 @@ export class EeaFormatter extends Formatter {
             ...superFormats,
 
             // Format of API response of eea_getTransactionReceipt
-            // which is called in EeaJsonRpcProvider.getPrivateTransactionReceipt
+            // which is called in PrivateJsonRpcProvider.getPrivateTransactionReceipt
             privateReceipt: {
                 to: Formatter.allowNull(this.address, null),
                 from: Formatter.allowNull(this.address, null),
@@ -107,11 +107,11 @@ export class EeaFormatter extends Formatter {
         return parseTransaction(value);
     }
 
-    privateReceipt(value: any): EeaTransactionReceipt {
+    privateReceipt(value: any): PrivateTransactionReceipt {
         return Formatter.check(this.formats.privateReceipt, value);
     }
 
-    privateTransactionResponse(transaction: any): EeaTransactionResponse {
+    privateTransactionResponse(transaction: any): PrivateTransactionResponse {
 
         // Rename input to data
         if (transaction.input != null && transaction.data == null) {

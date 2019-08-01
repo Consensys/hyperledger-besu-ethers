@@ -1,24 +1,24 @@
 
 import { readFileSync } from 'fs'
 
-import {PrivateContractFactory, EeaWallet, providers, utils, PrivacyGroupOptions, EeaContract} from '../index'
+import {PrivateContractFactory, PrivateWallet, providers, utils, PrivacyGroupOptions, EeaContract} from '../index'
 
 jest.setTimeout(15000)
 
 const urlNode1 = "http://localhost:20000";
-const providerNode1 = new providers.EeaJsonRpcProvider(urlNode1);
+const providerNode1 = new providers.PrivateJsonRpcProvider(urlNode1);
 providerNode1.on('debug', (info) => {
     console.log(`Sent "${info.action}" action to node 1 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
 
 const urlNode2 = "http://localhost:20002";
-const providerNode2 = new providers.EeaJsonRpcProvider(urlNode2);
+const providerNode2 = new providers.PrivateJsonRpcProvider(urlNode2);
 providerNode2.on('debug', (info) => {
     console.log(`Sent "${info.action}" action to node 2 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
 
 const urlNode3 = "http://localhost:20004";
-const providerNode3 = new providers.EeaJsonRpcProvider(urlNode3);
+const providerNode3 = new providers.PrivateJsonRpcProvider(urlNode3);
 providerNode3.on('debug', (info) => {
     console.log(`Sent "${info.action}" action to node 3 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
@@ -32,14 +32,14 @@ const preCompiledContract = '0x000000000000000000000000000000000000007E'
 
 describe('Deploy contract using contract factory', () => {
 
-    let node1Wallet: EeaWallet
+    let node1Wallet: PrivateWallet
     let txHash: string
     let signerAddress: string
 
     beforeAll(async () => {
         // 0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF
         const privateKey = '0x0000000000000000000000000000000000000000000000000000000000000002'
-        node1Wallet = new EeaWallet(privateKey, providerNode1)
+        node1Wallet = new PrivateWallet(privateKey, providerNode1)
         signerAddress = await node1Wallet.getAddress()
 
         console.log(`Private transaction signer address ${signerAddress}`)

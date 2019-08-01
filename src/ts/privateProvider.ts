@@ -9,10 +9,10 @@ import { JsonRpcProvider, JsonRpcSigner } from "@ethersproject/providers";
 import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
 
 import { hexlify } from "./bytes";
-import { EeaFormatter } from './eeaFormatter'
+import { PrivateFormatter } from './privateFormatter'
 import { PrivacyGroupOptions, generatePrivacyGroup } from './privacyGroup'
-import { allowedTransactionKeys, EeaTransaction, EeaTransactionReceipt, EeaTransactionResponse } from './eeaTransaction'
-import { EeaTransactionRequest } from './eeaWallet'
+import { allowedTransactionKeys, PrivateTransaction, PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction'
+import { PrivateTransactionRequest } from './privateWallet'
 
 const _constructorGuard = {};
 
@@ -47,20 +47,20 @@ export interface PeerInfo {
     id: string,
 }
 
-export class EeaJsonRpcSigner extends JsonRpcSigner {
+export class PrivateJsonRpcSigner extends JsonRpcSigner {
 
-    readonly provider: EeaJsonRpcProvider
+    readonly provider: PrivateJsonRpcProvider
 
-    constructor(constructorGuard: any, provider: EeaJsonRpcProvider, addressOrIndex?: string | number) {
+    constructor(constructorGuard: any, provider: PrivateJsonRpcProvider, addressOrIndex?: string | number) {
 
         if (constructorGuard !== _constructorGuard) {
-            throw new Error("do not call the EeaJsonRpcSigner constructor directly; use provider.getSigner");
+            throw new Error("do not call the PrivateJsonRpcSigner constructor directly; use provider.getSigner");
         }
 
         super(constructorGuard, provider, addressOrIndex);
     }
 
-    sendPrivateUncheckedTransaction(transaction: EeaTransactionRequest): Promise<string> {
+    sendPrivateUncheckedTransaction(transaction: PrivateTransactionRequest): Promise<string> {
         transaction = shallowCopy(transaction);
 
         let fromAddress = this.getAddress().then((address) => {
@@ -112,10 +112,10 @@ export class EeaJsonRpcSigner extends JsonRpcSigner {
         });
     }
 
-    sendPrivateTransaction(transaction: EeaTransactionRequest): Promise<EeaTransactionResponse> {
+    sendPrivateTransaction(transaction: PrivateTransactionRequest): Promise<PrivateTransactionResponse> {
         return this.sendPrivateUncheckedTransaction(transaction).then((hash) => {
             return poll(() => {
-                return this.provider.getPrivateTransaction(hash).then((tx: EeaTransactionResponse) => {
+                return this.provider.getPrivateTransaction(hash).then((tx: PrivateTransactionResponse) => {
                     if (tx === null) { return undefined; }
                     return this.provider._wrapPrivateTransaction(tx, hash);
                 });
@@ -145,11 +145,11 @@ function getLowerCase(value: string): string {
     return value;
 }
 
-let defaultFormatter: EeaFormatter = null;
+let defaultFormatter: PrivateFormatter = null;
 
-export class EeaJsonRpcProvider extends JsonRpcProvider {
+export class PrivateJsonRpcProvider extends JsonRpcProvider {
 
-    formatter: EeaFormatter;
+    formatter: PrivateFormatter;
 
     constructor(url?: ConnectionInfo | string, network?: Networkish) {
 
@@ -158,9 +158,9 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         this.formatter = new.target.getFormatter();
     }
 
-    static getFormatter(): EeaFormatter {
+    static getFormatter(): PrivateFormatter {
         if (defaultFormatter == null) {
-            defaultFormatter = new EeaFormatter();
+            defaultFormatter = new PrivateFormatter();
         }
         return defaultFormatter;
     }
@@ -196,7 +196,7 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
             });
     }
 
-    sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<EeaTransactionResponse> {
+    sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<PrivateTransactionResponse> {
         return this._runPerform("sendPrivateTransaction", {
             signedTransaction: () => Promise.resolve(signedTransaction).then(t => hexlify(t))
         }).then((result) => {
@@ -211,12 +211,12 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         });
     }
 
-    _wrapPrivateTransaction(tx: EeaTransaction, publicHash?: string): EeaTransactionResponse {
+    _wrapPrivateTransaction(tx: PrivateTransaction, publicHash?: string): PrivateTransactionResponse {
         if (publicHash != null && hexDataLength(publicHash) !== 32) {
             errors.throwArgumentError("invalid public hash", "publicHash" , publicHash);
         }
 
-        let result = <EeaTransactionResponse>tx;
+        let result = <PrivateTransactionResponse>tx;
 
         tx.publicHash = publicHash
 
@@ -250,7 +250,7 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         return result;
     }
 
-    waitForPrivateTransaction(transactionHash: string, confirmations?: number): Promise<EeaTransactionReceipt> {
+    waitForPrivateTransaction(transactionHash: string, confirmations?: number): Promise<PrivateTransactionReceipt> {
         if (confirmations == null) { confirmations = 1; }
 
         if (confirmations === 0) {
@@ -258,7 +258,7 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         }
 
         return new Promise((resolve) => {
-            let handler = (receipt: EeaTransactionReceipt) => {
+            let handler = (receipt: PrivateTransactionReceipt) => {
                 // is this a private or public transaction?
                 // We only want want private transactions which do not have a gasUsed property on the receipt
                 // if (!receipt.hasOwnProperty('gasUsed')) {
@@ -283,7 +283,7 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         });
     }
 
-    getPrivateTransactionReceipt(privateTransactionHash: string): Promise<EeaTransactionReceipt> {
+    getPrivateTransactionReceipt(privateTransactionHash: string): Promise<PrivateTransactionReceipt> {
         return this.ready.then(() => {
             return resolveProperties({ transactionHash: privateTransactionHash }).then(({ transactionHash }) => {
                 let params = { transactionHash: this.formatter.hash(transactionHash, true) };
@@ -326,7 +326,7 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         });
     }
 
-    getPrivateTransaction(transactionHash: string): Promise<EeaTransactionResponse> {
+    getPrivateTransaction(transactionHash: string): Promise<PrivateTransactionResponse> {
         return this.ready.then(() => {
             return resolveProperties({ transactionHash: transactionHash }).then(({ transactionHash }) => {
                 let params = { transactionHash: this.formatter.hash(transactionHash, true) };
@@ -428,7 +428,8 @@ export class EeaJsonRpcProvider extends JsonRpcProvider {
         });
     }
 
-    // Override the base perform method to add the eea calls
+    // Override the base perform method to add the pantheon
+    // calls
     perform(method: string, params: any): Promise<any> {
         switch (method) {
             // privacy transactions

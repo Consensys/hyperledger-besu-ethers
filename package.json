@@ -1,7 +1,7 @@
 {
-  "name": "eea-ethers",
+  "name": "pantheon-ethers",
   "version": "0.0.1",
-  "description": "An Enterprise Ethereum Alliance JavaScript library that extends Ethers.js",
+  "description": "JavaScript library that extends Ethers.js with Pantheon APIs including private transactions",
   "main": "index.js",
   "scripts": {
     "auto-build": "npm run build -- -w",
@@ -10,28 +10,31 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/naddison36/eea-ethers.git"
+    "url": "git+https://github.com/naddison36/pantheon-ethers.git"
   },
   "keywords": [
+    "Pantheon",
+    "PegaSys",
     "Ethereum",
     "Enterprise Ethereum Alliance",
     "EEA",
     "private",
-    "privacy"
+    "privacy",
+    "privacy group"
   ],
   "author": "Nick Addison",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/naddison36/eea-ethers/issues"
+    "url": "https://github.com/naddison36/pantheon-ethers/issues"
   },
-  "homepage": "https://github.com/naddison36/eea-ethers#readme",
+  "homepage": "https://github.com/naddison36/pantheon-ethers#readme",
   "dependencies": {
-    "ethers": "^5.0.0-beta.148",
-    "ethers-4": "npm:ethers@^4.0.33"
+    "ethers": "^5.0.0-beta.148"
   },
   "devDependencies": {
     "@types/jest": "^24.0.15",
     "@types/verror": "^1.10.3",
+    "ethers-4": "npm:ethers@^4.0.33",
     "jest": "^24.8.0",
     "ts-jest": "^24.0.2",
     "typescript": "^3.5.3"
