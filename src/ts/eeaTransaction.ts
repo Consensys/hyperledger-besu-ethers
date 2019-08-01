@@ -278,16 +278,14 @@ export function parse(rawTransaction: BytesLike): EeaTransaction {
 
         let recoveryParam = tx.v - 27;
 
-        let raw = transaction.slice(0, 6);
-
         if (tx.chainId !== 0) {
-            raw.push(hexlify(tx.chainId));
-            raw.push("0x");
-            raw.push("0x");
+            transaction[6] = hexlify(tx.chainId);
+            transaction[7] =  "0x";
+            transaction[8] =  "0x";
             recoveryParam -= tx.chainId * 2 + 8;
         }
 
-        let digest = keccak256(RLP.encode(raw));
+        let digest = keccak256(RLP.encode(transaction));
         try {
             tx.from = recoverAddress(digest, { r: hexlify(tx.r), s: hexlify(tx.s), recoveryParam: recoveryParam });
         } catch (error) {

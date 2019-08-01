@@ -19,8 +19,8 @@ contract TestContract {
         mapping (address => uint) balances;
     }
 
-    uint private testUint;
-    string public testString;
+    uint private testUint = 1;
+    string public testString = "test string";
     bool public testBool;
     address public testAddress;
     bytes32 public testBytes32;

@@ -292,12 +292,12 @@ export class PrivateContractFactory extends ContractFactory {
             }
 
             // Send the deployment transaction
-            return this.signer.sendPrivateTransaction(privateTx).then((tx) => {
+            return this.signer.sendPrivateTransaction(privateTx).then(deployedTx => {
 
-                const address = (<any>(this.constructor)).getContractAddress(tx);
+                const address = (<any>(this.constructor)).getContractAddress(deployedTx);
                 const contract = (<any>(this.constructor)).getPrivateContract(address, this.interface, this.signer);
 
-                defineReadOnly(contract, "deployPrivateTransaction", tx);
+                defineReadOnly(contract, "deployPrivateTransaction", deployedTx);
 
                 return contract;
             });

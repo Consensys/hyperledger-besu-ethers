@@ -74,6 +74,8 @@ describe('EEA Ethers', () => {
 
         const parsedTransaction = providerNode1.formatter.transaction(signedTransaction)
         expect(parsedTransaction.nonce).toEqual(unsignedTransaction.nonce)
+        expect(parsedTransaction.to).toBeNull()
+        expect(parsedTransaction.from).toEqual(await wallet.getAddress())
         expect(parsedTransaction.data).toEqual(unsignedTransaction.data)
         expect(parsedTransaction.chainId).toEqual(unsignedTransaction.chainId)
         expect(parsedTransaction.privateFrom).toEqual(unsignedTransaction.privateFrom)

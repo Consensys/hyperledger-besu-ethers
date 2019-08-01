@@ -1,7 +1,7 @@
 
 import { readFileSync } from 'fs'
 
-import {PrivateContractFactory, EeaWallet, providers, utils, PrivacyGroupOptions} from '../index'
+import {PrivateContractFactory, EeaWallet, providers, utils, PrivacyGroupOptions, EeaContract} from '../index'
 
 jest.setTimeout(15000)
 
@@ -24,6 +24,7 @@ providerNode3.on('debug', (info) => {
 })
 
 const node1 = 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo='
+const node1Address = '0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73'
 const node2 = 'Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='
 // const node3 = 'k2zXEin4Ip/qBGlRkJejnGWdP9cjkK+DAvKNW31L2C8='
 
@@ -31,26 +32,17 @@ const preCompiledContract = '0x000000000000000000000000000000000000007E'
 
 describe('Deploy contract using contract factory', () => {
 
-    let node1Address: string
     let node1Wallet: EeaWallet
-    let contractAddress: string
     let txHash: string
-
-    const signerAddress = '0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF'
+    let signerAddress: string
 
     beforeAll(async () => {
         // 0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF
         const privateKey = '0x0000000000000000000000000000000000000000000000000000000000000002'
         node1Wallet = new EeaWallet(privateKey, providerNode1)
-        console.log(`Signer address ${await node1Wallet.getAddress()}`)
-    })
+        signerAddress = await node1Wallet.getAddress()
 
-    test('get public key for node 1', async() => {
-        const result = await providerNode1.getNodeInfo()
-        expect(result.id).toHaveLength(128)
-
-        node1Address = '0x' + result.id.substring(88)
-        console.log(`Node 1 signer address ${node1Address}\nNode id: ${result.id}`)
+        console.log(`Private transaction signer address ${signerAddress}`)
     })
 
     describe('Create privacy group before creating the contract', () => {
@@ -58,6 +50,7 @@ describe('Deploy contract using contract factory', () => {
         let privacyGroupId: string
         let privacyGroupOptions: PrivacyGroupOptions
         let privateTxCountNode1: number
+        let contract: EeaContract
 
         test('Create privacy group', async () => {
 
@@ -92,7 +85,7 @@ describe('Deploy contract using contract factory', () => {
 
             const factory = new PrivateContractFactory(testContractAbi, bytecode, node1Wallet);
 
-            let contract = await factory.privateDeploy(privacyGroupOptions);
+            contract = await factory.privateDeploy(privacyGroupOptions);
 
             expect(contract.address).toMatch(utils.RegEx.ethereumAddress)
             expect(contract.deployPrivateTransaction.publicHash).toMatch(utils.RegEx.transactionHash)
@@ -104,8 +97,6 @@ describe('Deploy contract using contract factory', () => {
             expect(txReceipt.from).toEqual(signerAddress)
             expect(txReceipt.logs).toEqual([])
             expect(txReceipt.contractAddress).toMatch(utils.RegEx.ethereumAddress)
-
-            contractAddress = txReceipt.contractAddress
         })
 
         test('get private transaction receipt', async() => {
@@ -113,7 +104,7 @@ describe('Deploy contract using contract factory', () => {
             expect(txReceipt.to).toBeNull()
             expect(txReceipt.from).toEqual(signerAddress)
             expect(txReceipt.logs).toEqual([])
-            expect(txReceipt.contractAddress).toEqual(contractAddress)
+            expect(txReceipt.contractAddress).toEqual(contract.address)
         })
 
         test('get public marker transaction receipt', async() => {
@@ -135,6 +126,11 @@ describe('Deploy contract using contract factory', () => {
         test('Delete privacy group', async() => {
             const result = await providerNode1.deletePrivacyGroup(privacyGroupId)
             expect(result).toEqual(privacyGroupId)
+        })
+
+        test('call read function', async() => {
+            const value = await contract.testString()
+            expect(value).toEqual("test string")
         })
     })
 
