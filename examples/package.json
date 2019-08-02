@@ -1,0 +1,14 @@
+{
+  "name": "pantheon-ethers-examples",
+  "version": "0.0.1",
+  "description": "Examples for using Pantheon Ethers.js",
+  "main": "index.js",
+  "scripts": {
+    "privacyGroup": "node privacyGroupManagement.js"
+  },
+  "dependencies": {
+    "pantheon-ethers": "github:naddison36/pantheon-ethers"
+  },
+  "author": "Nick Addison",
+  "license": "MIT"
+}
