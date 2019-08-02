@@ -2,8 +2,8 @@
   "name": "pantheon-ethers",
   "version": "0.0.1",
   "description": "JavaScript library that extends Ethers.js with Pantheon APIs including private transactions",
-  "main": "dist/src/ts/index.js",
-  "types": "dist/src/ts/index.d.ts",
+  "main": "./src/ts/index.js",
+  "types": "./src/ts/index.d.ts",
   "scripts": {
     "auto-build": "npm run build -- -w",
     "build": "tsc --build ./tsconfig.json",
