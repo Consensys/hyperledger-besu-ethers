@@ -26,10 +26,10 @@
 
     "resolveJsonModule": true,
 
-    "outDir": "build",
+    "outDir": "dist",
     "baseUrl": "./"
   },
   "exclude": [
-    "**/build/*"
+    "**/dist/*"
   ]
 }

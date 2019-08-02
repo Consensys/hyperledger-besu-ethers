@@ -89,11 +89,11 @@ export class PrivateWallet extends Wallet {
             }
 
             if (tx.gasLimit == null) {
-
                 // FIXME can't estimate gas until Pantheon implements eea_estimateGas
                 // eth_estimateGas can not estimate private transactions
+                // dirty hack for now is to just set the gasLimit to something large
+                tx.gasLimit = 10000000
                 // tx.gasLimit = this.estimateGas(tx);
-                tx.gasLimit = 8000000
             }
             if (tx.chainId == null) { tx.chainId = this.getChainId(); }
 
