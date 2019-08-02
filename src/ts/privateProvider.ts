@@ -165,6 +165,18 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
         return defaultFormatter;
     }
 
+    privateCall(
+        transaction: TransactionRequest | Promise<TransactionRequest>,
+        privacyGroupOptions: PrivacyGroupOptions,
+    ): Promise<string> {
+        return this._runPerform("privateCall", {
+            transaction: () => this._getTransactionRequest(transaction),
+            privacyGroupId: () => Promise.resolve(generatePrivacyGroup(privacyGroupOptions)),
+        }).then((result) => {
+            return hexlify(result);
+        });
+    }
+
     send(method: string, params: any): Promise<any> {
         const id = this._nextId++
         let request = {
@@ -453,6 +465,9 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
                         }
                         throw error;
                     });
+
+            case "privateCall":
+                return this.send("priv_call", [ params.transaction, params.privacyGroupId ]);
 
             case "getPrivateTransactionCount":
                 return this.send("priv_getTransactionCount", [ getLowerCase(params.address), params.privacyGroupId ]);

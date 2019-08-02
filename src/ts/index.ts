@@ -1,7 +1,7 @@
 import * as ethers from 'ethers'
 export * from 'ethers'
 
-export * from './contract'
+export * from './privateContract'
 
 // Import the overridden transaction functions
 import * as privateProviders from './privateProvider'

@@ -11,7 +11,7 @@ import { BytesLike } from "@ethersproject/bytes";
 
 import { PrivateTransactionResponse, serialize } from './privateTransaction'
 import { PrivateJsonRpcProvider } from './privateProvider'
-import {PrivacyGroupOptions} from './privacyGroup'
+import { PrivacyGroupOptions } from './privacyGroup'
 
 export interface PrivateTransactionRequest {
     to?: string | Promise<string>
@@ -88,7 +88,13 @@ export class PrivateWallet extends Wallet {
                 });
             }
 
-            if (tx.gasLimit == null) { tx.gasLimit = this.estimateGas(tx);  }
+            if (tx.gasLimit == null) {
+
+                // FIXME can't estimate gas until Pantheon implements eea_estimateGas
+                // eth_estimateGas can not estimate private transactions
+                // tx.gasLimit = this.estimateGas(tx);
+                tx.gasLimit = 8000000
+            }
             if (tx.chainId == null) { tx.chainId = this.getChainId(); }
 
             return resolveProperties(tx);

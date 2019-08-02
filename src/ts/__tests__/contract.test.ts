@@ -1,9 +1,9 @@
 
 import { readFileSync } from 'fs'
 
-import {PrivateContractFactory, PrivateWallet, providers, utils, PrivacyGroupOptions, EeaContract} from '../index'
+import {PrivateContractFactory, PrivateWallet, providers, utils, PrivacyGroupOptions, PrivateContract} from '../index'
 
-jest.setTimeout(15000)
+jest.setTimeout(20000)
 
 const urlNode1 = "http://localhost:20000";
 const providerNode1 = new providers.PrivateJsonRpcProvider(urlNode1);
@@ -50,7 +50,15 @@ describe('Deploy contract using contract factory', () => {
         let privacyGroupId: string
         let privacyGroupOptions: PrivacyGroupOptions
         let privateTxCountNode1: number
-        let contract: EeaContract
+        let contract: PrivateContract
+
+        let testContractAbi: string
+        let bytecode: string
+
+        beforeAll(() => {
+            testContractAbi = readFileSync('./src/abis/TestContract.abi', 'utf8')
+            bytecode = readFileSync('./src/abis/TestContract.bin', 'utf8')
+        })
 
         test('Create privacy group', async () => {
 
@@ -80,9 +88,6 @@ describe('Deploy contract using contract factory', () => {
 
         test('deploy test contract', async() => {
 
-            const testContractAbi = readFileSync('./src/abis/TestContract.abi', 'utf8')
-            const bytecode = readFileSync('./src/abis/TestContract.bin', 'utf8')
-
             const factory = new PrivateContractFactory(testContractAbi, bytecode, node1Wallet);
 
             contract = await factory.privateDeploy(privacyGroupOptions);
@@ -93,14 +98,16 @@ describe('Deploy contract using contract factory', () => {
 
             const txReceipt = await contract.deployPrivateTransaction.wait()
 
+            // FIXME this is failing now as the public receipt is being returned rather than the private receipt
+            expect(txReceipt.contractAddress).toEqual(contract.address)
             expect(txReceipt.to).toBeNull()
             expect(txReceipt.from).toEqual(signerAddress)
             expect(txReceipt.logs).toEqual([])
-            expect(txReceipt.contractAddress).toMatch(utils.RegEx.ethereumAddress)
         })
 
         test('get private transaction receipt', async() => {
             const txReceipt = await providerNode1.getPrivateTransactionReceipt(txHash)
+
             expect(txReceipt.to).toBeNull()
             expect(txReceipt.from).toEqual(signerAddress)
             expect(txReceipt.logs).toEqual([])
@@ -123,14 +130,28 @@ describe('Deploy contract using contract factory', () => {
             expect(count).toEqual(privateTxCountNode1 + 1)
         })
 
+        test('call readonly function', async() => {
+            const value = await contract.getTestUint()
+            expect(value).toEqual(1)
+        })
+
+        test('send transaction to write data', async() => {
+            const tx = await contract.setTestUint(2)
+            expect(tx.to).toEqual(contract.address)
+            expect(tx.from).toEqual(signerAddress)
+        })
+
+        test('send transaction to write data with gasLimit', async() => {
+            const tx = await contract.setTestUint(2, {
+                gasLimit: 100000
+            })
+            expect(tx.to).toEqual(contract.address)
+            expect(tx.from).toEqual(signerAddress)
+        })
+
         test('Delete privacy group', async() => {
             const result = await providerNode1.deletePrivacyGroup(privacyGroupId)
             expect(result).toEqual(privacyGroupId)
-        })
-
-        test('call read function', async() => {
-            const value = await contract.testString()
-            expect(value).toEqual("test string")
         })
     })
 

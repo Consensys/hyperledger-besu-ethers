@@ -181,7 +181,11 @@ export function serialize(transaction: PrivateUnsignedTransaction, signature?: S
             }
         }
         else if (fieldInfo.name === 'privateFrom') {
-            value = Buffer.from(value, 'base64');
+            if (value === '0x') {
+                value = Buffer.from([]);
+            } else {
+                value = Buffer.from(value, 'base64');
+            }
         }
         else {
             value = arrayify(hexlify(value));
@@ -239,7 +243,7 @@ export function serialize(transaction: PrivateUnsignedTransaction, signature?: S
 export function parse(rawTransaction: BytesLike): PrivateTransaction {
     let transaction = RLP.decode(rawTransaction);
     if (transaction.length !== 12) {
-        errors.throwError("invalid raw transaction", errors.INVALID_ARGUMENT, { arg: "rawTransaction", value: rawTransaction });
+        errors.throwError(`invalid raw transaction. Has ${transaction.length} fields, expecting ${12}`, errors.INVALID_ARGUMENT, { arg: "rawTransaction", value: rawTransaction });
     }
 
     let tx: PrivateTransaction = {

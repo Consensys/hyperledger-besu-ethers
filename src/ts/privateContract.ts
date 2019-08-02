@@ -2,16 +2,23 @@
 import { ParamType } from "@ethersproject/abi";
 import { Signer } from "@ethersproject/abstract-signer";
 import { Block, BlockTag, Log, Provider } from "@ethersproject/abstract-provider";
-import { Contract, ContractFactory, ContractInterface } from '@ethersproject/contracts'
-import { BigNumber } from "@ethersproject/bignumber";
+import { getAddress } from "@ethersproject/address";
+import { arrayify, hexDataSlice, stripZeros } from "@ethersproject/bytes";
+import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
 import { Zero } from "@ethersproject/constants";
 import * as errors from "@ethersproject/errors";
+import { keccak256 } from "@ethersproject/keccak256";
 import { defineReadOnly, deepCopy, resolveProperties, shallowCopy } from "@ethersproject/properties";
+import { encode } from "@ethersproject/rlp";
+
+import { ContractFactory, ContractInterface } from '@ethersproject/contracts';
+// FIXME a workaround until this Ethers issue has been solved https://github.com/ethers-io/ethers.js/issues/577
+import { Contract } from "./contracts";
 
 import { PrivateJsonRpcProvider, PrivateJsonRpcSigner } from './privateProvider'
 import { allowedTransactionKeys, PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction'
-import { PrivacyGroupOptions } from './privacyGroup'
+import {generatePrivacyGroup, PrivacyGroupOptions} from './privacyGroup'
 import { PrivateWallet } from './privateWallet'
 
 type RunFunction = (...params: Array<any>) => Promise<any>;
@@ -50,7 +57,7 @@ export interface PrivateContractReceipt extends PrivateTransactionReceipt {
     events?: Array<PrivateEvent>;
 }
 
-export class EeaContract extends Contract {
+export class PrivateContract extends Contract {
 
     readonly signer: PrivateJsonRpcSigner;
     readonly provider: PrivateJsonRpcProvider;
@@ -62,35 +69,11 @@ export class EeaContract extends Contract {
         contractInterface: ContractInterface,
         signerOrProvider: PrivateJsonRpcSigner | PrivateJsonRpcProvider)
     {
-        super(addressOrName, contractInterface, signerOrProvider);
-
-        Object.keys(this.interface.functions).forEach((name: any) => {
-            const run = runPrivateMethod(this, name, {});
-
-            if (this[name] == null) {
-                defineReadOnly(this, name, run);
-            }
-
-            if (this.functions[name] == null) {
-                defineReadOnly(this.functions, name, run);
-            }
-
-            if (this.callStatic[name] == null) {
-                defineReadOnly(this.callStatic, name, runPrivateMethod(this, name, {callStatic: true}));
-            }
-
-            if (this.populateTransaction[name] == null) {
-                defineReadOnly(this.populateTransaction, name, runPrivateMethod(this, name, {transaction: true}));
-            }
-
-            if (this.estimate[name] == null) {
-                defineReadOnly(this.estimate, name, runPrivateMethod(this, name, {estimate: true}));
-            }
-        });
+        super(addressOrName, contractInterface, signerOrProvider, runPrivateMethod);
     }
 }
 
-function runPrivateMethod(contract: EeaContract, functionName: string, options: RunOptions): RunFunction {
+function runPrivateMethod(contract: PrivateContract, functionName: string, options: RunOptions): RunFunction {
     let method = contract.interface.functions[functionName];
     return function(...params): Promise<any> {
         let tx: any = {}
@@ -124,14 +107,17 @@ function runPrivateMethod(contract: EeaContract, functionName: string, options: 
             }
         });
 
-        // If the contract was just deployed, wait until it is minded
-        if (contract.deployPrivateTransaction != null) {
-            tx.to = contract._deployed(blockTag).then(() => {
-                return contract.addressPromise;
-            });
-        } else {
-            tx.to = contract.addressPromise;
-        }
+        // FIXME until Pantheon supports priv_getCode, we can't check if the contract has been mined
+        // So for now we'll just assume the contract has been mined
+        tx.to = contract.addressPromise;
+        // // If the contract was just deployed, wait until it is minded
+        // if (contract.deployPrivateTransaction != null) {
+        //     tx.to = contract._deployed(blockTag).then(() => {
+        //         return contract.addressPromise;
+        //     });
+        // } else {
+        //     tx.to = contract.addressPromise;
+        // }
 
         return resolveAddresses(contract.signer || contract.provider, params, method.inputs).then((params) => {
             tx.data = contract.interface.encodeFunctionData(method, params);
@@ -155,6 +141,7 @@ function runPrivateMethod(contract: EeaContract, functionName: string, options: 
 
                 if (options.transaction) { return resolveProperties(tx); }
 
+                // FIXME replace call with privateCall
                 return (contract.signer || contract.provider).call(tx, blockTag).then((value) => {
 
                     try {
@@ -195,6 +182,22 @@ function runPrivateMethod(contract: EeaContract, functionName: string, options: 
                     value: tx,
                     method: method.format()
                 })
+            }
+
+            // Add private properties
+            if (contract.deployPrivateTransaction) {
+                if (contract.deployPrivateTransaction.privateFrom) {
+                    tx.privateFrom = contract.deployPrivateTransaction.privateFrom
+                }
+                tx.privateFor = contract.deployPrivateTransaction.privateFor
+                tx.restriction = contract.deployPrivateTransaction.restriction
+            }
+            else {
+                errors.throwError("private transaction not sent as contract not yet deployed", errors.UNSUPPORTED_OPERATION, {
+                    transaction: tx,
+                    deployPrivateTransaction: contract.deployPrivateTransaction,
+                    operation: "runPrivateMethod"
+                });
             }
 
             if (options.transaction) { return resolveProperties(tx); }
@@ -280,7 +283,7 @@ export class PrivateContractFactory extends ContractFactory {
         super(contractInterface, bytecode, signer);
     }
 
-    privateDeploy(privacyGroupOptions: PrivacyGroupOptions, ...args: Array<any>): Promise<EeaContract> {
+    privateDeploy(privacyGroupOptions: PrivacyGroupOptions, ...args: Array<any>): Promise<PrivateContract> {
         return resolveAddresses(this.signer, args, this.interface.deploy.inputs).then((args) => {
 
             // Get the deployment transaction (with optional overrides)
@@ -294,7 +297,7 @@ export class PrivateContractFactory extends ContractFactory {
             // Send the deployment transaction
             return this.signer.sendPrivateTransaction(privateTx).then(deployedTx => {
 
-                const address = (<any>(this.constructor)).getContractAddress(deployedTx);
+                const address = (<any>(this.constructor)).getPrivateContractAddress(deployedTx);
                 const contract = (<any>(this.constructor)).getPrivateContract(address, this.interface, this.signer);
 
                 defineReadOnly(contract, "deployPrivateTransaction", deployedTx);
@@ -304,7 +307,30 @@ export class PrivateContractFactory extends ContractFactory {
         });
     }
 
-    static getPrivateContract(address: string, contractInterface: ContractInterface, signer?: PrivateJsonRpcSigner): EeaContract {
-        return new EeaContract(address, contractInterface, signer);
+    static getPrivateContract(
+        address: string, contractInterface: ContractInterface,
+        signer?: PrivateJsonRpcSigner,
+    ): PrivateContract {
+        return new PrivateContract(address, contractInterface, signer);
+    }
+
+    static getPrivateContractAddress(
+        transaction: { from: string, nonce: BigNumberish, privateFor: string, privateFrom: string },
+    ): string {
+        let from: string = null;
+        try {
+            from = getAddress(transaction.from);
+        } catch (error) {
+            errors.throwArgumentError("missing from address", "transaction", transaction);
+        }
+
+        let nonce = stripZeros(arrayify(transaction.nonce));
+
+        // convert from object with privateFrom and privateFor properties to base64 from
+        const privacyGroupId = generatePrivacyGroup(transaction)
+        // convert from base64 to hex
+        const privacyGroupIdHex = Buffer.from(privacyGroupId, 'base64');
+
+        return getAddress(hexDataSlice(keccak256(encode([ from, nonce, privacyGroupIdHex ])), 12));
     }
 }
