@@ -4,6 +4,8 @@ An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/eth
 
 Private transactions are supported by PegaSys's [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/) Ethereum client and J.P.Morgan's [Quorum](https://github.com/jpmorganchase/quorum) distributed ledger. Unfortunately, Quorum's JSON-RPC interface for private transactions is different to the EEA specification, so this library only works with Pantheon and not Quorum.
 
+The library also adds support for Pantheon's [admin](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods), [txpool](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool-methods) and [miscellaneous](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#miscellaneous-methods) JSON-RPC APIs.
+
 ## Install
 
 To install as a node module
@@ -21,9 +23,7 @@ Create, find and delete a [privacy group](https://docs.pantheon.pegasys.tech/en/
 
 See examples using [promises](./examples/privacyGroupManagementPromises.js) or [async/await](./examples/privacyGroupManagementAsync.js) that work against the [Privacy Enabled Quickstart Tutorial](https://docs.pantheon.pegasys.tech/en/stable/Tutorials/Privacy-Quickstart/).
 
-#### Create a new privacy group
-
-Calls the Pantheon [priv_createPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_createprivacygroup) JSON-RPC API.
+#### Create a new privacy group - [priv_createPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_createprivacygroup)
 ```js
   const privacyGroupId = providerNode1.createPrivacyGroup(
     [node1, node2],
@@ -33,9 +33,7 @@ Calls the Pantheon [priv_createPrivacyGroup](https://docs.pantheon.pegasys.tech/
   console.log(privacyGroupId) // GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=
 ```
 
-#### Find privacy groups
-
-Calls the Pantheon [priv_findPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_findprivacygroup) JSON-RPC API.
+#### Find privacy groups - [priv_findPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_findprivacygroup)
 ```js
   const results = providerNode1.findPrivacyGroup([node1, node2])
   
@@ -51,9 +49,7 @@ Calls the Pantheon [priv_findPrivacyGroup](https://docs.pantheon.pegasys.tech/en
    */
 ```
 
-#### Delete privacy group
-
-Calls the Pantheon [priv_deletePrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_deleteprivacygroup) JSON-RPC API.
+#### Delete privacy group - [priv_deletePrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_deleteprivacygroup)
 ```js
   const deletedId = providerNode1.deletePrivacyGroup(privacyGroupId)
   
@@ -62,26 +58,22 @@ Calls the Pantheon [priv_deletePrivacyGroup](https://docs.pantheon.pegasys.tech/
 
 ### Pantheon Administration
 
-Pantheon administration functions. See [examples/pantheonAdmin.js](./examples/pantheonAdmin.js) for examples using async/await.
+Calls Pantheon's [administration methods](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods) JSON-RPC APIs. See [examples/pantheonAdmin.js](./examples/pantheonAdmin.js) for the full example code async/await.
 
-#### Get module versions
-
-Calls the Pantheon [rpc_modules](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#rpc_modules) JSON-RPC API.
+#### Get module versions - [rpc_modules](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#rpc_modules)
 ```ts
 const moduleVersions = await provider.getModuleVersions()
 console.log(moduleVersions) // {eea: '1.0', web3: '1.0', eth: '1.0', admin: '1.0', priv: '1.0', net: '1.0'}
 ```
 
-#### Change log level
+#### Change log level - [admin_changeLogLevel](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#admin_changeloglevel)
 
-Calls the Pantheon [admin_changeLogLevel](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#admin_changeloglevel) JSON-RPC API. See [logging](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/#logging) for the allowed log levels.
+See [logging](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/#logging) for the allowed log levels.
 ```ts
 await provider.changeLogLevel('TRACE')
 ```
 
-#### Get node information
-
-Calls the Pantheon [admin_nodeInfo](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_nodeinfo) JSON-RPC API.
+#### Get node information - [admin_nodeInfo](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_nodeinfo)
 ```ts
 const nodeInfo = await provider.getNodeInfo()
 console.log(nodeInfo)
@@ -112,9 +104,7 @@ console.log(nodeInfo)
 */
 ```
 
-#### Get peers
-
-Calls the Pantheon [admin_peers](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_peers) JSON-RPC API.
+#### Get peers - [admin_peers](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_peers)
 ```ts
 const peers = await provider.getPeers()
 console.log(peers)
@@ -162,33 +152,25 @@ console.log(peers)
 */
 ```
 
-#### Add peer
-
-Calls the Pantheon [admin_addPeer](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_addPeer) JSON-RPC API.
+#### Remove peer - [admin_removePeer](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_removePeer)
 ```ts
-const success = addPeer("enode://f59c0ab603377b6ec88b89d5bb41b98fc385030ab1e4b03752db6f7dab364559d92c757c13116ae6408d2d33f0138e7812eb8b696b2a22fe3332c4b5127b22a3@127.0.0.1:30304")
+const success = removePeer("enode://af80b90d25145da28c583359beb47b21796b2fe1a23c1511e443e7a64dfdb27d7434c380f0aa4c500e220aa1a9d068514b1ff4d5019e624e7ba1efe82b340a59@127.0.0.1:30304")
 ```
 
-#### Remove peer
-
-Calls the Pantheon [admin_removePeer](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_removePeer) JSON-RPC API.
+#### Add peer - [admin_addPeer](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_addPeer)
 ```ts
-const success = removePeer("enode://f59c0ab603377b6ec88b89d5bb41b98fc385030ab1e4b03752db6f7dab364559d92c757c13116ae6408d2d33f0138e7812eb8b696b2a22fe3332c4b5127b22a3@127.0.0.1:30304")
+const success = addPeer("enode://af80b90d25145da28c583359beb47b21796b2fe1a23c1511e443e7a64dfdb27d7434c380f0aa4c500e220aa1a9d068514b1ff4d5019e624e7ba1efe82b340a59@127.0.0.1:30304")
 ```
 
 ### Txpool Methods
 
-#### Pantheon Statistics
-
-Calls the Pantheon [txpool_pantheonstatistics](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool_pantheonstatistics) JSON-RPC API.
+#### Pantheon Statistics - [txpool_pantheonstatistics](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool_pantheonstatistics)
 ```ts
 const stats = pantheonStatistics()
 console.log(stats)  // {"maxSize": 4096, "localCount": 1, "remoteCount": 0}
 ```
 
-#### Pantheon Transactions
-
-Calls the Pantheon [txpool_pantheontransactions](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool_pantheontransactions) JSON-RPC API.
+#### Pantheon Transactions - [txpool_pantheontransactions](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool_pantheontransactions)
 ```ts
 const results = pantheonStatistics()
 console.log(results)
@@ -208,7 +190,7 @@ console.log(results)
 
 ## Pantheon
 
-This library will only work against Pantheon 1.2 and above. It will not work against the 1.1.x releases.
+This library will only work against Pantheon 1.2 and above. It will not work against the 1.1.x releases. The library uses Pantheon's [JSON-RPC APIs](https://docs.pantheon.pegasys.tech/en/latest/Pantheon-API/JSON-RPC-API/) over HTTP.
 
 See [Pantheon Privacy](https://docs.pantheon.pegasys.tech/en/latest/Privacy/Privacy-Overview/) for more details on how Pantheon supports private transactions.
 

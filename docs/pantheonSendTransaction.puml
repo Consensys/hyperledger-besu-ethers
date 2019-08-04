@@ -33,17 +33,21 @@ dApp->dApp: sign(rlp encoded private transaction, signer private key)
 ' sendRawTransaction
 dApp -> Pantheon: eea_sendRawTransaction(rlp encoded signed private transaction)
 activate Pantheon
+Pantheon -> Pantheon: parse(rlp encoded private transaction)
+Pantheon -> Pantheon: validate(private transaction)
 Pantheon -> Pantheon: base64 encode(rlp encoded signed private transaction)
 Pantheon -> Orion: send(payload = base64 encoded private transaction, from = Orion pub key, privacyGroupId)
 activate Orion
-loop each member
+loop asynchronous for each member
 Orion -> Orion: encrypt(member Orion public key, payload)
 Orion -> Orion: sendToMember(member Orion public key, encrypted payload)
 end
 return private transaction key
 Pantheon -> Pantheon: sign public transaction(node private key, data = private tx hash)
-Pantheon -> Pantheon: add public transaction to mempool
+Pantheon -> Pantheon: add mempool(signed public transaction)
 return public tx hash
+
+Pantheon -> Pantheon: public transaction mined
 
 ' getTransactionByHash
 dApp -> Pantheon: eth_getTransactionByHash(public tx hash)
@@ -55,16 +59,5 @@ note left
     public marker
     transaction
 end note
-
-' getPrivateTransaction
-dApp -> Pantheon: priv_getPrivateTransaction(public tx hash)
-activate Pantheon
-Pantheon -> Pantheon: getPrivacyGroupId(public tx hash)
-Pantheon -> Pantheon: getPrivateTxKey(public tx hash)
-Pantheon -> Orion: receive(key = private transaction key, to = privacyGroupId)
-activate Orion
-return payload = base64 encoded private transaction
-Pantheon -> Pantheon: decode(base64 encoded private transaction): private transaction
-return private transaction
 
 @enduml

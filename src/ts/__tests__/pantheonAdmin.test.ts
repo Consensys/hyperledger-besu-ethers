@@ -6,8 +6,11 @@ const provider = new providers.PrivateJsonRpcProvider("http://localhost:20000");
 provider.on('debug', (info) => {
     console.log(`Sent "${info.action}" action to node 1 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
+const providerNode2 = new providers.PrivateJsonRpcProvider("http://localhost:20002");
 
 describe('Pantheon Admin APIs', () => {
+
+    let node2enode: string
 
     test('change log level', async() => {
         const result = await provider.changeLogLevel('TRACE')
@@ -35,6 +38,19 @@ describe('Pantheon Admin APIs', () => {
         expect(peers[0].caps.length).toBeGreaterThan(1)
         expect(typeof peers[0].network.localAddress).toEqual('string')
         expect(typeof peers[0].network.remoteAddress).toEqual('string')
+    })
+
+    test('remove peer', async() => {
+        // Get the enode of node 2
+        node2enode = (await providerNode2.getNodeInfo()).enode
+
+        const success = await provider.removePeer(node2enode)
+        expect(success).toBeTruthy()
+    })
+
+    test('add peer', async() => {
+        const success = await provider.addPeer(node2enode)
+        expect(success).toBeTruthy()
     })
 
     test('change log level back', async() => {
