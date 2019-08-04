@@ -141,11 +141,10 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
         }
         return defaultFormatter;
     };
-    PrivateJsonRpcProvider.prototype.privateCall = function (transaction, privacyGroupOptions) {
+    PrivateJsonRpcProvider.prototype.privateCall = function (transaction) {
         var _this = this;
         return this._runPerform("privateCall", {
             transaction: function () { return _this._getTransactionRequest(transaction); },
-            privacyGroupId: function () { return Promise.resolve(privacyGroup_1.generatePrivacyGroup(privacyGroupOptions)); },
         }).then(function (result) {
             return bytes_2.hexlify(result);
         });

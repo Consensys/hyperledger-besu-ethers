@@ -47,6 +47,18 @@ export interface PeerInfo {
     id: string,
 }
 
+export interface PantheonStatistics {
+    maxSize: number,
+    localCount: number,
+    remoteCount: number,
+}
+
+export interface PantheonTransaction {
+    hash: string,
+    isReceivedFromLocalSource: boolean,
+    addedToPoolAt: string,
+}
+
 export class PrivateJsonRpcSigner extends JsonRpcSigner {
 
     readonly provider: PrivateJsonRpcProvider
@@ -166,12 +178,10 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
     }
 
     privateCall(
-        transaction: TransactionRequest | Promise<TransactionRequest>,
-        privacyGroupOptions: PrivacyGroupOptions,
+        transaction: PrivateTransactionRequest | Promise<PrivateTransactionRequest>,
     ): Promise<string> {
         return this._runPerform("privateCall", {
             transaction: () => this._getTransactionRequest(transaction),
-            privacyGroupId: () => Promise.resolve(generatePrivacyGroup(privacyGroupOptions)),
         }).then((result) => {
             return hexlify(result);
         });
@@ -444,6 +454,14 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
         return this._runPerform("getModuleVersions", {});
     }
 
+    getPantheonStatistics(): Promise<PantheonStatistics> {
+        return this._runPerform("getPantheonStatistics", {});
+    }
+
+    getPantheonTransactions(): Promise<PantheonTransaction[]> {
+        return this._runPerform("getPantheonTransactions", {});
+    }
+
     // Override the base perform method to add the pantheon
     // calls
     perform(method: string, params: any): Promise<any> {
@@ -522,6 +540,12 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
 
             case "getModuleVersions":
                 return this.send("rpc_modules", []);
+
+            case "getPantheonStatistics":
+                return this.send("txpool_pantheonStatistics", []);
+
+            case "getPantheonTransactions":
+                return this.send("txpool_pantheonTransactions", []);
 
             default:
                 return super.perform(method, params)

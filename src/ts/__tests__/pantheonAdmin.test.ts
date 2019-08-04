@@ -41,4 +41,17 @@ describe('Pantheon Admin APIs', () => {
         const result = await provider.changeLogLevel('INFO')
         expect(result).toBeTruthy()
     })
+
+    test('Pantheon Statistics', async() => {
+        const stats = await provider.getPantheonStatistics()
+        expect(stats.maxSize).toEqual(4096)
+        expect(stats.localCount).toEqual(0)
+        expect(stats.remoteCount).toEqual(0)
+    })
+
+    test('Pantheon Transaction', async() => {
+        const results = await provider.getPantheonTransactions()
+        expect(results).toHaveLength(0)
+        // expect(results.hash).toEqual(4096)
+    })
 })

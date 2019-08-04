@@ -64,12 +64,12 @@ Calls the Pantheon [priv_deletePrivacyGroup](https://docs.pantheon.pegasys.tech/
 
 Pantheon administration functions. See [examples/pantheonAdmin.js](./examples/pantheonAdmin.js) for examples using async/await.
 
-#### get module versions
+#### Get module versions
 
 Calls the Pantheon [rpc_modules](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#rpc_modules) JSON-RPC API.
 ```ts
 const moduleVersions = await provider.getModuleVersions()
-console.log(moduleVersions) // 
+console.log(moduleVersions) // {eea: '1.0', web3: '1.0', eth: '1.0', admin: '1.0', priv: '1.0', net: '1.0'}
 ```
 
 #### Change log level
@@ -174,6 +174,36 @@ const success = addPeer("enode://f59c0ab603377b6ec88b89d5bb41b98fc385030ab1e4b03
 Calls the Pantheon [admin_removePeer](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_removePeer) JSON-RPC API.
 ```ts
 const success = removePeer("enode://f59c0ab603377b6ec88b89d5bb41b98fc385030ab1e4b03752db6f7dab364559d92c757c13116ae6408d2d33f0138e7812eb8b696b2a22fe3332c4b5127b22a3@127.0.0.1:30304")
+```
+
+### Txpool Methods
+
+#### Pantheon Statistics
+
+Calls the Pantheon [txpool_pantheonstatistics](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool_pantheonstatistics) JSON-RPC API.
+```ts
+const stats = pantheonStatistics()
+console.log(stats)  // {"maxSize": 4096, "localCount": 1, "remoteCount": 0}
+```
+
+#### Pantheon Transactions
+
+Calls the Pantheon [txpool_pantheontransactions](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool_pantheontransactions) JSON-RPC API.
+```ts
+const results = pantheonStatistics()
+console.log(results)
+/* [
+    {
+        "hash": "0x8a66830098be4006a3f63a03b6e9b67aa721e04bd6b46d420b8f1937689fb4f1",
+        "isReceivedFromLocalSource": true,
+        "addedToPoolAt": "2019-03-21T01:35:50.911Z"
+    },
+    {
+        "hash": "0x41ee803c3987ceb5bcea0fad7a76a8106a2a6dd654409007d9931032ea54579b",
+        "isReceivedFromLocalSource": true,
+        "addedToPoolAt": "2019-03-21T01:36:00.374Z"
+    }]
+*/
 ```
 
 ## Pantheon
