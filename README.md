@@ -21,7 +21,7 @@ See [Ethers.js version 5](https://docs.ethers.io/ethers.js/v5-beta/) documentati
 
 Create, find and delete a [privacy group](https://docs.pantheon.pegasys.tech/en/stable/Privacy/Explanation/Privacy-Groups/).
 
-See examples using [promises](./examples/privacyGroupManagementPromises.js) or [async/await](./examples/privacyGroupManagementAsync.js) that work against the [Privacy Enabled Quickstart Tutorial](https://docs.pantheon.pegasys.tech/en/stable/Tutorials/Privacy-Quickstart/).
+Full code examples using promises [examples/privacyGroupManagementPromises.js](./examples/privacyGroupManagementPromises.js) or async/await [example/privacyGroupManagementAsync.js](./examples/privacyGroupManagementAsync.js) work against the [Privacy Enabled Quickstart Tutorial](https://docs.pantheon.pegasys.tech/en/stable/Tutorials/Privacy-Quickstart/).
 
 #### Create a new privacy group - [priv_createPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_createprivacygroup)
 ```js
@@ -29,14 +29,12 @@ See examples using [promises](./examples/privacyGroupManagementPromises.js) or [
     [node1, node2],
     'Name of group',
     'Description of top secret group')
-    
   console.log(privacyGroupId) // GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=
 ```
 
 #### Find privacy groups - [priv_findPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_findprivacygroup)
 ```js
   const results = providerNode1.findPrivacyGroup([node1, node2])
-  
   console.log(results)
   /*
   [ { privacyGroupId: 'GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=', 
@@ -52,13 +50,14 @@ See examples using [promises](./examples/privacyGroupManagementPromises.js) or [
 #### Delete privacy group - [priv_deletePrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_deleteprivacygroup)
 ```js
   const deletedId = providerNode1.deletePrivacyGroup(privacyGroupId)
-  
   console.log(deletedId) // GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=
 ```
 
 ### Pantheon Administration
 
 Calls Pantheon's [administration methods](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods) JSON-RPC APIs. See [examples/pantheonAdmin.js](./examples/pantheonAdmin.js) for the full example code async/await.
+
+The admin methods require the `ADMIN` API methods to be enabled by Pantheon's [--rpc-http-api](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/) command line option.
 
 #### Get module versions - [rpc_modules](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#rpc_modules)
 ```ts
@@ -163,6 +162,8 @@ const success = addPeer("enode://af80b90d25145da28c583359beb47b21796b2fe1a23c151
 ```
 
 ### Txpool Methods
+
+The txpool methods require the `TXPOOL` API methods to be enabled by Pantheon's [--rpc-http-api](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/) command line option.
 
 #### Pantheon Statistics - [txpool_pantheonstatistics](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool_pantheonstatistics)
 ```ts
