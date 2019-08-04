@@ -440,6 +440,10 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
         });
     }
 
+    getModuleVersions(): Promise<object> {
+        return this._runPerform("getModuleVersions", {});
+    }
+
     // Override the base perform method to add the pantheon
     // calls
     perform(method: string, params: any): Promise<any> {
@@ -512,9 +516,12 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
                 return this.send("admin_peers", []);
 
             case "removePeer":
-                return this.send("admin_removePeer", [
+                return this.send("admin_removePeer", [
                     params.enodeUrl
                 ]);
+
+            case "getModuleVersions":
+                return this.send("rpc_modules", []);
 
             default:
                 return super.perform(method, params)

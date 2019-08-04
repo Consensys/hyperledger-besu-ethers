@@ -64,6 +64,14 @@ Calls the Pantheon [priv_deletePrivacyGroup](https://docs.pantheon.pegasys.tech/
 
 Pantheon administration functions. See [examples/pantheonAdmin.js](./examples/pantheonAdmin.js) for examples using async/await.
 
+#### get module versions
+
+Calls the Pantheon [rpc_modules](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#rpc_modules) JSON-RPC API.
+```ts
+const moduleVersions = await provider.getModuleVersions()
+console.log(moduleVersions) // 
+```
+
 #### Change log level
 
 Calls the Pantheon [admin_changeLogLevel](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#admin_changeloglevel) JSON-RPC API. See [logging](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/#logging) for the allowed log levels.

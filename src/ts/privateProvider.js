@@ -375,6 +375,9 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
             enodeUrl: function () { return Promise.resolve(enodeUrl); }
         });
     };
+    PrivateJsonRpcProvider.prototype.getModuleVersions = function () {
+        return this._runPerform("getModuleVersions", {});
+    };
     // Override the base perform method to add the pantheon
     // calls
     PrivateJsonRpcProvider.prototype.perform = function (method, params) {
@@ -435,9 +438,11 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
             case "getPeers":
                 return this.send("admin_peers", []);
             case "removePeer":
-                return this.send("admin_removePeer", [
+                return this.send("admin_removePeer", [
                     params.enodeUrl
                 ]);
+            case "getModuleVersions":
+                return this.send("rpc_modules", []);
             default:
                 return _super.prototype.perform.call(this, method, params);
         }

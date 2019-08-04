@@ -44,7 +44,7 @@ export declare class PrivateJsonRpcProvider extends JsonRpcProvider {
     formatter: PrivateFormatter;
     constructor(url?: ConnectionInfo | string, network?: Networkish);
     static getFormatter(): PrivateFormatter;
-    privateCall(transaction: TransactionRequest | Promise<TransactionRequest>, privacyGroupOptions: PrivacyGroupOptions): Promise<string>;
+    privateCall(transaction: PrivateTransactionRequest | Promise<PrivateTransactionRequest>): Promise<string>;
     send(method: string, params: any): Promise<any>;
     sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<PrivateTransactionResponse>;
     _wrapPrivateTransaction(tx: PrivateTransaction, publicHash?: string): PrivateTransactionResponse;
@@ -61,6 +61,7 @@ export declare class PrivateJsonRpcProvider extends JsonRpcProvider {
     getNodeInfo(): Promise<NodeInfo>;
     getPeers(): Promise<PeerInfo[]>;
     removePeer(enodeUrl: string | Promise<string>): Promise<PeerInfo[]>;
+    getModuleVersions(): Promise<object>;
     perform(method: string, params: any): Promise<any>;
     static hexlifyTransaction(transaction: TransactionRequest, allowExtra?: {
         [key: string]: boolean;
