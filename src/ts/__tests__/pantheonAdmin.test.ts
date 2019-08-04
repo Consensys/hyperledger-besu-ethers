@@ -41,5 +41,4 @@ describe('Pantheon Admin APIs', () => {
         const result = await provider.changeLogLevel('INFO')
         expect(result).toBeTruthy()
     })
-
 })
