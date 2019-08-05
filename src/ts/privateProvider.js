@@ -245,21 +245,32 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
                 _this._emitted["t:" + tx.publicHash] = "pending";
             }
             // wait for the public marker transaction to be mined
-            return _this.waitForTransaction(tx.publicHash, confirmations).then(function (receipt) {
-                if (receipt == null && confirmations === 0) {
-                    return null;
-                }
-                // No longer pending, allow the polling loop to garbage collect this
-                _this._emitted["t:" + tx.publicHash] = receipt.blockNumber;
-                if (receipt.status === 0) {
-                    errors.throwError("transaction failed", errors.CALL_EXCEPTION, {
-                        publicHash: tx.publicHash,
-                        transaction: tx
-                    });
-                }
-                // get private transaction receipt
-                return receipt;
-            });
+            return _this.waitForTransaction(tx.publicHash, confirmations).then(function (publicReceipt) { return __awaiter(_this, void 0, void 0, function () {
+                var privateReceipt;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            if (publicReceipt == null && confirmations === 0) {
+                                return [2 /*return*/, null];
+                            }
+                            // No longer pending, allow the polling loop to garbage collect this
+                            this._emitted["t:" + tx.publicHash] = publicReceipt.blockNumber;
+                            if (publicReceipt.status === 0) {
+                                errors.throwError("transaction failed", errors.CALL_EXCEPTION, {
+                                    publicHash: tx.publicHash,
+                                    transaction: tx
+                                });
+                            }
+                            return [4 /*yield*/, this.getPrivateTransactionReceipt(tx.publicHash)
+                                // merge the public and private transaction receipts
+                            ];
+                        case 1:
+                            privateReceipt = _a.sent();
+                            // merge the public and private transaction receipts
+                            return [2 /*return*/, __assign({}, publicReceipt, { contractAddress: privateReceipt.contractAddress, logs: privateReceipt.logs, from: privateReceipt.from, to: privateReceipt.to, output: privateReceipt.output })];
+                    }
+                });
+            }); });
         };
         return result;
     };

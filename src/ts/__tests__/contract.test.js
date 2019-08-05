@@ -139,12 +139,9 @@ describe('Deploy contract using contract factory', function () {
                         expect(contract.address).toMatch(index_1.utils.RegEx.ethereumAddress);
                         expect(contract.deployPrivateTransaction.publicHash).toMatch(index_1.utils.RegEx.transactionHash);
                         txHash = contract.deployPrivateTransaction.publicHash;
-                        return [4 /*yield*/, contract.deployPrivateTransaction.wait()
-                            // FIXME this is failing now as the public receipt is being returned rather than the private receipt
-                        ];
+                        return [4 /*yield*/, contract.deployPrivateTransaction.wait()];
                     case 2:
                         txReceipt = _a.sent();
-                        // FIXME this is failing now as the public receipt is being returned rather than the private receipt
                         expect(txReceipt.contractAddress).toEqual(contract.address);
                         expect(txReceipt.to).toBeNull();
                         expect(txReceipt.from).toEqual(signerAddress);
@@ -203,7 +200,19 @@ describe('Deploy contract using contract factory', function () {
                     case 0: return [4 /*yield*/, contract.getTestUint()];
                     case 1:
                         value = _a.sent();
-                        expect(value).toEqual(1);
+                        expect(value.eq(1)).toBeTruthy();
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        test('call public property', function () { return __awaiter(_this, void 0, void 0, function () {
+            var value;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, contract.testString()];
+                    case 1:
+                        value = _a.sent();
+                        expect(value).toEqual('test string');
                         return [2 /*return*/];
                 }
             });

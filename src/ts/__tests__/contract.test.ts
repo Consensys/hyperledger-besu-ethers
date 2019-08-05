@@ -98,7 +98,6 @@ describe('Deploy contract using contract factory', () => {
 
             const txReceipt = await contract.deployPrivateTransaction.wait()
 
-            // FIXME this is failing now as the public receipt is being returned rather than the private receipt
             expect(txReceipt.contractAddress).toEqual(contract.address)
             expect(txReceipt.to).toBeNull()
             expect(txReceipt.from).toEqual(signerAddress)
@@ -132,7 +131,12 @@ describe('Deploy contract using contract factory', () => {
 
         test('call readonly function', async() => {
             const value = await contract.getTestUint()
-            expect(value).toEqual(1)
+            expect(value.eq(1)).toBeTruthy()
+        })
+
+        test('call public property', async() => {
+            const value = await contract.testString()
+            expect(value).toEqual('test string')
         })
 
         test('send transaction to write data', async() => {

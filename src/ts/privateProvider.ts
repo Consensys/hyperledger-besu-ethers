@@ -242,13 +242,13 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
             }
 
             // wait for the public marker transaction to be mined
-            return this.waitForTransaction(tx.publicHash, confirmations).then((receipt) => {
-                if (receipt == null && confirmations === 0) { return null; }
+            return this.waitForTransaction(tx.publicHash, confirmations).then(async (publicReceipt) => {
+                if (publicReceipt == null && confirmations === 0) { return null; }
 
                 // No longer pending, allow the polling loop to garbage collect this
-                this._emitted["t:" + tx.publicHash] = receipt.blockNumber;
+                this._emitted["t:" + tx.publicHash] = publicReceipt.blockNumber;
 
-                if (receipt.status === 0) {
+                if (publicReceipt.status === 0) {
                     errors.throwError("transaction failed", errors.CALL_EXCEPTION, {
                         publicHash: tx.publicHash,
                         transaction: tx
@@ -256,9 +256,17 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
                 }
 
                 // get private transaction receipt
+                const privateReceipt = await this.getPrivateTransactionReceipt(tx.publicHash)
 
-
-                return receipt;
+                // merge the public and private transaction receipts
+                return {
+                    ...publicReceipt,
+                    contractAddress: privateReceipt.contractAddress,
+                    logs: privateReceipt.logs,
+                    from: privateReceipt.from,
+                    to: privateReceipt.to,
+                    output: privateReceipt.output,
+                }
             });
         };
 
