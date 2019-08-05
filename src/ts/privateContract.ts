@@ -1,6 +1,6 @@
 
 import { ParamType } from "@ethersproject/abi";
-import { Signer } from "@ethersproject/abstract-signer";
+import { Signer, VoidSigner } from "@ethersproject/abstract-signer";
 import { Block, Log, Provider } from "@ethersproject/abstract-provider";
 import { getAddress } from "@ethersproject/address";
 import { arrayify, hexDataSlice, stripZeros } from "@ethersproject/bytes";
@@ -70,6 +70,23 @@ export class PrivateContract extends Contract {
         signerOrProvider: PrivateJsonRpcSigner | PrivateJsonRpcProvider)
     {
         super(addressOrName, contractInterface, signerOrProvider, runPrivateMethod);
+    }
+
+    connect(signerOrProvider: Signer | Provider | string): PrivateContract {
+        if (typeof(signerOrProvider) === "string") {
+            signerOrProvider = new VoidSigner(signerOrProvider, this.provider);
+        }
+
+        let contract = new (<{ new(...args: any[]): PrivateContract }>(this.constructor))(this.address, this.interface, signerOrProvider);
+        if (this.deployPrivateTransaction) {
+            defineReadOnly(contract, "deployPrivateTransaction", this.deployPrivateTransaction);
+        }
+        return contract;
+    }
+
+    // Re-attach to a different on-chain instance of this contract
+    attach(addressOrName: string): PrivateContract {
+        return new (<{ new(...args: any[]): PrivateContract }>(this.constructor))(addressOrName, this.interface, this.signer || this.provider);
     }
 }
 

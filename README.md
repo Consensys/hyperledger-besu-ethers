@@ -1,6 +1,6 @@
 # Ethers.js for Pantheon
 
-An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that adds [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/#what-is-pantheon)'s extended APIs. This includes support for [private transactions](https://entethalliance.github.io/client-spec/spec.html#sec-private-transactions) in accordance to [Enterprise Ethereum Alliance's](https://entethalliance.org/) [Ethereum Client Specification](https://entethalliance.github.io/client-spec/spec.html). Specifically, it adds the `privateFor`, `privateFrom` and `restriction` transaction properties to the [sendTransaction](https://entethalliance.github.io/client-spec/spec.html#sec-eea-sendTransaction) and [sendRawTransaction](https://entethalliance.github.io/client-spec/spec.html#sec-eea-sendRawTransaction) JSON-RPC API calls.
+An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that adds [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/#what-is-pantheon)'s extended APIs. This includes support for [private transactions](https://entethalliance.github.io/client-spec/spec.html#sec-private-transactions) in accordance with [Enterprise Ethereum Alliance's](https://entethalliance.org/) [Ethereum Client Specification](https://entethalliance.github.io/client-spec/spec.html). Specifically, it adds the `privateFor`, `privateFrom` and `restriction` transaction properties to the [sendTransaction](https://entethalliance.github.io/client-spec/spec.html#sec-eea-sendTransaction) and [sendRawTransaction](https://entethalliance.github.io/client-spec/spec.html#sec-eea-sendRawTransaction) JSON-RPC API calls.
 
 Private transactions are supported by PegaSys's [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/) Ethereum client and J.P.Morgan's [Quorum](https://github.com/jpmorganchase/quorum) distributed ledger. Unfortunately, Quorum's JSON-RPC interface for private transactions is different to the EEA specification, so this library only works with Pantheon and not Quorum.
 
@@ -206,13 +206,13 @@ You can see the logs from the nodes running on docker-compose with
 ```bash
 ./list.sh   # lists the status of the docker servers. ie are they up or down
 ./logs.sh   # tail the logs of each of the docker services
-./stop.sh   # shuts down all of the docker sercices
+./stop.sh   # shuts down all of the docker services
 ./remove.sh # stops and then removes the server volumes so the chain will start back at block 0
 ```
 
 A blockchain explorer will be at http://localhost:32768
 
-To tail the logs of a specific docker servive. eg node 1
+To tail the logs of a specific docker service. eg node 1
 ```bash
 docker-compose logs -f node1 orion1
 ```
@@ -222,7 +222,7 @@ To bash into the to the Pantheon image used by the quickstart
 docker run -it --entrypoint=sh quickstart/pantheon:develop-privacy
 ```
 
-To bash into a running docker compose service. eg node1
+To bash into a running docker-compose service. eg node1
 ```bash
 docker-compose exec node1 sh
 ```
@@ -235,7 +235,7 @@ docker-compose build bootnode
 
 The Pantheon tags for the Docker images can be found at https://hub.docker.com/r/pegasyseng/pantheon/tags
 
-There are three pre-funded accounts if you run Pantheon in dev mode. See the alloc section in https://github.com/PegaSysEng/pantheon/blob/master/config/src/main/resources/dev.json
+There are three pre-funded accounts if you run Pantheon in dev mode. See the `alloc` section in https://github.com/PegaSysEng/pantheon/blob/master/config/src/main/resources/dev.json
 
 ### Web3.js
 
@@ -245,7 +245,7 @@ Pantheon has an [EEA JavaScript library](https://github.com/PegaSysEng/web3js-ee
 
 Currently, Ethers.js version 5 is used as it is more module making it easier to extend the transaction serialization and parsing. See Richard's blog on [Beta Release: ethers.js v5](https://blog.ricmoo.com/beta-release-ethers-js-v5-59d0db222d7b) for more details.
 
-For regression testing purposes, ethers version 4 is also installed in the devDependencies. This uses a npm alias which is available from npm version 6.9.0. See (this)[https://stackoverflow.com/a/56495895/3144809] Stack Overflow answer for more information.
+For regression testing purposes, ethers version 4 is also installed in the devDependencies. This uses an npm alias which is available from npm version 6.9.0. See (this)[https://stackoverflow.com/a/56495895/3144809] Stack Overflow answer for more information.
 ```bash
 npm i ethers-4@npm:ethers@4.0.33
 ```
@@ -256,11 +256,11 @@ Ethers version 5
 
 ## Privacy group limitations
 
-There are a number of limitations in the Pantheon 1.2 release that are being addressed for the 1.3 release:
-* There is no way of check if a private transaction succeeded or failed as there is no `status` or `gasUsed` fields on the private transaction receipt.
+There are a number of limitations in the Pantheon 1.2 release that is being addressed for the 1.3 release:
+* There is no way to check if a private transaction succeeded or failed as there is no `status` or `gasUsed` fields on the private transaction receipt.
 * Calling readonly functions are done via sending a signed transaction as there is no equivalent of [eth_call](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_call) for private transactions.
 * Private transactions default to 10 million gas limit as there is no equivalent of [eth_estimateGas](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_estimategas) to estimate the gas of a private transaction. This gas limit can be overridden via Ethers.js' optional override object.
 * The client must wait until a contract has been mined before calling a contract method. Ethers.js supports calling function methods before a deployed contract has been mined by polling [eth_getCode](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_getcode). There is no equivalent method for private transactions.
 * You can't get events from private transactions as there is no equivalent of [getLogs](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_getlogs) for private transactions.
-* The public marker transactions leak who sent the private transaction as the public transaction is signed by the node. Ideally each public transaction would be signed by a randomly generated account.
+* The public marker transactions leak who sent the private transaction as the public transaction is signed by the node. Ideally, each public transaction would be signed by a randomly generated account.
 * You can not add/remove nodes to/from a privacy group.

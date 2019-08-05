@@ -40,6 +40,7 @@ var PrivateWallet = /** @class */ (function (_super) {
     PrivateWallet.prototype.privateCall = function (transaction) {
         return this.sendPrivateTransaction(transaction)
             .then(function (response) {
+            // Wait for the transaction to be mined and the receipt returned
             return response.wait();
         })
             .then(function (receipt) {

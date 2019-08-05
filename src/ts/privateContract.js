@@ -31,6 +31,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var abstract_signer_1 = require("@ethersproject/abstract-signer");
 var address_1 = require("@ethersproject/address");
 var bytes_1 = require("@ethersproject/bytes");
 var bignumber_1 = require("@ethersproject/bignumber");
@@ -49,6 +50,20 @@ var PrivateContract = /** @class */ (function (_super) {
     function PrivateContract(addressOrName, contractInterface, signerOrProvider) {
         return _super.call(this, addressOrName, contractInterface, signerOrProvider, runPrivateMethod) || this;
     }
+    PrivateContract.prototype.connect = function (signerOrProvider) {
+        if (typeof (signerOrProvider) === "string") {
+            signerOrProvider = new abstract_signer_1.VoidSigner(signerOrProvider, this.provider);
+        }
+        var contract = new (this.constructor)(this.address, this.interface, signerOrProvider);
+        if (this.deployPrivateTransaction) {
+            properties_1.defineReadOnly(contract, "deployPrivateTransaction", this.deployPrivateTransaction);
+        }
+        return contract;
+    };
+    // Re-attach to a different on-chain instance of this contract
+    PrivateContract.prototype.attach = function (addressOrName) {
+        return new (this.constructor)(addressOrName, this.interface, this.signer || this.provider);
+    };
     return PrivateContract;
 }(contracts_2.Contract));
 exports.PrivateContract = PrivateContract;

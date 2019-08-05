@@ -32,15 +32,17 @@ const preCompiledContract = '0x000000000000000000000000000000000000007E'
 
 describe('Deploy contract using contract factory', () => {
 
-    let node1Wallet: PrivateWallet
+    let walletNode1: PrivateWallet
+    let walletNode2: PrivateWallet
     let txHash: string
     let signerAddress: string
 
     beforeAll(async () => {
         // 0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF
         const privateKey = '0x0000000000000000000000000000000000000000000000000000000000000002'
-        node1Wallet = new PrivateWallet(privateKey, providerNode1)
-        signerAddress = await node1Wallet.getAddress()
+        walletNode1 = new PrivateWallet(privateKey, providerNode1)
+        walletNode2 = new PrivateWallet(privateKey, providerNode2)
+        signerAddress = await walletNode1.getAddress()
 
         console.log(`Private transaction signer address ${signerAddress}`)
     })
@@ -50,7 +52,8 @@ describe('Deploy contract using contract factory', () => {
         let privacyGroupId: string
         let privacyGroupOptions: PrivacyGroupOptions
         let privateTxCountNode1: number
-        let contract: PrivateContract
+        let contractNode1: PrivateContract
+        let contractNode2: PrivateContract
 
         let testContractAbi: string
         let bytecode: string
@@ -88,17 +91,17 @@ describe('Deploy contract using contract factory', () => {
 
         test('deploy test contract', async() => {
 
-            const factory = new PrivateContractFactory(testContractAbi, bytecode, node1Wallet);
+            const factory = new PrivateContractFactory(testContractAbi, bytecode, walletNode1);
 
-            contract = await factory.privateDeploy(privacyGroupOptions);
+            contractNode1 = await factory.privateDeploy(privacyGroupOptions);
 
-            expect(contract.address).toMatch(utils.RegEx.ethereumAddress)
-            expect(contract.deployPrivateTransaction.publicHash).toMatch(utils.RegEx.transactionHash)
-            txHash = contract.deployPrivateTransaction.publicHash
+            expect(contractNode1.address).toMatch(utils.RegEx.ethereumAddress)
+            expect(contractNode1.deployPrivateTransaction.publicHash).toMatch(utils.RegEx.transactionHash)
+            txHash = contractNode1.deployPrivateTransaction.publicHash
 
-            const txReceipt = await contract.deployPrivateTransaction.wait()
+            const txReceipt = await contractNode1.deployPrivateTransaction.wait()
 
-            expect(txReceipt.contractAddress).toEqual(contract.address)
+            expect(txReceipt.contractAddress).toEqual(contractNode1.address)
             expect(txReceipt.to).toBeNull()
             expect(txReceipt.from).toEqual(signerAddress)
             expect(txReceipt.logs).toEqual([])
@@ -110,7 +113,7 @@ describe('Deploy contract using contract factory', () => {
             expect(txReceipt.to).toBeNull()
             expect(txReceipt.from).toEqual(signerAddress)
             expect(txReceipt.logs).toEqual([])
-            expect(txReceipt.contractAddress).toEqual(contract.address)
+            expect(txReceipt.contractAddress).toEqual(contractNode1.address)
         })
 
         test('get public marker transaction receipt', async() => {
@@ -131,17 +134,17 @@ describe('Deploy contract using contract factory', () => {
 
         describe('call contract', () => {
             test('pure function', async() => {
-                const value = await contract.getMagicNumber()
+                const value = await contractNode1.getMagicNumber()
                 expect(value.eq(99999)).toBeTruthy()
             })
 
             test('view function', async() => {
-                const value = await contract.getTestUint()
+                const value = await contractNode1.getTestUint()
                 expect(value.eq(1)).toBeTruthy()
             })
 
             test('public property', async() => {
-                const value = await contract.testString()
+                const value = await contractNode1.testString()
                 expect(value).toEqual('test string')
             })
 
@@ -174,9 +177,9 @@ describe('Deploy contract using contract factory', () => {
 
         describe('send transaction', () => {
             test('to write data', async() => {
-                const tx = await contract.setTestUint(2)
+                const tx = await contractNode1.setTestUint(2)
                 expect(tx.publicHash).toMatch(utils.RegEx.bytes32)
-                expect(tx.to).toEqual(contract.address)
+                expect(tx.to).toEqual(contractNode1.address)
                 expect(tx.from).toEqual(signerAddress)
 
                 const receipt = await providerNode1.waitForTransaction(tx.publicHash)
@@ -184,11 +187,11 @@ describe('Deploy contract using contract factory', () => {
             })
 
             test('to write data with gasLimit', async() => {
-                const tx = await contract.setTestUint(3, {
+                const tx = await contractNode1.setTestUint(3, {
                     gasLimit: 100000
                 })
                 expect(tx.publicHash).toMatch(utils.RegEx.bytes32)
-                expect(tx.to).toEqual(contract.address)
+                expect(tx.to).toEqual(contractNode1.address)
                 expect(tx.from).toEqual(signerAddress)
 
                 const receipt = await providerNode1.waitForTransaction(tx.publicHash)
@@ -196,13 +199,36 @@ describe('Deploy contract using contract factory', () => {
             })
 
             test('that will fail from tx function', async() => {
-                const tx = await contract.txFail()
+                const tx = await contractNode1.txFail()
                 expect(tx.publicHash).toMatch(utils.RegEx.bytes32)
-                expect(tx.to).toEqual(contract.address)
+                expect(tx.to).toEqual(contractNode1.address)
                 expect(tx.from).toEqual(signerAddress)
 
                 const receipt = await providerNode1.waitForTransaction(tx.publicHash)
                 expect(receipt.status).toEqual(0)
+            })
+        })
+
+        describe('node 2 interacts with private contract deployed from node 1', () => {
+            test('connecting to existing contract', () => {
+                contractNode2 = new PrivateContract(contractNode1.address, testContractAbi, providerNode2)
+                contractNode2 = contractNode1.connect(walletNode2)
+                expect(contractNode2.address).toEqual(contractNode1.address)
+            })
+
+            test('view function after node 1 changes', async() => {
+                const value = await contractNode1.getTestUint()
+                expect(value.eq(3)).toBeTruthy()
+            })
+
+            test('write data', async() => {
+                const tx = await contractNode2.setTestUint(4)
+                expect(tx.publicHash).toMatch(utils.RegEx.bytes32)
+                expect(tx.to).toEqual(contractNode1.address)
+                expect(tx.from).toEqual(signerAddress)
+
+                const receipt = await providerNode2.waitForTransaction(tx.publicHash)
+                expect(receipt.status).toEqual(1)
             })
         })
 

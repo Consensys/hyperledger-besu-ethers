@@ -1,4 +1,5 @@
-import { Block, Log } from "@ethersproject/abstract-provider";
+import { Signer } from "@ethersproject/abstract-signer";
+import { Block, Log, Provider } from "@ethersproject/abstract-provider";
 import { BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
 import { ContractFactory, ContractInterface } from '@ethersproject/contracts';
@@ -26,6 +27,8 @@ export declare class PrivateContract extends Contract {
     readonly privacyGroupId: string;
     readonly deployPrivateTransaction: PrivateTransactionResponse;
     constructor(addressOrName: string, contractInterface: ContractInterface, signerOrProvider: PrivateJsonRpcSigner | PrivateJsonRpcProvider);
+    connect(signerOrProvider: Signer | Provider | string): PrivateContract;
+    attach(addressOrName: string): PrivateContract;
 }
 export declare class PrivateContractFactory extends ContractFactory {
     readonly signer: PrivateJsonRpcSigner;

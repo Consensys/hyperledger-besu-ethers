@@ -60,7 +60,8 @@ var node2 = 'Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs=';
 // const node3 = 'k2zXEin4Ip/qBGlRkJejnGWdP9cjkK+DAvKNW31L2C8='
 var preCompiledContract = '0x000000000000000000000000000000000000007E';
 describe('Deploy contract using contract factory', function () {
-    var node1Wallet;
+    var walletNode1;
+    var walletNode2;
     var txHash;
     var signerAddress;
     beforeAll(function () { return __awaiter(_this, void 0, void 0, function () {
@@ -69,8 +70,9 @@ describe('Deploy contract using contract factory', function () {
             switch (_a.label) {
                 case 0:
                     privateKey = '0x0000000000000000000000000000000000000000000000000000000000000002';
-                    node1Wallet = new index_1.PrivateWallet(privateKey, providerNode1);
-                    return [4 /*yield*/, node1Wallet.getAddress()];
+                    walletNode1 = new index_1.PrivateWallet(privateKey, providerNode1);
+                    walletNode2 = new index_1.PrivateWallet(privateKey, providerNode2);
+                    return [4 /*yield*/, walletNode1.getAddress()];
                 case 1:
                     signerAddress = _a.sent();
                     console.log("Private transaction signer address " + signerAddress);
@@ -82,7 +84,8 @@ describe('Deploy contract using contract factory', function () {
         var privacyGroupId;
         var privacyGroupOptions;
         var privateTxCountNode1;
-        var contract;
+        var contractNode1;
+        var contractNode2;
         var testContractAbi;
         var bytecode;
         beforeAll(function () {
@@ -132,17 +135,17 @@ describe('Deploy contract using contract factory', function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        factory = new index_1.PrivateContractFactory(testContractAbi, bytecode, node1Wallet);
+                        factory = new index_1.PrivateContractFactory(testContractAbi, bytecode, walletNode1);
                         return [4 /*yield*/, factory.privateDeploy(privacyGroupOptions)];
                     case 1:
-                        contract = _a.sent();
-                        expect(contract.address).toMatch(index_1.utils.RegEx.ethereumAddress);
-                        expect(contract.deployPrivateTransaction.publicHash).toMatch(index_1.utils.RegEx.transactionHash);
-                        txHash = contract.deployPrivateTransaction.publicHash;
-                        return [4 /*yield*/, contract.deployPrivateTransaction.wait()];
+                        contractNode1 = _a.sent();
+                        expect(contractNode1.address).toMatch(index_1.utils.RegEx.ethereumAddress);
+                        expect(contractNode1.deployPrivateTransaction.publicHash).toMatch(index_1.utils.RegEx.transactionHash);
+                        txHash = contractNode1.deployPrivateTransaction.publicHash;
+                        return [4 /*yield*/, contractNode1.deployPrivateTransaction.wait()];
                     case 2:
                         txReceipt = _a.sent();
-                        expect(txReceipt.contractAddress).toEqual(contract.address);
+                        expect(txReceipt.contractAddress).toEqual(contractNode1.address);
                         expect(txReceipt.to).toBeNull();
                         expect(txReceipt.from).toEqual(signerAddress);
                         expect(txReceipt.logs).toEqual([]);
@@ -160,7 +163,7 @@ describe('Deploy contract using contract factory', function () {
                         expect(txReceipt.to).toBeNull();
                         expect(txReceipt.from).toEqual(signerAddress);
                         expect(txReceipt.logs).toEqual([]);
-                        expect(txReceipt.contractAddress).toEqual(contract.address);
+                        expect(txReceipt.contractAddress).toEqual(contractNode1.address);
                         return [2 /*return*/];
                 }
             });
@@ -198,7 +201,7 @@ describe('Deploy contract using contract factory', function () {
                 var value;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, contract.getMagicNumber()];
+                        case 0: return [4 /*yield*/, contractNode1.getMagicNumber()];
                         case 1:
                             value = _a.sent();
                             expect(value.eq(99999)).toBeTruthy();
@@ -210,7 +213,7 @@ describe('Deploy contract using contract factory', function () {
                 var value;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, contract.getTestUint()];
+                        case 0: return [4 /*yield*/, contractNode1.getTestUint()];
                         case 1:
                             value = _a.sent();
                             expect(value.eq(1)).toBeTruthy();
@@ -222,7 +225,7 @@ describe('Deploy contract using contract factory', function () {
                 var value;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, contract.testString()];
+                        case 0: return [4 /*yield*/, contractNode1.testString()];
                         case 1:
                             value = _a.sent();
                             expect(value).toEqual('test string');
@@ -261,11 +264,11 @@ describe('Deploy contract using contract factory', function () {
                 var tx, receipt;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, contract.setTestUint(2)];
+                        case 0: return [4 /*yield*/, contractNode1.setTestUint(2)];
                         case 1:
                             tx = _a.sent();
                             expect(tx.publicHash).toMatch(index_1.utils.RegEx.bytes32);
-                            expect(tx.to).toEqual(contract.address);
+                            expect(tx.to).toEqual(contractNode1.address);
                             expect(tx.from).toEqual(signerAddress);
                             return [4 /*yield*/, providerNode1.waitForTransaction(tx.publicHash)];
                         case 2:
@@ -279,13 +282,13 @@ describe('Deploy contract using contract factory', function () {
                 var tx, receipt;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, contract.setTestUint(3, {
+                        case 0: return [4 /*yield*/, contractNode1.setTestUint(3, {
                                 gasLimit: 100000
                             })];
                         case 1:
                             tx = _a.sent();
                             expect(tx.publicHash).toMatch(index_1.utils.RegEx.bytes32);
-                            expect(tx.to).toEqual(contract.address);
+                            expect(tx.to).toEqual(contractNode1.address);
                             expect(tx.from).toEqual(signerAddress);
                             return [4 /*yield*/, providerNode1.waitForTransaction(tx.publicHash)];
                         case 2:
@@ -299,16 +302,53 @@ describe('Deploy contract using contract factory', function () {
                 var tx, receipt;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, contract.txFail()];
+                        case 0: return [4 /*yield*/, contractNode1.txFail()];
                         case 1:
                             tx = _a.sent();
                             expect(tx.publicHash).toMatch(index_1.utils.RegEx.bytes32);
-                            expect(tx.to).toEqual(contract.address);
+                            expect(tx.to).toEqual(contractNode1.address);
                             expect(tx.from).toEqual(signerAddress);
                             return [4 /*yield*/, providerNode1.waitForTransaction(tx.publicHash)];
                         case 2:
                             receipt = _a.sent();
                             expect(receipt.status).toEqual(0);
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+        });
+        describe('node 2 interacts with private contract deployed from node 1', function () {
+            test('connecting to existing contract', function () {
+                contractNode2 = new index_1.PrivateContract(contractNode1.address, testContractAbi, providerNode2);
+                contractNode2 = contractNode1.connect(walletNode2);
+                expect(contractNode2.address).toEqual(contractNode1.address);
+            });
+            test('view function after node 1 changes', function () { return __awaiter(_this, void 0, void 0, function () {
+                var value;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contractNode1.getTestUint()];
+                        case 1:
+                            value = _a.sent();
+                            expect(value.eq(3)).toBeTruthy();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('write data', function () { return __awaiter(_this, void 0, void 0, function () {
+                var tx, receipt;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contractNode2.setTestUint(4)];
+                        case 1:
+                            tx = _a.sent();
+                            expect(tx.publicHash).toMatch(index_1.utils.RegEx.bytes32);
+                            expect(tx.to).toEqual(contractNode1.address);
+                            expect(tx.from).toEqual(signerAddress);
+                            return [4 /*yield*/, providerNode2.waitForTransaction(tx.publicHash)];
+                        case 2:
+                            receipt = _a.sent();
+                            expect(receipt.status).toEqual(1);
                             return [2 /*return*/];
                     }
                 });

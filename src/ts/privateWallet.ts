@@ -44,6 +44,7 @@ export class PrivateWallet extends Wallet {
     ): Promise<string> {
         return this.sendPrivateTransaction(transaction)
             .then(response => {
+                // Wait for the transaction to be mined and the receipt returned
                 return response.wait()
             })
             .then(receipt => {
