@@ -21,7 +21,7 @@ export interface PrivateContractReceipt extends PrivateTransactionReceipt {
     events?: Array<PrivateEvent>;
 }
 export declare class PrivateContract extends Contract {
-    readonly signer: PrivateJsonRpcSigner;
+    readonly signer: PrivateWallet;
     readonly provider: PrivateJsonRpcProvider;
     readonly privacyGroupId: string;
     readonly deployPrivateTransaction: PrivateTransactionResponse;

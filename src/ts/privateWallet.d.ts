@@ -1,7 +1,7 @@
 import { Wallet } from '@ethersproject/wallet';
 import { BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
-import { PrivateTransactionResponse } from './privateTransaction';
+import { PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction';
 import { PrivateJsonRpcProvider } from './privateProvider';
 import { PrivacyGroupOptions } from './privacyGroup';
 export interface PrivateTransactionRequest {
@@ -19,9 +19,12 @@ export interface PrivateTransactionRequest {
 }
 export declare class PrivateWallet extends Wallet {
     readonly provider: PrivateJsonRpcProvider;
+    privateCall(transaction: PrivateTransactionRequest): Promise<string>;
     signPrivateTransaction(transaction: PrivateTransactionRequest): Promise<string>;
     sendPrivateTransaction(transaction: PrivateTransactionRequest): Promise<PrivateTransactionResponse>;
     populatePrivateTransaction(transaction: PrivateTransactionRequest): Promise<PrivateTransactionRequest>;
     getPrivateTransactionCount(privacyGroupOptions: PrivacyGroupOptions): Promise<number>;
+    getPrivateTransaction(publicTransactionHash: string): Promise<PrivateTransactionResponse>;
+    getPrivateTransactionReceipt(publicTransactionHash: string): Promise<PrivateTransactionReceipt>;
     checkTransaction(transaction: PrivateTransactionRequest): PrivateTransactionRequest;
 }

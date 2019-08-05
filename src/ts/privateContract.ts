@@ -1,7 +1,7 @@
 
 import { ParamType } from "@ethersproject/abi";
 import { Signer } from "@ethersproject/abstract-signer";
-import { Block, BlockTag, Log, Provider } from "@ethersproject/abstract-provider";
+import { Block, Log, Provider } from "@ethersproject/abstract-provider";
 import { getAddress } from "@ethersproject/address";
 import { arrayify, hexDataSlice, stripZeros } from "@ethersproject/bytes";
 import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
@@ -59,7 +59,7 @@ export interface PrivateContractReceipt extends PrivateTransactionReceipt {
 
 export class PrivateContract extends Contract {
 
-    readonly signer: PrivateJsonRpcSigner;
+    readonly signer: PrivateWallet;
     readonly provider: PrivateJsonRpcProvider;
     readonly privacyGroupId: string;
     readonly deployPrivateTransaction: PrivateTransactionResponse;
@@ -78,15 +78,9 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
     return function(...params): Promise<any> {
         let tx: any = {}
 
-        let blockTag: BlockTag = null;
-
         // If 1 extra parameter was passed in, it contains overrides
         if (params.length === method.inputs.length + 1 && typeof(params[params.length - 1]) === "object") {
             tx = shallowCopy(params.pop());
-
-            if (tx.blockTag != null) {
-                blockTag = tx.blockTag;
-            }
 
             delete tx.blockTag;
 
@@ -121,6 +115,23 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
 
         return resolveAddresses(contract.signer || contract.provider, params, method.inputs).then((params) => {
             tx.data = contract.interface.encodeFunctionData(method, params);
+
+            // Add private transaction properties to the transaction
+            if (contract.deployPrivateTransaction) {
+                if (contract.deployPrivateTransaction.privateFrom) {
+                    tx.privateFrom = contract.deployPrivateTransaction.privateFrom
+                }
+                tx.privateFor = contract.deployPrivateTransaction.privateFor
+                tx.restriction = contract.deployPrivateTransaction.restriction
+            }
+            else {
+                errors.throwError("private transaction not sent as contract not yet deployed", errors.UNSUPPORTED_OPERATION, {
+                    transaction: tx,
+                    deployPrivateTransaction: contract.deployPrivateTransaction,
+                    operation: "runPrivateMethod"
+                });
+            }
+
             if (method.constant || options.callStatic) {
 
                 // Call (constant functions) always cost 0 ether
@@ -141,8 +152,25 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
 
                 if (options.transaction) { return resolveProperties(tx); }
 
-                // FIXME replace call with privateCall
-                return (contract.signer || contract.provider).call(tx, blockTag).then((value) => {
+                // FIXME remove once Pantheon 1.3 supports an equivalent of eth_call
+                if (!contract.signer) {
+                    errors.throwError("can only call a private transaction by sending a signed transaction", errors.UNSUPPORTED_OPERATION, {
+                        transaction: tx,
+                        operation: "call"
+                    });
+                }
+
+                //return (contract.signer || contract.provider).privateCall(tx).then((value: any) => {
+                return (contract.signer).privateCall(tx).then((value: any) => {
+
+                    if (value == undefined) {
+                        errors.throwArgumentError('no value returned from private contract call', 'privateCallValue', {
+                            value,
+                            functionName,
+                            contractAddress: contract.address,
+                            params,
+                        })
+                    }
 
                     try {
                         let result = contract.interface.decodeFunctionResult(method, value);
@@ -160,7 +188,6 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
                         throw error;
                     }
                 });
-
             }
 
             // Only computing the transaction estimate
@@ -169,7 +196,9 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
                     errors.throwError("estimate require a provider or signer", errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" })
                 }
 
-                return (contract.signer || contract.provider).estimateGas(tx);
+                // FIXME restore once Pantheon 1.3 supports an equivalent of eth_estimateGas
+                errors.throwError("can not currently estimate a private transaction", errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" })
+                //return (contract.signer || contract.provider).estimateGas(tx);
             }
 
             if (tx.gasLimit == null && method.gas != null) {
@@ -182,22 +211,6 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
                     value: tx,
                     method: method.format()
                 })
-            }
-
-            // Add private properties
-            if (contract.deployPrivateTransaction) {
-                if (contract.deployPrivateTransaction.privateFrom) {
-                    tx.privateFrom = contract.deployPrivateTransaction.privateFrom
-                }
-                tx.privateFor = contract.deployPrivateTransaction.privateFor
-                tx.restriction = contract.deployPrivateTransaction.restriction
-            }
-            else {
-                errors.throwError("private transaction not sent as contract not yet deployed", errors.UNSUPPORTED_OPERATION, {
-                    transaction: tx,
-                    deployPrivateTransaction: contract.deployPrivateTransaction,
-                    operation: "runPrivateMethod"
-                });
             }
 
             if (options.transaction) { return resolveProperties(tx); }

@@ -125,14 +125,14 @@ export class PrivateJsonRpcSigner extends JsonRpcSigner {
     }
 
     sendPrivateTransaction(transaction: PrivateTransactionRequest): Promise<PrivateTransactionResponse> {
-        return this.sendPrivateUncheckedTransaction(transaction).then((hash) => {
+        return this.sendPrivateUncheckedTransaction(transaction).then((publicTransactionHash) => {
             return poll(() => {
-                return this.provider.getPrivateTransaction(hash).then((tx: PrivateTransactionResponse) => {
+                return this.provider.getPrivateTransaction(publicTransactionHash).then((tx: PrivateTransactionResponse) => {
                     if (tx === null) { return undefined; }
-                    return this.provider._wrapPrivateTransaction(tx, hash);
+                    return this.provider._wrapPrivateTransaction(tx, publicTransactionHash);
                 });
             }, { onceBlock: this.provider }).catch((error: Error) => {
-                (<any>error).transactionHash = hash;
+                (<any>error).transactionHash = publicTransactionHash;
                 throw error;
             });
         });
@@ -177,16 +177,6 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
         return defaultFormatter;
     }
 
-    privateCall(
-        transaction: PrivateTransactionRequest | Promise<PrivateTransactionRequest>,
-    ): Promise<string> {
-        return this._runPerform("privateCall", {
-            transaction: () => this._getTransactionRequest(transaction),
-        }).then((result) => {
-            return hexlify(result);
-        });
-    }
-
     send(method: string, params: any): Promise<any> {
         const id = this._nextId++
         let request = {
@@ -221,9 +211,9 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
     sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<PrivateTransactionResponse> {
         return this._runPerform("sendPrivateTransaction", {
             signedTransaction: () => Promise.resolve(signedTransaction).then(t => hexlify(t))
-        }).then((result) => {
+        }).then((publicTransactionHash) => {
             const parsedTransaction = this.formatter.transaction(signedTransaction)
-            return this._wrapPrivateTransaction(parsedTransaction, result);
+            return this._wrapPrivateTransaction(parsedTransaction, publicTransactionHash);
         }, (error) => {
             error.transaction = this.formatter.transaction(signedTransaction);
             if (error.transaction.hash) {
@@ -233,16 +223,15 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
         });
     }
 
-    _wrapPrivateTransaction(tx: PrivateTransaction, publicHash?: string): PrivateTransactionResponse {
-        if (publicHash != null && hexDataLength(publicHash) !== 32) {
-            errors.throwArgumentError("invalid public hash", "publicHash" , publicHash);
+    _wrapPrivateTransaction(tx: PrivateTransaction, publicTransactionHash?: string): PrivateTransactionResponse {
+        if (publicTransactionHash != null && hexDataLength(publicTransactionHash) !== 32) {
+            errors.throwArgumentError("invalid public transaction hash", "publicTransactionHash" , publicTransactionHash);
         }
 
         let result = <PrivateTransactionResponse>tx;
 
-        tx.publicHash = publicHash
+        tx.publicHash = publicTransactionHash
 
-        // @TODO: (confirmations? number, timeout? number)
         result.wait = (confirmations?: number) => {
 
             // We know this transaction *must* exist (whether it gets mined is
@@ -252,45 +241,28 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
                 this._emitted["t:" + tx.publicHash] = "pending";
             }
 
-            return this.waitForPrivateTransaction(tx.publicHash, confirmations).then((receipt) => {
+            // wait for the public marker transaction to be mined
+            return this.waitForTransaction(tx.publicHash, confirmations).then((receipt) => {
                 if (receipt == null && confirmations === 0) { return null; }
 
                 // No longer pending, allow the polling loop to garbage collect this
                 this._emitted["t:" + tx.publicHash] = receipt.blockNumber;
 
-                // FIXME add once eea_getTransactionReceipt includes the status gasUsed and cumulativeGasUsed
-                // if (receipt.status === 0) {
-                //     errors.throwError("transaction failed", errors.CALL_EXCEPTION, {
-                //         publicHash: tx.publicHash,
-                //         transaction: tx
-                //     });
-                // }
+                if (receipt.status === 0) {
+                    errors.throwError("transaction failed", errors.CALL_EXCEPTION, {
+                        publicHash: tx.publicHash,
+                        transaction: tx
+                    });
+                }
+
+                // get private transaction receipt
+
+
                 return receipt;
             });
         };
 
         return result;
-    }
-
-    waitForPrivateTransaction(transactionHash: string, confirmations?: number): Promise<PrivateTransactionReceipt> {
-        if (confirmations == null) { confirmations = 1; }
-
-        if (confirmations === 0) {
-            return this.getPrivateTransactionReceipt(transactionHash);
-        }
-
-        return new Promise((resolve) => {
-            let handler = (receipt: PrivateTransactionReceipt) => {
-                // is this a private or public transaction?
-                // We only want want private transactions which do not have a gasUsed property on the receipt
-                // if (!receipt.hasOwnProperty('gasUsed')) {
-                    if (receipt.confirmations < confirmations) { return; }
-                    this.removeListener(transactionHash, handler);
-                    resolve(receipt);
-                // }
-            }
-            this.on(transactionHash, handler);
-        });
     }
 
     getPrivateTransactionCount(
@@ -305,9 +277,9 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
         });
     }
 
-    getPrivateTransactionReceipt(privateTransactionHash: string): Promise<PrivateTransactionReceipt> {
+    getPrivateTransactionReceipt(publicTransactionHash: string): Promise<PrivateTransactionReceipt> {
         return this.ready.then(() => {
-            return resolveProperties({ transactionHash: privateTransactionHash }).then(({ transactionHash }) => {
+            return resolveProperties({ transactionHash: publicTransactionHash }).then(({ transactionHash }) => {
                 let params = { transactionHash: this.formatter.hash(transactionHash, true) };
                 return poll(() => {
                     return this.perform("getPrivateTransactionReceipt", params).then((result) => {
@@ -320,27 +292,47 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
 
                         const receipt = this.formatter.privateReceipt(result);
 
-                        if (receipt.blockNumber == null) {
-                            receipt.confirmations = 0;
-
-                        } else if (receipt.confirmations == null) {
-                            return this._getFastBlockNumber().then((blockNumber) => {
-
-                                // Add the confirmations using the fast block number (pessimistic)
-                                let confirmations = (blockNumber - receipt.blockNumber) + 1;
-                                if (confirmations <= 0) { confirmations = 1; }
-                                receipt.confirmations = confirmations;
-
-                                return receipt;
-                            });
+                        return receipt;
+                    }).then(async (privateReceipt) => {
+                        if (privateReceipt == undefined || privateReceipt == null) {
+                            return privateReceipt;
                         }
 
-                        return receipt;
+                        return this.getTransactionReceipt(publicTransactionHash).then(result => {
 
+                            const publicReceipt = this.formatter.receipt(result);
+
+                            // Merge the public and private transaction receipts
+                            const receipt = {
+                                ...publicReceipt,
+                                contractAddress: privateReceipt.contractAddress,
+                                logs: privateReceipt.logs,
+                                from: privateReceipt.from,
+                                to: privateReceipt.to,
+                                output: privateReceipt.output,
+                            }
+
+                            if (receipt.blockNumber == null) {
+                                receipt.confirmations = 0;
+
+                            } else if (receipt.confirmations == null) {
+                                return this._getFastBlockNumber().then((blockNumber) => {
+
+                                    // Add the confirmations using the fast block number (pessimistic)
+                                    let confirmations = (blockNumber - receipt.blockNumber) + 1;
+                                    if (confirmations <= 0) { confirmations = 1; }
+                                    receipt.confirmations = confirmations;
+
+                                    return receipt;
+                                });
+                            }
+
+                            return receipt
+                        })
                     }).catch((err) => {
                         errors.throwError(`Failed to get private transaction receipt. Error: ${err.message}`, err.code, {
                             err,
-                            privateTransactionHash,
+                            publicTransactionHash,
                         });
                     });
                 }, { onceBlock: this });
@@ -363,6 +355,7 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
 
                         const tx = this.formatter.privateTransactionResponse(result);
 
+                        // TODO does this work for private transactions?
                         if (tx.blockNumber == null) {
                             tx.confirmations = 0;
 

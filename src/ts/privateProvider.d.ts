@@ -34,6 +34,16 @@ export interface PeerInfo {
     port: string;
     id: string;
 }
+export interface PantheonStatistics {
+    maxSize: number;
+    localCount: number;
+    remoteCount: number;
+}
+export interface PantheonTransaction {
+    hash: string;
+    isReceivedFromLocalSource: boolean;
+    addedToPoolAt: string;
+}
 export declare class PrivateJsonRpcSigner extends JsonRpcSigner {
     readonly provider: PrivateJsonRpcProvider;
     constructor(constructorGuard: any, provider: PrivateJsonRpcProvider, addressOrIndex?: string | number);
@@ -44,13 +54,11 @@ export declare class PrivateJsonRpcProvider extends JsonRpcProvider {
     formatter: PrivateFormatter;
     constructor(url?: ConnectionInfo | string, network?: Networkish);
     static getFormatter(): PrivateFormatter;
-    privateCall(transaction: PrivateTransactionRequest | Promise<PrivateTransactionRequest>): Promise<string>;
     send(method: string, params: any): Promise<any>;
     sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<PrivateTransactionResponse>;
-    _wrapPrivateTransaction(tx: PrivateTransaction, publicHash?: string): PrivateTransactionResponse;
-    waitForPrivateTransaction(transactionHash: string, confirmations?: number): Promise<PrivateTransactionReceipt>;
+    _wrapPrivateTransaction(tx: PrivateTransaction, publicTransactionHash?: string): PrivateTransactionResponse;
     getPrivateTransactionCount(addressOrName: string | Promise<string>, privacyGroupOptions: PrivacyGroupOptions): Promise<number>;
-    getPrivateTransactionReceipt(privateTransactionHash: string): Promise<PrivateTransactionReceipt>;
+    getPrivateTransactionReceipt(publicTransactionHash: string): Promise<PrivateTransactionReceipt>;
     getPrivateTransaction(transactionHash: string): Promise<PrivateTransactionResponse>;
     createPrivacyGroup(members: string[] | Promise<string[]>, name?: string | Promise<string>, description?: string | Promise<string>): Promise<string>;
     deletePrivacyGroup(privacyGroupId: string | Promise<string>): Promise<string>;
@@ -62,6 +70,8 @@ export declare class PrivateJsonRpcProvider extends JsonRpcProvider {
     getPeers(): Promise<PeerInfo[]>;
     removePeer(enodeUrl: string | Promise<string>): Promise<PeerInfo[]>;
     getModuleVersions(): Promise<object>;
+    getPantheonStatistics(): Promise<PantheonStatistics>;
+    getPantheonTransactions(): Promise<PantheonTransaction[]>;
     perform(method: string, params: any): Promise<any>;
     static hexlifyTransaction(transaction: TransactionRequest, allowExtra?: {
         [key: string]: boolean;

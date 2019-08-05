@@ -61,13 +61,9 @@ function runPrivateMethod(contract, functionName, options) {
             params[_i] = arguments[_i];
         }
         var tx = {};
-        var blockTag = null;
         // If 1 extra parameter was passed in, it contains overrides
         if (params.length === method.inputs.length + 1 && typeof (params[params.length - 1]) === "object") {
             tx = properties_1.shallowCopy(params.pop());
-            if (tx.blockTag != null) {
-                blockTag = tx.blockTag;
-            }
             delete tx.blockTag;
             // Check for unexpected keys (e.g. using "gas" instead of "gasLimit")
             for (var key in tx) {
@@ -96,6 +92,21 @@ function runPrivateMethod(contract, functionName, options) {
         // }
         return resolveAddresses(contract.signer || contract.provider, params, method.inputs).then(function (params) {
             tx.data = contract.interface.encodeFunctionData(method, params);
+            // Add private transaction properties to the transaction
+            if (contract.deployPrivateTransaction) {
+                if (contract.deployPrivateTransaction.privateFrom) {
+                    tx.privateFrom = contract.deployPrivateTransaction.privateFrom;
+                }
+                tx.privateFor = contract.deployPrivateTransaction.privateFor;
+                tx.restriction = contract.deployPrivateTransaction.restriction;
+            }
+            else {
+                errors.throwError("private transaction not sent as contract not yet deployed", errors.UNSUPPORTED_OPERATION, {
+                    transaction: tx,
+                    deployPrivateTransaction: contract.deployPrivateTransaction,
+                    operation: "runPrivateMethod"
+                });
+            }
             if (method.constant || options.callStatic) {
                 // Call (constant functions) always cost 0 ether
                 if (options.estimate) {
@@ -113,8 +124,23 @@ function runPrivateMethod(contract, functionName, options) {
                 if (options.transaction) {
                     return properties_1.resolveProperties(tx);
                 }
-                // FIXME replace call with privateCall
-                return (contract.signer || contract.provider).call(tx, blockTag).then(function (value) {
+                // FIXME remove once Pantheon 1.3 supports an equivalent of eth_call
+                if (!contract.signer) {
+                    errors.throwError("can only call a private transaction by sending a signed transaction", errors.UNSUPPORTED_OPERATION, {
+                        transaction: tx,
+                        operation: "call"
+                    });
+                }
+                //return (contract.signer || contract.provider).privateCall(tx).then((value: any) => {
+                return (contract.signer).privateCall(tx).then(function (value) {
+                    if (value == undefined) {
+                        errors.throwArgumentError('no value returned from private contract call', 'privateCallValue', {
+                            value: value,
+                            functionName: functionName,
+                            contractAddress: contract.address,
+                            params: params,
+                        });
+                    }
                     try {
                         var result = contract.interface.decodeFunctionResult(method, value);
                         if (method.outputs.length === 1) {
@@ -137,7 +163,9 @@ function runPrivateMethod(contract, functionName, options) {
                 if (!contract.provider && !contract.signer) {
                     errors.throwError("estimate require a provider or signer", errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" });
                 }
-                return (contract.signer || contract.provider).estimateGas(tx);
+                // FIXME restore once Pantheon 1.3 supports an equivalent of eth_estimateGas
+                errors.throwError("can not currently estimate a private transaction", errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" });
+                //return (contract.signer || contract.provider).estimateGas(tx);
             }
             if (tx.gasLimit == null && method.gas != null) {
                 tx.gasLimit = bignumber_1.BigNumber.from(method.gas).add(21000);
@@ -147,21 +175,6 @@ function runPrivateMethod(contract, functionName, options) {
                     argument: "sendPrivateTransaction",
                     value: tx,
                     method: method.format()
-                });
-            }
-            // Add private properties
-            if (contract.deployPrivateTransaction) {
-                if (contract.deployPrivateTransaction.privateFrom) {
-                    tx.privateFrom = contract.deployPrivateTransaction.privateFrom;
-                }
-                tx.privateFor = contract.deployPrivateTransaction.privateFor;
-                tx.restriction = contract.deployPrivateTransaction.restriction;
-            }
-            else {
-                errors.throwError("private transaction not sent as contract not yet deployed", errors.UNSUPPORTED_OPERATION, {
-                    transaction: tx,
-                    deployPrivateTransaction: contract.deployPrivateTransaction,
-                    operation: "runPrivateMethod"
                 });
             }
             if (options.transaction) {

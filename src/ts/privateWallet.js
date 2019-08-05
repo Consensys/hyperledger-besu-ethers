@@ -37,6 +37,15 @@ var PrivateWallet = /** @class */ (function (_super) {
     function PrivateWallet() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    PrivateWallet.prototype.privateCall = function (transaction) {
+        return this.sendPrivateTransaction(transaction)
+            .then(function (response) {
+            return response.wait();
+        })
+            .then(function (receipt) {
+            return receipt.output;
+        });
+    };
     PrivateWallet.prototype.signPrivateTransaction = function (transaction) {
         var _this = this;
         return properties_1.resolveProperties(transaction).then(function (tx) {
@@ -106,6 +115,12 @@ var PrivateWallet = /** @class */ (function (_super) {
     PrivateWallet.prototype.getPrivateTransactionCount = function (privacyGroupOptions) {
         this._checkProvider("getPrivateTransactionCount");
         return this.provider.getPrivateTransactionCount(this.getAddress(), privacyGroupOptions);
+    };
+    PrivateWallet.prototype.getPrivateTransaction = function (publicTransactionHash) {
+        return this.provider.getPrivateTransaction(publicTransactionHash);
+    };
+    PrivateWallet.prototype.getPrivateTransactionReceipt = function (publicTransactionHash) {
+        return this.provider.getPrivateTransactionReceipt(publicTransactionHash);
     };
     PrivateWallet.prototype.checkTransaction = function (transaction) {
         for (var key in transaction) {

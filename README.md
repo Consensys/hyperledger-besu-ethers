@@ -257,7 +257,6 @@ Ethers version 5
 ## Privacy group limitations
 
 There are a number of limitations in the Pantheon 1.2 release that are being addressed for the 1.3 release:
-* There is no way of check if a private transaction succeeded or failed as there is no `status` or `gasUsed` fields on the private transaction receipt.
 * Calling readonly functions are done via sending a signed transaction as there is no equivalent of [eth_call](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_call) for private transactions.
 * Private transactions default to 10 million gas limit as there is no equivalent of [eth_estimateGas](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_estimategas) to estimate the gas of a private transaction. This gas limit can be overridden via Ethers.js' optional override object.
 * The client must wait until a contract has been mined before calling a contract method. Ethers.js supports calling function methods before a deployed contract has been mined by polling [eth_getCode](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_getcode). There is no equivalent method for private transactions.

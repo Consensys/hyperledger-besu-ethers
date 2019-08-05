@@ -42,7 +42,9 @@ var provider = new index_1.providers.PrivateJsonRpcProvider("http://localhost:20
 provider.on('debug', function (info) {
     console.log("Sent \"" + info.action + "\" action to node 1 with request: " + JSON.stringify(info.request) + "\nResponse: " + JSON.stringify(info.response));
 });
+var providerNode2 = new index_1.providers.PrivateJsonRpcProvider("http://localhost:20002");
 describe('Pantheon Admin APIs', function () {
+    var node2enode;
     test('change log level', function () { return __awaiter(_this, void 0, void 0, function () {
         var result;
         return __generator(this, function (_a) {
@@ -90,6 +92,34 @@ describe('Pantheon Admin APIs', function () {
             }
         });
     }); });
+    test('remove peer', function () { return __awaiter(_this, void 0, void 0, function () {
+        var success;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, providerNode2.getNodeInfo()];
+                case 1:
+                    // Get the enode of node 2
+                    node2enode = (_a.sent()).enode;
+                    return [4 /*yield*/, provider.removePeer(node2enode)];
+                case 2:
+                    success = _a.sent();
+                    expect(success).toBeTruthy();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    test('add peer', function () { return __awaiter(_this, void 0, void 0, function () {
+        var success;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, provider.addPeer(node2enode)];
+                case 1:
+                    success = _a.sent();
+                    expect(success).toBeTruthy();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
     test('change log level back', function () { return __awaiter(_this, void 0, void 0, function () {
         var result;
         return __generator(this, function (_a) {
@@ -98,6 +128,32 @@ describe('Pantheon Admin APIs', function () {
                 case 1:
                     result = _a.sent();
                     expect(result).toBeTruthy();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    test('Pantheon Statistics', function () { return __awaiter(_this, void 0, void 0, function () {
+        var stats;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, provider.getPantheonStatistics()];
+                case 1:
+                    stats = _a.sent();
+                    expect(stats.maxSize).toEqual(4096);
+                    expect(stats.localCount).toEqual(0);
+                    expect(stats.remoteCount).toEqual(0);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    test('Pantheon Transaction', function () { return __awaiter(_this, void 0, void 0, function () {
+        var results;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, provider.getPantheonTransactions()];
+                case 1:
+                    results = _a.sent();
+                    expect(results).toHaveLength(0);
                     return [2 /*return*/];
             }
         });

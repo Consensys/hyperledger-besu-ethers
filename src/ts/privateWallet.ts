@@ -9,7 +9,7 @@ import { Wallet } from '@ethersproject/wallet'
 import { BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
 
-import { PrivateTransactionResponse, serialize } from './privateTransaction'
+import { PrivateTransactionReceipt, PrivateTransactionResponse, serialize} from './privateTransaction'
 import { PrivateJsonRpcProvider } from './privateProvider'
 import { PrivacyGroupOptions } from './privacyGroup'
 
@@ -38,6 +38,18 @@ const allowedPrivateTransactionKeys: Array<string> = [
 export class PrivateWallet extends Wallet {
 
     readonly provider: PrivateJsonRpcProvider;
+
+    privateCall(
+        transaction: PrivateTransactionRequest,
+    ): Promise<string> {
+        return this.sendPrivateTransaction(transaction)
+            .then(response => {
+                return response.wait()
+            })
+            .then(receipt => {
+                return receipt.output
+            })
+    }
 
     signPrivateTransaction(transaction: PrivateTransactionRequest): Promise<string> {
         return resolveProperties(transaction).then((tx) => {
@@ -104,6 +116,14 @@ export class PrivateWallet extends Wallet {
     getPrivateTransactionCount(privacyGroupOptions: PrivacyGroupOptions): Promise<number> {
         this._checkProvider("getPrivateTransactionCount");
         return this.provider.getPrivateTransactionCount(this.getAddress(), privacyGroupOptions);
+    }
+
+    getPrivateTransaction(publicTransactionHash: string): Promise<PrivateTransactionResponse> {
+        return this.provider.getPrivateTransaction(publicTransactionHash);
+    }
+
+    getPrivateTransactionReceipt(publicTransactionHash: string): Promise<PrivateTransactionReceipt> {
+        return this.provider.getPrivateTransactionReceipt(publicTransactionHash);
     }
 
     checkTransaction(transaction: PrivateTransactionRequest): PrivateTransactionRequest {
