@@ -79,4 +79,23 @@ contract TestContract {
     function getTestUint() public view returns (uint) {
         return testUint;
     }
+
+    function getMagicNumber() public pure returns (uint) {
+        return 99999;
+    }
+
+    function pureFail() pure public {
+        revert('NOT_IMPLEMENTED');
+    }
+
+    function viewFail() view public {
+        if (testUint != 99999) {
+            revert('NOT_MAGIC_NUMBER');
+        }
+    }
+
+    function txFail() public {
+        testBool = true;
+        revert('FAIL_AFTER_WRITE');
+    }
 }

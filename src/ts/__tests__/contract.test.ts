@@ -129,28 +129,81 @@ describe('Deploy contract using contract factory', () => {
             expect(count).toEqual(privateTxCountNode1 + 1)
         })
 
-        test('call readonly function', async() => {
-            const value = await contract.getTestUint()
-            expect(value.eq(1)).toBeTruthy()
-        })
-
-        test('call public property', async() => {
-            const value = await contract.testString()
-            expect(value).toEqual('test string')
-        })
-
-        test('send transaction to write data', async() => {
-            const tx = await contract.setTestUint(2)
-            expect(tx.to).toEqual(contract.address)
-            expect(tx.from).toEqual(signerAddress)
-        })
-
-        test('send transaction to write data with gasLimit', async() => {
-            const tx = await contract.setTestUint(2, {
-                gasLimit: 100000
+        describe('call contract', () => {
+            test('pure function', async() => {
+                const value = await contract.getMagicNumber()
+                expect(value.eq(99999)).toBeTruthy()
             })
-            expect(tx.to).toEqual(contract.address)
-            expect(tx.from).toEqual(signerAddress)
+
+            test('view function', async() => {
+                const value = await contract.getTestUint()
+                expect(value.eq(1)).toBeTruthy()
+            })
+
+            test('public property', async() => {
+                const value = await contract.testString()
+                expect(value).toEqual('test string')
+            })
+
+            // test('pure function that fails', async() => {
+            //     expect.assertions(1)
+            //
+            //     try {
+            //         const result = await contract.pureFail()
+            //         console.log(result)
+            //         expect(false).toBeTruthy()
+            //     }
+            //     catch (err) {
+            //         expect(err).toBeInstanceOf(Error)
+            //     }
+            // })
+            //
+            // test('view function that fails', async() => {
+            //     expect.assertions(1)
+            //
+            //     try {
+            //         const result = await contract.viewFail()
+            //         console.log(result)
+            //         expect(false).toBeTruthy()
+            //     }
+            //     catch (err) {
+            //         expect(err).toBeInstanceOf(Error)
+            //     }
+            // })
+        })
+
+        describe('send transaction', () => {
+            test('to write data', async() => {
+                const tx = await contract.setTestUint(2)
+                expect(tx.publicHash).toMatch(utils.RegEx.bytes32)
+                expect(tx.to).toEqual(contract.address)
+                expect(tx.from).toEqual(signerAddress)
+
+                const receipt = await providerNode1.waitForTransaction(tx.publicHash)
+                expect(receipt.status).toEqual(1)
+            })
+
+            test('to write data with gasLimit', async() => {
+                const tx = await contract.setTestUint(3, {
+                    gasLimit: 100000
+                })
+                expect(tx.publicHash).toMatch(utils.RegEx.bytes32)
+                expect(tx.to).toEqual(contract.address)
+                expect(tx.from).toEqual(signerAddress)
+
+                const receipt = await providerNode1.waitForTransaction(tx.publicHash)
+                expect(receipt.status).toEqual(1)
+            })
+
+            test('that will fail from tx function', async() => {
+                const tx = await contract.txFail()
+                expect(tx.publicHash).toMatch(utils.RegEx.bytes32)
+                expect(tx.to).toEqual(contract.address)
+                expect(tx.from).toEqual(signerAddress)
+
+                const receipt = await providerNode1.waitForTransaction(tx.publicHash)
+                expect(receipt.status).toEqual(0)
+            })
         })
 
         test('Delete privacy group', async() => {

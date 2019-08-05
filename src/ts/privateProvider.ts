@@ -211,10 +211,10 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
     sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<PrivateTransactionResponse> {
         return this._runPerform("sendPrivateTransaction", {
             signedTransaction: () => Promise.resolve(signedTransaction).then(t => hexlify(t))
-        }).then((publicTransactionHash) => {
+        }).then(publicTransactionHash => {
             const parsedTransaction = this.formatter.transaction(signedTransaction)
             return this._wrapPrivateTransaction(parsedTransaction, publicTransactionHash);
-        }, (error) => {
+        }, error => {
             error.transaction = this.formatter.transaction(signedTransaction);
             if (error.transaction.hash) {
                 (<any>error).transactionHash = error.transaction.hash;

@@ -80,24 +80,72 @@ describe('Ethers Regression', () => {
             // expect(tx.to).toEqual(contract.address)
         })
 
-        test('call read only function', async() => {
-            const value = await contract.getTestUint()
-            expect(value.eq(1)).toBeTruthy()
+        describe('call contract', () => {
+            test('pure function', async() => {
+                const value = await contract.getMagicNumber()
+                expect(value.eq(99999)).toBeTruthy()
+            })
+
+            test('view function', async() => {
+                const value = await contract.getTestUint()
+                expect(value.eq(1)).toBeTruthy()
+            })
+
+            test('public property', async() => {
+                const value = await contract.testString()
+                expect(value).toEqual('test string')
+            })
+
+            test('pure function that fails', async() => {
+                expect.assertions(1)
+
+                try {
+                    const result = await contract.pureFail()
+                    console.log(result)
+                    expect(false).toBeTruthy()
+                }
+                catch (err) {
+                    expect(err).toBeInstanceOf(Error)
+                }
+            })
+
+            test('view function that fails', async() => {
+                expect.assertions(1)
+
+                try {
+                    const result = await contract.viewFail()
+                    console.log(result)
+                    expect(false).toBeTruthy()
+                }
+                catch (err) {
+                    expect(err).toBeInstanceOf(Error)
+                }
+            })
         })
 
-        test('call public property', async() => {
-            const value = await contract.testString()
-            expect(value).toEqual('test string')
+        describe('send transaction', () => {
+            test('to write data', async() => {
+                const tx = await contract.setTestUint(2)
+                expect(tx.to).toEqual(contract.address)
+                expect(tx.from).toEqual(await contractWallet.getAddress())
+            })
+
+            test('to write data with gasLimit', async() => {
+                const tx = await contract.setTestUint(3, {
+                    gasLimit: 100000
+                })
+                expect(tx.to).toEqual(contract.address)
+                expect(tx.from).toEqual(await contractWallet.getAddress())
+            })
+
+            test('that will fail from tx function', async() => {
+                const tx = await contract.txFail()
+
+                const receipt = await provider.waitForTransaction(tx.hash)
+                expect(receipt.status).toEqual(0)
+            })
         })
 
-        test('call write function', async() => {
-            const tx = await contract.setTestUint(2)
-            expect(tx).toBeDefined()
-            expect(tx.to).toEqual(contract.address)
-            expect(tx.hash).toMatch(transactionHash)
-        })
-
-        // send a transaction
         // get an event
     })
 

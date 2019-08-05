@@ -290,6 +290,7 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
                 var transactionHash = _a.transactionHash;
                 var params = { transactionHash: _this.formatter.hash(transactionHash, true) };
                 return web_1.poll(function () {
+                    // TODO refactor this to use asymnc/await to make it easier to read
                     return _this.perform("getPrivateTransactionReceipt", params).then(function (result) {
                         if (result == null) {
                             if (_this._emitted["t:" + transactionHash] == null) {

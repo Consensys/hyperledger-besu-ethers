@@ -193,58 +193,127 @@ describe('Deploy contract using contract factory', function () {
                 }
             });
         }); });
-        test('call readonly function', function () { return __awaiter(_this, void 0, void 0, function () {
-            var value;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, contract.getTestUint()];
-                    case 1:
-                        value = _a.sent();
-                        expect(value.eq(1)).toBeTruthy();
-                        return [2 /*return*/];
-                }
-            });
-        }); });
-        test('call public property', function () { return __awaiter(_this, void 0, void 0, function () {
-            var value;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, contract.testString()];
-                    case 1:
-                        value = _a.sent();
-                        expect(value).toEqual('test string');
-                        return [2 /*return*/];
-                }
-            });
-        }); });
-        test('send transaction to write data', function () { return __awaiter(_this, void 0, void 0, function () {
-            var tx;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, contract.setTestUint(2)];
-                    case 1:
-                        tx = _a.sent();
-                        expect(tx.to).toEqual(contract.address);
-                        expect(tx.from).toEqual(signerAddress);
-                        return [2 /*return*/];
-                }
-            });
-        }); });
-        test('send transaction to write data with gasLimit', function () { return __awaiter(_this, void 0, void 0, function () {
-            var tx;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, contract.setTestUint(2, {
-                            gasLimit: 100000
-                        })];
-                    case 1:
-                        tx = _a.sent();
-                        expect(tx.to).toEqual(contract.address);
-                        expect(tx.from).toEqual(signerAddress);
-                        return [2 /*return*/];
-                }
-            });
-        }); });
+        describe('call contract', function () {
+            test('pure function', function () { return __awaiter(_this, void 0, void 0, function () {
+                var value;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contract.getMagicNumber()];
+                        case 1:
+                            value = _a.sent();
+                            expect(value.eq(99999)).toBeTruthy();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('view function', function () { return __awaiter(_this, void 0, void 0, function () {
+                var value;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contract.getTestUint()];
+                        case 1:
+                            value = _a.sent();
+                            expect(value.eq(1)).toBeTruthy();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('public property', function () { return __awaiter(_this, void 0, void 0, function () {
+                var value;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contract.testString()];
+                        case 1:
+                            value = _a.sent();
+                            expect(value).toEqual('test string');
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            // test('pure function that fails', async() => {
+            //     expect.assertions(1)
+            //
+            //     try {
+            //         const result = await contract.pureFail()
+            //         console.log(result)
+            //         expect(false).toBeTruthy()
+            //     }
+            //     catch (err) {
+            //         expect(err).toBeInstanceOf(Error)
+            //     }
+            // })
+            //
+            // test('view function that fails', async() => {
+            //     expect.assertions(1)
+            //
+            //     try {
+            //         const result = await contract.viewFail()
+            //         console.log(result)
+            //         expect(false).toBeTruthy()
+            //     }
+            //     catch (err) {
+            //         expect(err).toBeInstanceOf(Error)
+            //     }
+            // })
+        });
+        describe('send transaction', function () {
+            test('to write data', function () { return __awaiter(_this, void 0, void 0, function () {
+                var tx, receipt;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contract.setTestUint(2)];
+                        case 1:
+                            tx = _a.sent();
+                            expect(tx.publicHash).toMatch(index_1.utils.RegEx.bytes32);
+                            expect(tx.to).toEqual(contract.address);
+                            expect(tx.from).toEqual(signerAddress);
+                            return [4 /*yield*/, providerNode1.waitForTransaction(tx.publicHash)];
+                        case 2:
+                            receipt = _a.sent();
+                            expect(receipt.status).toEqual(1);
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('to write data with gasLimit', function () { return __awaiter(_this, void 0, void 0, function () {
+                var tx, receipt;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contract.setTestUint(3, {
+                                gasLimit: 100000
+                            })];
+                        case 1:
+                            tx = _a.sent();
+                            expect(tx.publicHash).toMatch(index_1.utils.RegEx.bytes32);
+                            expect(tx.to).toEqual(contract.address);
+                            expect(tx.from).toEqual(signerAddress);
+                            return [4 /*yield*/, providerNode1.waitForTransaction(tx.publicHash)];
+                        case 2:
+                            receipt = _a.sent();
+                            expect(receipt.status).toEqual(1);
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('that will fail from tx function', function () { return __awaiter(_this, void 0, void 0, function () {
+                var tx, receipt;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contract.txFail()];
+                        case 1:
+                            tx = _a.sent();
+                            expect(tx.publicHash).toMatch(index_1.utils.RegEx.bytes32);
+                            expect(tx.to).toEqual(contract.address);
+                            expect(tx.from).toEqual(signerAddress);
+                            return [4 /*yield*/, providerNode1.waitForTransaction(tx.publicHash)];
+                        case 2:
+                            receipt = _a.sent();
+                            expect(receipt.status).toEqual(0);
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+        });
         test('Delete privacy group', function () { return __awaiter(_this, void 0, void 0, function () {
             var result;
             return __generator(this, function (_a) {
