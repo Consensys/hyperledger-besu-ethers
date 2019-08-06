@@ -16,9 +16,9 @@ The library also adds support for Pantheon's
 - [Usage](#usage)
   * [Privacy Group Management](#privacy-group-management)
   * [Pantheon Administration](#pantheon-administration)
-  * [Clique Methods](#clique-methods)
-  * [IBFT 2.0 Methods](#ibft-20-methods)
-  * [Txpool Methods](#txpool-methods)
+  * [Clique](#clique)
+  * [IBFT 2.0](#ibft-20)
+  * [Txpool](#txpool)
 - [Pantheon](#pantheon)
   * [Web3.js](#web3js)
 - [Ethers.js](#ethersjs)
@@ -28,7 +28,7 @@ The library also adds support for Pantheon's
 
 To install as a node module
 ```bash
-npm install pantheon-ethers
+npm install --production pantheon-ethers
 ```
 
 # Usage
@@ -188,7 +188,7 @@ const success = await provider.addPeer("enode://af80b90d25145da28c583359beb47b21
 console.log(success)  // true
 ```
 
-## Clique Methods
+## Clique
 
 Calls Pantheon's [Clique](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique-methods) JSON-RPC APIs.
 See [examples/pantheonClique.js](./examples/pantheonClique.js) for the full example code using async/await.
@@ -233,7 +233,7 @@ console.log(proposals)
 */
 ```
 
-## IBFT 2.0 Methods
+## IBFT 2.0
 
 Calls Pantheon's [IBFT 2.0](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft-20-methods) JSON-RPC APIs.
 See [examples/pantheonIBFT.js](./examples/pantheonIBFT.js) for the full example code using async/await.
@@ -279,7 +279,7 @@ console.log(validatorVotes)
 */
 ```
 
-## Txpool Methods
+## Txpool
 
 The txpool methods require the `TXPOOL` API methods to be enabled by Pantheon's [--rpc-http-api](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/) command line option.
 

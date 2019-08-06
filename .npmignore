@@ -1,0 +1,17 @@
+**/node_modules/
+.DS_Store
+.tmp/
+**/*.swp
+logs
+testchain
+.idea
+.vscode
+
+src
+docs
+examples
+scripts
+**/__tests__/
+jest.config.js
+tsconfig.tsbuildinfo
+tsconfig.json

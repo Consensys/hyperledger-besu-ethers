@@ -26,7 +26,8 @@
 
     "resolveJsonModule": true,
 
-    "baseUrl": "./"
+    "outDir": "dist",
+    "rootDir": "./src/ts"
   },
   "exclude": [
     "**/dist/*"
