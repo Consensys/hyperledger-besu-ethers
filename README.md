@@ -12,6 +12,18 @@ The library also adds support for Pantheon's
 [Txpool](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool-methods) and
 [miscellaneous](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#miscellaneous-methods) JSON-RPC APIs.
 
+- [Install](#install)
+- [Usage](#usage)
+  * [Privacy Group Management](#privacy-group-management)
+  * [Pantheon Administration](#pantheon-administration)
+  * [Clique Methods](#clique-methods)
+  * [IBFT 2.0 Methods](#ibft-20-methods)
+  * [Txpool Methods](#txpool-methods)
+- [Pantheon](#pantheon)
+  * [Web3.js](#web3js)
+- [Ethers.js](#ethersjs)
+- [Privacy Group Limitations](#privacy-group-limitations)
+
 # Install
 
 To install as a node module
@@ -197,13 +209,13 @@ console.log(signers)
 // [ "0x42eb768f2244c8811c63729a21a3569731535f06", "0x7ffc57839b00206d1ad20c69a1981b489f772031", "0xb279182d99e65703f0076e4812653aab85fca0f0" ]
 ```
 
-### Propose - [clique_propose](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique_propose)
+### Propose Signer - [clique_propose](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique_propose)
 ```js
-let success = await provider.cliquePropose("0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73", true)
+const success = await provider.cliquePropose("0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73", true)
 console.log(success)  // true
 ```
 
-### Discard - [clique_discard](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique_discard)
+### Discard Proposal - [clique_discard](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique_discard)
 ```js
 const success = await provider.cliqueDiscard("0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73")
 console.log(success)  // true
@@ -218,6 +230,52 @@ console.log(proposals)
     "0x42eb768f2244c8811c63729a21a3569731535f07": false,
     "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73": true
 }
+*/
+```
+
+## IBFT 2.0 Methods
+
+Calls Pantheon's [IBFT 2.0](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft-20-methods) JSON-RPC APIs.
+See [examples/pantheonIBFT.js](./examples/pantheonIBFT.js) for the full example code using async/await.
+
+The IBFT methods require the `IBFT` API methods to be enabled by Pantheon's [--rpc-http-api](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/) command line option.
+
+### Get Validators by block parameter - [ibft_getValidatorsByBlockNumber](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft_getvalidatorsbyblocknumber)
+See [Block Number](https://docs.pantheon.pegasys.tech/en/latest/Pantheon-API/Using-JSON-RPC-API/#block-parameter) for allowed parameter values.
+```js
+const validators = await provider.ibftGetValidatorsByBlockNumber('latest')
+console.log(validators)
+// [ "0x42d4287eac8078828cf5f3486cfe601a275a49a5", "0xb1b2bc9582d2901afdc579f528a35ca41403fa85", "0xef1bfb6a12794615c9b0b5a21e6741f01e570185" ]
+```
+
+### Get Validators at hash - [ibft_getValidatorsByBlockHash](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft_getvalidatorsbyblockhash)
+```js
+const validators = await provider.ibftGetValidatorsByBlockHash('0xbae7d3feafd743343b9a4c578cab5e5d65eb735f6855fb845c00cab356331256')
+console.log(validators)
+// [ "0x42d4287eac8078828cf5f3486cfe601a275a49a5", "0xb1b2bc9582d2901afdc579f528a35ca41403fa85", "0xef1bfb6a12794615c9b0b5a21e6741f01e570185" ]
+```
+
+### Propose Validator Vote - [ibft_proposeValidatorVote](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft_proposevalidatorvote)
+```js
+const success = await provider.ibftProposeValidatorVote("0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73", true)
+console.log(success)  // true
+```
+
+### Discard Validator Vote - [ibft_discardValidatorVote](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft_discardvalidatorvote)
+```js
+const success = await provider.ibftDiscardValidatorVote("0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73")
+console.log(success)  // true
+```
+
+### Get Validator Votes - [ibft_getPendingVotes](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft_getpendingvotes)
+```js
+const validatorVotes = await provider.ibftGetPendingVotes()
+console.log(validatorVotes)
+/*
+  {
+    "0x42eb768f2244c8811c63729a21a3569731535f07": false,
+    "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73": true
+  }
 */
 ```
 
@@ -297,7 +355,7 @@ The Pantheon tags for the Docker images can be found at https://hub.docker.com/r
 
 There are three pre-funded accounts if you run Pantheon in dev mode. See the `alloc` section in https://github.com/PegaSysEng/pantheon/blob/master/config/src/main/resources/dev.json
 
-# Web3.js
+## Web3.js
 
 Pantheon has an [EEA JavaScript library](https://github.com/PegaSysEng/web3js-eea#eea-javascript-libraries---eeajs) that is an extension of the [Web3.js](https://web3js.readthedocs.io/en/1.0/) JavaScript library. The EEA JavaScript library is an alternative to this Ethers.js extended library. It can also be used as a reference to how Pantheon privacy transactions are encoded.
 The EEA Web3js library does not include the Pantheon extended APIs like admin, clique, ibft, txpool, perm and priv.

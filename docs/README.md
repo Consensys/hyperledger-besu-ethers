@@ -33,6 +33,14 @@ VS Code settings.json
 
 `Alt-D` on Windows, or `Option-D` on Mac, to start PlantUML preview in VS Code.
 
+## Markdown table of contents
+
+[markdown-toc](https://github.com/jonschlinkert/markdown-toc) can be used to generate a table of content for markdown files.
+```
+npm install -g markdown-toc
+markdown-toc README.md --maxdepth 2
+```
+
 ## Useful links
 
 * [Markdown Cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)

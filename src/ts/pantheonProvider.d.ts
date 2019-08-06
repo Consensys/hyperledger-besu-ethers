@@ -48,5 +48,12 @@ export declare class PantheonProvider extends PrivateJsonRpcProvider {
     cliqueGetProposals(): Promise<{
         [index: string]: boolean;
     }[]>;
+    ibftDiscardValidatorVote(validatorAddress: string): Promise<boolean>;
+    ibftGetPendingVotes(): Promise<{
+        [index: string]: boolean;
+    }[]>;
+    ibftGetValidatorsByBlockHash(hash: string): Promise<string[]>;
+    ibftGetValidatorsByBlockNumber(blockParameter: BlockParameter): Promise<string[]>;
+    ibftProposeValidatorVote(validatorAddress: string, add: boolean): Promise<boolean>;
     perform(method: string, params: any): Promise<any>;
 }

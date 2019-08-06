@@ -119,6 +119,34 @@ export class PantheonProvider extends PrivateJsonRpcProvider {
     }
 
     // IBFT
+    ibftDiscardValidatorVote(validatorAddress: string): Promise<boolean> {
+        return this._runPerform("ibftDiscardValidatorVote", {
+            validatorAddress: () => Promise.resolve(validatorAddress)
+        });
+    }
+
+    ibftGetPendingVotes(): Promise<{[index:string] : boolean}[]> {
+        return this._runPerform("ibftGetPendingVotes", {});
+    }
+
+    ibftGetValidatorsByBlockHash(hash: string): Promise<string[]> {
+        return this._runPerform("ibftGetValidatorsByBlockHash", {
+            hash: () => Promise.resolve(hash)
+        });
+    }
+
+    ibftGetValidatorsByBlockNumber(blockParameter: BlockParameter): Promise<string[]> {
+        return this._runPerform("ibftGetValidatorsByBlockNumber", {
+            blockParameter: () => Promise.resolve(blockParameter)
+        });
+    }
+
+    ibftProposeValidatorVote(validatorAddress: string, add: boolean): Promise<boolean> {
+        return this._runPerform("ibftProposeValidatorVote", {
+            validatorAddress: () => Promise.resolve(validatorAddress),
+            add: () => Promise.resolve(add),
+        });
+    }
 
     // Override the base perform method to add the pantheon API calls
     perform(method: string, params: any): Promise<any> {
@@ -183,7 +211,29 @@ export class PantheonProvider extends PrivateJsonRpcProvider {
                 return this.send("clique_proposals", []);
 
             // IBFT
+            case "ibftDiscardValidatorVote":
+                return this.send("ibft_discardValidatorVote", [
+                    params.validatorAddress,
+                ]);
 
+            case "ibftGetPendingVotes":
+                return this.send("ibft_getPendingVotes", []);
+
+            case "ibftGetValidatorsByBlockHash":
+                return this.send("ibft_getValidatorsByBlockHash", [
+                    params.hash,
+                ]);
+
+            case "ibftGetValidatorsByBlockNumber":
+                return this.send("ibft_getValidatorsByBlockNumber", [
+                    params.blockParameter,
+                ]);
+
+            case "ibftProposeValidatorVote":
+                return this.send("ibft_proposeValidatorVote", [
+                    params.validatorAddress,
+                    params.add,
+                ]);
 
             default:
                 return super.perform(method, params)
