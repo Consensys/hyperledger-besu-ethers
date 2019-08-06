@@ -42,7 +42,6 @@ describe('Pantheon Ethers', () => {
         expect(PantheonEthers.utils).toBeDefined()
         expect(PantheonEthers.utils.serialize).toBeInstanceOf(Function)
         expect(PantheonEthers.utils.encode).toBeInstanceOf(Function)
-        expect(PantheonEthers.providers.PrivateJsonRpcSigner).toBeInstanceOf(Function)
         expect(PantheonEthers.providers.PrivateJsonRpcProvider).toBeInstanceOf(Function)
     })
 

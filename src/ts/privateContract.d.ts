@@ -4,10 +4,10 @@ import { BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
 import { ContractFactory, ContractInterface } from '@ethersproject/contracts';
 import { Contract } from "./contracts";
-import { PrivateJsonRpcProvider, PrivateJsonRpcSigner } from './privateProvider';
+import { PrivateJsonRpcProvider } from './privateProvider';
 import { PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction';
 import { PrivacyGroupOptions } from './privacyGroup';
-import { PrivateWallet } from './privateWallet';
+import { PrivateSigner } from './privateWallet';
 export interface PrivateEvent extends Log {
     event?: string;
     eventSignature?: string;
@@ -22,21 +22,21 @@ export interface PrivateContractReceipt extends PrivateTransactionReceipt {
     events?: Array<PrivateEvent>;
 }
 export declare class PrivateContract extends Contract {
-    readonly signer: PrivateWallet;
+    readonly signer: PrivateSigner;
     readonly provider: PrivateJsonRpcProvider;
     readonly privacyGroupId: string;
     readonly deployPrivateTransaction: PrivateTransactionResponse;
-    constructor(addressOrName: string, contractInterface: ContractInterface, signerOrProvider: PrivateJsonRpcSigner | PrivateJsonRpcProvider);
+    constructor(addressOrName: string, contractInterface: ContractInterface, signerOrProvider: PrivateSigner | PrivateJsonRpcProvider);
     connect(signerOrProvider: Signer | Provider | string): PrivateContract;
     attach(addressOrName: string): PrivateContract;
 }
 export declare class PrivateContractFactory extends ContractFactory {
-    readonly signer: PrivateJsonRpcSigner;
+    readonly signer: PrivateSigner;
     constructor(contractInterface: ContractInterface, bytecode: BytesLike | {
         object: string;
-    }, signer?: PrivateWallet);
+    }, signer?: PrivateSigner);
     privateDeploy(privacyGroupOptions: PrivacyGroupOptions, ...args: Array<any>): Promise<PrivateContract>;
-    static getPrivateContract(address: string, contractInterface: ContractInterface, signer?: PrivateJsonRpcSigner): PrivateContract;
+    static getPrivateContract(address: string, contractInterface: ContractInterface, signer?: PrivateSigner): PrivateContract;
     static getPrivateContractAddress(transaction: {
         from: string;
         nonce: BigNumberish;

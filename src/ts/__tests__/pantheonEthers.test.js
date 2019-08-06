@@ -99,7 +99,6 @@ describe('Pantheon Ethers', function () {
         expect(PantheonEthers.utils).toBeDefined();
         expect(PantheonEthers.utils.serialize).toBeInstanceOf(Function);
         expect(PantheonEthers.utils.encode).toBeInstanceOf(Function);
-        expect(PantheonEthers.providers.PrivateJsonRpcSigner).toBeInstanceOf(Function);
         expect(PantheonEthers.providers.PrivateJsonRpcProvider).toBeInstanceOf(Function);
     });
     test('signed transaction matches EEA client', function () { return __awaiter(_this, void 0, void 0, function () {

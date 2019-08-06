@@ -36,6 +36,19 @@ export interface PrivateTransaction {
     s?: string;
     v?: number;
 }
+export interface PrivateTransactionRequest {
+    to?: string | Promise<string>;
+    from?: string | Promise<string>;
+    nonce?: BigNumberish | Promise<BigNumberish>;
+    gasLimit?: BigNumberish | Promise<BigNumberish>;
+    gasPrice?: BigNumberish | Promise<BigNumberish>;
+    data?: BytesLike | Promise<BytesLike>;
+    value?: BigNumberish | Promise<BigNumberish>;
+    chainId?: number | Promise<number>;
+    privateFrom?: string;
+    privateFor?: string | string[];
+    restriction?: string;
+}
 export interface PrivateTransactionReceipt {
     to?: string;
     from?: string;

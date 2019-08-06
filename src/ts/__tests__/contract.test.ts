@@ -210,14 +210,15 @@ describe('Deploy contract using contract factory', () => {
         })
 
         describe('node 2 interacts with private contract deployed from node 1', () => {
-            test('connecting to existing contract', () => {
+            test('connecting to existing contract using contract connect', () => {
                 contractNode2 = new PrivateContract(contractNode1.address, testContractAbi, providerNode2)
                 contractNode2 = contractNode1.connect(walletNode2)
+                // contractNode2 = new PrivateContract(contractNode1.address, testContractAbi, walletNode2)
                 expect(contractNode2.address).toEqual(contractNode1.address)
             })
 
-            test('view function after node 1 changes', async() => {
-                const value = await contractNode1.getTestUint()
+            test('views changes made by node 1', async() => {
+                const value = await contractNode2.getTestUint()
                 expect(value.eq(3)).toBeTruthy()
             })
 

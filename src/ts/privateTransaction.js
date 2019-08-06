@@ -83,6 +83,7 @@ function recoverAddress(digest, signature) {
     return computeAddress(signing_key_1.recoverPublicKey(bytes_2.arrayify(digest), signature));
 }
 exports.recoverAddress = recoverAddress;
+;
 function serialize(transaction, signature) {
     properties_1.checkProperties(transaction, exports.allowedTransactionKeys);
     var raw = [];

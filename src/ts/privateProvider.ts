@@ -5,16 +5,13 @@ import { hexDataLength, hexValue } from "@ethersproject/bytes";
 import * as errors from "@ethersproject/errors";
 import { Networkish } from "@ethersproject/networks";
 import { checkProperties, resolveProperties, shallowCopy } from "@ethersproject/properties";
-import { JsonRpcProvider, JsonRpcSigner } from "@ethersproject/providers";
+import { JsonRpcProvider } from "@ethersproject/providers";
 import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
 
 import { hexlify } from "./bytes";
 import { PrivateFormatter } from './privateFormatter'
 import { PrivacyGroupOptions, generatePrivacyGroup } from './privacyGroup'
 import { allowedTransactionKeys, PrivateTransaction, PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction'
-import { PrivateTransactionRequest } from './privateWallet'
-
-const _constructorGuard = {};
 
 export interface FindPrivacyGroup {
     privacyGroupId: string,
@@ -57,86 +54,6 @@ export interface PantheonTransaction {
     hash: string,
     isReceivedFromLocalSource: boolean,
     addedToPoolAt: string,
-}
-
-export class PrivateJsonRpcSigner extends JsonRpcSigner {
-
-    readonly provider: PrivateJsonRpcProvider
-
-    constructor(constructorGuard: any, provider: PrivateJsonRpcProvider, addressOrIndex?: string | number) {
-
-        if (constructorGuard !== _constructorGuard) {
-            throw new Error("do not call the PrivateJsonRpcSigner constructor directly; use provider.getSigner");
-        }
-
-        super(constructorGuard, provider, addressOrIndex);
-    }
-
-    sendPrivateUncheckedTransaction(transaction: PrivateTransactionRequest): Promise<string> {
-        transaction = shallowCopy(transaction);
-
-        let fromAddress = this.getAddress().then((address) => {
-            if (address) { address = address.toLowerCase(); }
-            return address;
-        });
-
-        // The JSON-RPC for eth_sendTransaction uses 90000 gas; if the user
-        // wishes to use this, it is easy to specify explicitly, otherwise
-        // we look it up for them.
-        if (transaction.gasLimit == null) {
-            let estimate = shallowCopy(transaction);
-            estimate.from = fromAddress;
-            transaction.gasLimit = this.provider.estimateGas(estimate);
-        }
-
-        return Promise.all([
-            resolveProperties(transaction),
-            fromAddress
-        ]).then((results) => {
-            let tx = results[0];
-            let hexTx = (<any>this.provider.constructor).hexlifyTransaction(tx);
-            hexTx.from = results[1];
-
-            // method overridden to use EEA send transaction
-            return this.provider.send("eea_sendTransaction", [ hexTx ]).then((hash) => {
-                return hash;
-            }, (error) => {
-                if (error.responseText) {
-                    // See: JsonRpcProvider.sendTransaction (@TODO: Expose a ._throwError??)
-                    if (error.responseText.indexOf("insufficient funds") >= 0) {
-                        errors.throwError("insufficient funds", errors.INSUFFICIENT_FUNDS, {
-                            transaction: tx
-                        });
-                    }
-                    if (error.responseText.indexOf("nonce too low") >= 0) {
-                        errors.throwError("nonce has already been used", errors.NONCE_EXPIRED, {
-                            transaction: tx
-                        });
-                    }
-                    if (error.responseText.indexOf("replacement transaction underpriced") >= 0) {
-                        errors.throwError("replacement fee too low", errors.REPLACEMENT_UNDERPRICED, {
-                            transaction: tx
-                        });
-                    }
-                }
-                throw error;
-            });
-        });
-    }
-
-    sendPrivateTransaction(transaction: PrivateTransactionRequest): Promise<PrivateTransactionResponse> {
-        return this.sendPrivateUncheckedTransaction(transaction).then((publicTransactionHash) => {
-            return poll(() => {
-                return this.provider.getPrivateTransaction(publicTransactionHash).then((tx: PrivateTransactionResponse) => {
-                    if (tx === null) { return undefined; }
-                    return this.provider._wrapPrivateTransaction(tx, publicTransactionHash);
-                });
-            }, { onceBlock: this.provider }).catch((error: Error) => {
-                (<any>error).transactionHash = publicTransactionHash;
-                throw error;
-            });
-        });
-    }
 }
 
 

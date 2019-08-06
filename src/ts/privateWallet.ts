@@ -3,31 +3,11 @@ import { getAddress } from "@ethersproject/address"
 import { keccak256 } from "@ethersproject/keccak256"
 import * as errors from "@ethersproject/errors";
 import { resolveProperties, shallowCopy } from "@ethersproject/properties"
+import { Signer } from "@ethersproject/abstract-signer";
 import { Wallet } from '@ethersproject/wallet'
 
-// Import types
-import { BigNumberish } from "@ethersproject/bignumber";
-import { BytesLike } from "@ethersproject/bytes";
-
-import { PrivateTransactionReceipt, PrivateTransactionResponse, serialize} from './privateTransaction'
+import { PrivateTransactionRequest, PrivateTransactionResponse, serialize} from './privateTransaction'
 import { PrivateJsonRpcProvider } from './privateProvider'
-import { PrivacyGroupOptions } from './privacyGroup'
-
-export interface PrivateTransactionRequest {
-    to?: string | Promise<string>
-    from?: string | Promise<string>
-    nonce?: BigNumberish | Promise<BigNumberish>
-    gasLimit?: BigNumberish | Promise<BigNumberish>
-    gasPrice?: BigNumberish | Promise<BigNumberish>
-    data?: BytesLike | Promise<BytesLike>
-    value?: BigNumberish | Promise<BigNumberish>
-    chainId?: number | Promise<number>
-
-    // Extra EEA privacy properties
-    privateFrom?: string
-    privateFor?: string | string[]
-    restriction?: string
-};
 
 const allowedPrivateTransactionKeys: Array<string> = [
     "chainId", "data", "from", "gasLimit", "gasPrice", "nonce", "to", "value",
@@ -35,7 +15,14 @@ const allowedPrivateTransactionKeys: Array<string> = [
     "privateFrom", "privateFor", "restriction",
 ];
 
-export class PrivateWallet extends Wallet {
+export interface PrivateSigner extends Signer {
+    readonly provider: PrivateJsonRpcProvider
+    privateCall(transaction: PrivateTransactionRequest): Promise<string>;
+    signPrivateTransaction(transaction: PrivateTransactionRequest): Promise<string>;
+    sendPrivateTransaction(transaction: PrivateTransactionRequest): Promise<PrivateTransactionResponse>;
+}
+
+export class PrivateWallet extends Wallet implements PrivateSigner {
 
     readonly provider: PrivateJsonRpcProvider;
 
@@ -84,7 +71,7 @@ export class PrivateWallet extends Wallet {
 
             if (tx.to != null) { tx.to = Promise.resolve(tx.to).then((to) => this.resolveName(to)); }
             if (tx.gasPrice == null) { tx.gasPrice = this.getGasPrice(); }
-            if (tx.nonce == null) { tx.nonce = this.getPrivateTransactionCount(transaction); }
+            if (tx.nonce == null) { tx.nonce = this.provider.getPrivateTransactionCount(this.getAddress(), transaction); }
 
             // Make sure any provided address matches this signer
             if (tx.from == null) {
@@ -112,19 +99,6 @@ export class PrivateWallet extends Wallet {
 
             return resolveProperties(tx);
         });
-    }
-
-    getPrivateTransactionCount(privacyGroupOptions: PrivacyGroupOptions): Promise<number> {
-        this._checkProvider("getPrivateTransactionCount");
-        return this.provider.getPrivateTransactionCount(this.getAddress(), privacyGroupOptions);
-    }
-
-    getPrivateTransaction(publicTransactionHash: string): Promise<PrivateTransactionResponse> {
-        return this.provider.getPrivateTransaction(publicTransactionHash);
-    }
-
-    getPrivateTransactionReceipt(publicTransactionHash: string): Promise<PrivateTransactionReceipt> {
-        return this.provider.getPrivateTransactionReceipt(publicTransactionHash);
     }
 
     checkTransaction(transaction: PrivateTransactionRequest): PrivateTransactionRequest {

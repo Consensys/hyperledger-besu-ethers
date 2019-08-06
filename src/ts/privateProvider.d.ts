@@ -1,11 +1,10 @@
 import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { Networkish } from "@ethersproject/networks";
-import { JsonRpcProvider, JsonRpcSigner } from "@ethersproject/providers";
+import { JsonRpcProvider } from "@ethersproject/providers";
 import { ConnectionInfo } from "@ethersproject/web";
 import { PrivateFormatter } from './privateFormatter';
 import { PrivacyGroupOptions } from './privacyGroup';
 import { PrivateTransaction, PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction';
-import { PrivateTransactionRequest } from './privateWallet';
 export interface FindPrivacyGroup {
     privacyGroupId: string;
     members: string[];
@@ -43,12 +42,6 @@ export interface PantheonTransaction {
     hash: string;
     isReceivedFromLocalSource: boolean;
     addedToPoolAt: string;
-}
-export declare class PrivateJsonRpcSigner extends JsonRpcSigner {
-    readonly provider: PrivateJsonRpcProvider;
-    constructor(constructorGuard: any, provider: PrivateJsonRpcProvider, addressOrIndex?: string | number);
-    sendPrivateUncheckedTransaction(transaction: PrivateTransactionRequest): Promise<string>;
-    sendPrivateTransaction(transaction: PrivateTransactionRequest): Promise<PrivateTransactionResponse>;
 }
 export declare class PrivateJsonRpcProvider extends JsonRpcProvider {
     formatter: PrivateFormatter;

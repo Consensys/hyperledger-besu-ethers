@@ -36,11 +36,11 @@ var address_1 = require("@ethersproject/address");
 var bytes_1 = require("@ethersproject/bytes");
 var bignumber_1 = require("@ethersproject/bignumber");
 var constants_1 = require("@ethersproject/constants");
+var contracts_1 = require("@ethersproject/contracts");
 var errors = __importStar(require("@ethersproject/errors"));
 var keccak256_1 = require("@ethersproject/keccak256");
 var properties_1 = require("@ethersproject/properties");
 var rlp_1 = require("@ethersproject/rlp");
-var contracts_1 = require("@ethersproject/contracts");
 // FIXME a workaround until this Ethers issue has been solved https://github.com/ethers-io/ethers.js/issues/577
 var contracts_2 = require("./contracts");
 var privateTransaction_1 = require("./privateTransaction");
@@ -147,7 +147,7 @@ function runPrivateMethod(contract, functionName, options) {
                     });
                 }
                 //return (contract.signer || contract.provider).privateCall(tx).then((value: any) => {
-                return (contract.signer).privateCall(tx).then(function (value) {
+                return contract.signer.privateCall(tx).then(function (value) {
                     if (value == undefined) {
                         errors.throwArgumentError('no value returned from private contract call', 'privateCallValue', {
                             value: value,

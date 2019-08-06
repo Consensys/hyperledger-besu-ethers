@@ -7,19 +7,19 @@ import { arrayify, hexDataSlice, stripZeros } from "@ethersproject/bytes";
 import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
 import { Zero } from "@ethersproject/constants";
+import { ContractFactory, ContractInterface } from '@ethersproject/contracts';
 import * as errors from "@ethersproject/errors";
 import { keccak256 } from "@ethersproject/keccak256";
 import { defineReadOnly, deepCopy, resolveProperties, shallowCopy } from "@ethersproject/properties";
 import { encode } from "@ethersproject/rlp";
 
-import { ContractFactory, ContractInterface } from '@ethersproject/contracts';
 // FIXME a workaround until this Ethers issue has been solved https://github.com/ethers-io/ethers.js/issues/577
 import { Contract } from "./contracts";
 
-import { PrivateJsonRpcProvider, PrivateJsonRpcSigner } from './privateProvider'
+import { PrivateJsonRpcProvider } from './privateProvider'
 import { allowedTransactionKeys, PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction'
 import {generatePrivacyGroup, PrivacyGroupOptions} from './privacyGroup'
-import { PrivateWallet } from './privateWallet'
+import { PrivateSigner } from './privateWallet'
 
 type RunFunction = (...params: Array<any>) => Promise<any>;
 
@@ -59,7 +59,7 @@ export interface PrivateContractReceipt extends PrivateTransactionReceipt {
 
 export class PrivateContract extends Contract {
 
-    readonly signer: PrivateWallet;
+    readonly signer: PrivateSigner;
     readonly provider: PrivateJsonRpcProvider;
     readonly privacyGroupId: string;
     readonly deployPrivateTransaction: PrivateTransactionResponse;
@@ -67,7 +67,7 @@ export class PrivateContract extends Contract {
     constructor(
         addressOrName: string,
         contractInterface: ContractInterface,
-        signerOrProvider: PrivateJsonRpcSigner | PrivateJsonRpcProvider)
+        signerOrProvider: PrivateSigner | PrivateJsonRpcProvider)
     {
         super(addressOrName, contractInterface, signerOrProvider, runPrivateMethod);
     }
@@ -178,7 +178,7 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
                 }
 
                 //return (contract.signer || contract.provider).privateCall(tx).then((value: any) => {
-                return (contract.signer).privateCall(tx).then((value: any) => {
+                return contract.signer.privateCall(tx).then((value: any) => {
 
                     if (value == undefined) {
                         errors.throwArgumentError('no value returned from private contract call', 'privateCallValue', {
@@ -306,9 +306,9 @@ function resolveAddresses(signerOrProvider: Signer | Provider, value: any, param
 
 export class PrivateContractFactory extends ContractFactory {
 
-    readonly signer: PrivateJsonRpcSigner;
+    readonly signer: PrivateSigner;
 
-    constructor(contractInterface: ContractInterface, bytecode: BytesLike | { object: string }, signer?: PrivateWallet) {
+    constructor(contractInterface: ContractInterface, bytecode: BytesLike | { object: string }, signer?: PrivateSigner) {
 
         super(contractInterface, bytecode, signer);
     }
@@ -339,7 +339,7 @@ export class PrivateContractFactory extends ContractFactory {
 
     static getPrivateContract(
         address: string, contractInterface: ContractInterface,
-        signer?: PrivateJsonRpcSigner,
+        signer?: PrivateSigner,
     ): PrivateContract {
         return new PrivateContract(address, contractInterface, signer);
     }

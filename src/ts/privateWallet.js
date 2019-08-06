@@ -26,7 +26,6 @@ var errors = __importStar(require("@ethersproject/errors"));
 var properties_1 = require("@ethersproject/properties");
 var wallet_1 = require("@ethersproject/wallet");
 var privateTransaction_1 = require("./privateTransaction");
-;
 var allowedPrivateTransactionKeys = [
     "chainId", "data", "from", "gasLimit", "gasPrice", "nonce", "to", "value",
     // EEA keys
@@ -83,7 +82,7 @@ var PrivateWallet = /** @class */ (function (_super) {
                 tx.gasPrice = _this.getGasPrice();
             }
             if (tx.nonce == null) {
-                tx.nonce = _this.getPrivateTransactionCount(transaction);
+                tx.nonce = _this.provider.getPrivateTransactionCount(_this.getAddress(), transaction);
             }
             // Make sure any provided address matches this signer
             if (tx.from == null) {
@@ -112,16 +111,6 @@ var PrivateWallet = /** @class */ (function (_super) {
             }
             return properties_1.resolveProperties(tx);
         });
-    };
-    PrivateWallet.prototype.getPrivateTransactionCount = function (privacyGroupOptions) {
-        this._checkProvider("getPrivateTransactionCount");
-        return this.provider.getPrivateTransactionCount(this.getAddress(), privacyGroupOptions);
-    };
-    PrivateWallet.prototype.getPrivateTransaction = function (publicTransactionHash) {
-        return this.provider.getPrivateTransaction(publicTransactionHash);
-    };
-    PrivateWallet.prototype.getPrivateTransactionReceipt = function (publicTransactionHash) {
-        return this.provider.getPrivateTransactionReceipt(publicTransactionHash);
     };
     PrivateWallet.prototype.checkTransaction = function (transaction) {
         for (var key in transaction) {

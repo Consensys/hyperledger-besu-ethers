@@ -136,45 +136,141 @@ describe('Ethers Regression', function () {
                 }
             });
         }); });
-        test('call read only function', function () { return __awaiter(_this, void 0, void 0, function () {
-            var value;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, contract.getTestUint()];
-                    case 1:
-                        value = _a.sent();
-                        expect(value.eq(1)).toBeTruthy();
-                        return [2 /*return*/];
-                }
-            });
-        }); });
-        test('call public property', function () { return __awaiter(_this, void 0, void 0, function () {
-            var value;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, contract.testString()];
-                    case 1:
-                        value = _a.sent();
-                        expect(value).toEqual('test string');
-                        return [2 /*return*/];
-                }
-            });
-        }); });
-        test('call write function', function () { return __awaiter(_this, void 0, void 0, function () {
-            var tx;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, contract.setTestUint(2)];
-                    case 1:
-                        tx = _a.sent();
-                        expect(tx).toBeDefined();
-                        expect(tx.to).toEqual(contract.address);
-                        expect(tx.hash).toMatch(RegEx_1.transactionHash);
-                        return [2 /*return*/];
-                }
-            });
-        }); });
-        // send a transaction
+        describe('call contract', function () {
+            test('pure function', function () { return __awaiter(_this, void 0, void 0, function () {
+                var value;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contract.getMagicNumber()];
+                        case 1:
+                            value = _a.sent();
+                            expect(value.eq(99999)).toBeTruthy();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('view function', function () { return __awaiter(_this, void 0, void 0, function () {
+                var value;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contract.getTestUint()];
+                        case 1:
+                            value = _a.sent();
+                            expect(value.eq(1)).toBeTruthy();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('public property', function () { return __awaiter(_this, void 0, void 0, function () {
+                var value;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contract.testString()];
+                        case 1:
+                            value = _a.sent();
+                            expect(value).toEqual('test string');
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('pure function that fails', function () { return __awaiter(_this, void 0, void 0, function () {
+                var result, err_1;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            expect.assertions(1);
+                            _a.label = 1;
+                        case 1:
+                            _a.trys.push([1, 3, , 4]);
+                            return [4 /*yield*/, contract.pureFail()];
+                        case 2:
+                            result = _a.sent();
+                            console.log(result);
+                            expect(false).toBeTruthy();
+                            return [3 /*break*/, 4];
+                        case 3:
+                            err_1 = _a.sent();
+                            expect(err_1).toBeInstanceOf(Error);
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('view function that fails', function () { return __awaiter(_this, void 0, void 0, function () {
+                var result, err_2;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            expect.assertions(1);
+                            _a.label = 1;
+                        case 1:
+                            _a.trys.push([1, 3, , 4]);
+                            return [4 /*yield*/, contract.viewFail()];
+                        case 2:
+                            result = _a.sent();
+                            console.log(result);
+                            expect(false).toBeTruthy();
+                            return [3 /*break*/, 4];
+                        case 3:
+                            err_2 = _a.sent();
+                            expect(err_2).toBeInstanceOf(Error);
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
+                    }
+                });
+            }); });
+        });
+        describe('send transaction', function () {
+            test('to write data', function () { return __awaiter(_this, void 0, void 0, function () {
+                var tx, _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0: return [4 /*yield*/, contract.setTestUint(2)];
+                        case 1:
+                            tx = _c.sent();
+                            expect(tx.to).toEqual(contract.address);
+                            _b = (_a = expect(tx.from)).toEqual;
+                            return [4 /*yield*/, contractWallet.getAddress()];
+                        case 2:
+                            _b.apply(_a, [_c.sent()]);
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('to write data with gasLimit', function () { return __awaiter(_this, void 0, void 0, function () {
+                var tx, _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0: return [4 /*yield*/, contract.setTestUint(3, {
+                                gasLimit: 100000
+                            })];
+                        case 1:
+                            tx = _c.sent();
+                            expect(tx.to).toEqual(contract.address);
+                            _b = (_a = expect(tx.from)).toEqual;
+                            return [4 /*yield*/, contractWallet.getAddress()];
+                        case 2:
+                            _b.apply(_a, [_c.sent()]);
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('that will fail from tx function', function () { return __awaiter(_this, void 0, void 0, function () {
+                var tx, receipt;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, contract.txFail()];
+                        case 1:
+                            tx = _a.sent();
+                            return [4 /*yield*/, provider.waitForTransaction(tx.hash)];
+                        case 2:
+                            receipt = _a.sent();
+                            expect(receipt.status).toEqual(0);
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+        });
         // get an event
     });
     describe('getTransactionReceipt', function () {

@@ -318,16 +318,17 @@ describe('Deploy contract using contract factory', function () {
             }); });
         });
         describe('node 2 interacts with private contract deployed from node 1', function () {
-            test('connecting to existing contract', function () {
+            test('connecting to existing contract using contract connect', function () {
                 contractNode2 = new index_1.PrivateContract(contractNode1.address, testContractAbi, providerNode2);
                 contractNode2 = contractNode1.connect(walletNode2);
+                // contractNode2 = new PrivateContract(contractNode1.address, testContractAbi, walletNode2)
                 expect(contractNode2.address).toEqual(contractNode1.address);
             });
-            test('view function after node 1 changes', function () { return __awaiter(_this, void 0, void 0, function () {
+            test('views changes made by node 1', function () { return __awaiter(_this, void 0, void 0, function () {
                 var value;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, contractNode1.getTestUint()];
+                        case 0: return [4 /*yield*/, contractNode2.getTestUint()];
                         case 1:
                             value = _a.sent();
                             expect(value.eq(3)).toBeTruthy();
