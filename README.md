@@ -37,7 +37,7 @@ Full code examples using promises [examples/privacyGroupManagementPromises.js](.
 
 ### Create a new privacy group - [priv_createPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_createprivacygroup)
 ```js
-  const privacyGroupId = provider.createPrivacyGroup(
+  const privacyGroupId = await provider.createPrivacyGroup(
     [node1, node2],
     'Name of group',
     'Description of top secret group')
@@ -46,7 +46,7 @@ Full code examples using promises [examples/privacyGroupManagementPromises.js](.
 
 ### Find privacy groups - [priv_findPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_findprivacygroup)
 ```js
-  const results = provider.findPrivacyGroup([node1, node2])
+  const results = await provider.findPrivacyGroup([node1, node2])
   console.log(results)
   /*
   [ { privacyGroupId: 'GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=', 
@@ -61,18 +61,19 @@ Full code examples using promises [examples/privacyGroupManagementPromises.js](.
 
 ### Delete privacy group - [priv_deletePrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_deleteprivacygroup)
 ```js
-  const deletedId = provider.deletePrivacyGroup(privacyGroupId)
+  const deletedId = await provider.deletePrivacyGroup(privacyGroupId)
   console.log(deletedId) // GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=
 ```
 
 ## Pantheon Administration
 
-Calls Pantheon's [administration methods](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods) JSON-RPC APIs. See [examples/pantheonAdmin.js](./examples/pantheonAdmin.js) for the full example code async/await.
+Calls Pantheon's [administration](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods) JSON-RPC APIs.
+See [examples/pantheonAdmin.js](./examples/pantheonAdmin.js) for the full example code using async/await.
 
 The admin methods require the `ADMIN` API methods to be enabled by Pantheon's [--rpc-http-api](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/) command line option.
 
 ### Get module versions - [rpc_modules](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#rpc_modules)
-```ts
+```js
 const moduleVersions = await provider.getModuleVersions()
 console.log(moduleVersions) // {eea: '1.0', web3: '1.0', eth: '1.0', admin: '1.0', priv: '1.0', net: '1.0'}
 ```
@@ -166,14 +167,19 @@ console.log(peers)
 ### Remove peer - [admin_removePeer](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_removePeer)
 ```js
 const success = await provider.removePeer("enode://af80b90d25145da28c583359beb47b21796b2fe1a23c1511e443e7a64dfdb27d7434c380f0aa4c500e220aa1a9d068514b1ff4d5019e624e7ba1efe82b340a59@127.0.0.1:30304")
+console.log(success)  // true
 ```
 
 ### Add peer - [admin_addPeer](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_addPeer)
 ```js
 const success = await provider.addPeer("enode://af80b90d25145da28c583359beb47b21796b2fe1a23c1511e443e7a64dfdb27d7434c380f0aa4c500e220aa1a9d068514b1ff4d5019e624e7ba1efe82b340a59@127.0.0.1:30304")
+console.log(success)  // true
 ```
 
 ## Clique Methods
+
+Calls Pantheon's [Clique](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique-methods) JSON-RPC APIs.
+See [examples/pantheonClique.js](./examples/pantheonClique.js) for the full example code using async/await.
 
 The Clique methods require the `CLIQUE` API methods to be enabled by Pantheon's [--rpc-http-api](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/) command line option.
 
