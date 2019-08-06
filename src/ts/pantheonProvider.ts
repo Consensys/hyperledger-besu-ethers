@@ -37,6 +37,8 @@ export interface PantheonTransaction {
     addedToPoolAt: string,
 }
 
+export type BlockParameter = number | 'earliest' | 'latest' | 'pending'
+
 export class PantheonProvider extends PrivateJsonRpcProvider {
 
     // Pantheon administration
@@ -72,10 +74,12 @@ export class PantheonProvider extends PrivateJsonRpcProvider {
         });
     }
 
+    // Miscellaneous
     getModuleVersions(): Promise<object> {
         return this._runPerform("getModuleVersions", {});
     }
 
+    // Txpool
     getPantheonStatistics(): Promise<PantheonStatistics> {
         return this._runPerform("getPantheonStatistics", {});
     }
@@ -84,6 +88,38 @@ export class PantheonProvider extends PrivateJsonRpcProvider {
         return this._runPerform("getPantheonTransactions", {});
     }
 
+    // Clique
+    cliqueDiscard(signerAddress: string): Promise<boolean> {
+        return this._runPerform("cliqueDiscard", {
+            signerAddress: () => Promise.resolve(signerAddress)
+        });
+    }
+
+    cliqueGetSigners(blockParameter: BlockParameter): Promise<string[]> {
+        return this._runPerform("cliqueGetSigners", {
+            blockParameter: () => Promise.resolve(blockParameter)
+        });
+    }
+
+    cliqueGetSignersAtHash(hash: string): Promise<string[]> {
+        return this._runPerform("cliqueGetSigners", {
+            hash: () => Promise.resolve(hash)
+        });
+    }
+
+    cliquePropose(signerAddress: string, add: boolean): Promise<boolean> {
+        return this._runPerform("cliquePropose", {
+            signerAddress: () => Promise.resolve(signerAddress),
+            add: () => Promise.resolve(add),
+        });
+    }
+
+    cliqueGetProposals(): Promise<{[index:string] : boolean}[]> {
+        return this._runPerform("cliqueGetProposals", {});
+    }
+
+    // IBFT
+
     // Override the base perform method to add the pantheon API calls
     perform(method: string, params: any): Promise<any> {
         switch (method) {
@@ -91,12 +127,12 @@ export class PantheonProvider extends PrivateJsonRpcProvider {
             // Pantheon administration
             case "addPeer":
                 return this.send("admin_addPeer", [
-                    params.enodeUrl
+                    params.enodeUrl,
                 ]);
 
             case "changeLogLevel":
                 return this.send("admin_changeLogLevel", [
-                    params.level
+                    params.level,
                 ]);
 
             case "getNodeInfo":
@@ -107,17 +143,47 @@ export class PantheonProvider extends PrivateJsonRpcProvider {
 
             case "removePeer":
                 return this.send("admin_removePeer", [
-                    params.enodeUrl
+                    params.enodeUrl,
                 ]);
 
+            // Miscellaneous
             case "getModuleVersions":
                 return this.send("rpc_modules", []);
 
+            // Txpool
             case "getPantheonStatistics":
                 return this.send("txpool_pantheonStatistics", []);
 
             case "getPantheonTransactions":
                 return this.send("txpool_pantheonTransactions", []);
+
+            // Clique
+            case "cliqueDiscard":
+                return this.send("clique_discard", [
+                    params.signerAddress,
+                ]);
+
+            case "cliqueGetSigners":
+                return this.send("clique_getSigners", [
+                    params.blockParameter,
+                ]);
+
+            case "cliqueGetSignersAtHash":
+                return this.send("clique_getSignersAtHash", [
+                    params.hash,
+                ]);
+
+            case "cliquePropose":
+                return this.send("clique_propose", [
+                    params.signerAddress,
+                    params.add,
+                ]);
+
+            case "cliqueProposals":
+                return this.send("clique_proposals", []);
+
+            // IBFT
+
 
             default:
                 return super.perform(method, params)

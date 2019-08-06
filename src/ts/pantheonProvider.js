@@ -41,26 +41,54 @@ var PantheonProvider = /** @class */ (function (_super) {
             enodeUrl: function () { return Promise.resolve(enodeUrl); }
         });
     };
+    // Miscellaneous
     PantheonProvider.prototype.getModuleVersions = function () {
         return this._runPerform("getModuleVersions", {});
     };
+    // Txpool
     PantheonProvider.prototype.getPantheonStatistics = function () {
         return this._runPerform("getPantheonStatistics", {});
     };
     PantheonProvider.prototype.getPantheonTransactions = function () {
         return this._runPerform("getPantheonTransactions", {});
     };
+    // Clique
+    PantheonProvider.prototype.cliqueDiscard = function (signerAddress) {
+        return this._runPerform("cliqueDiscard", {
+            signerAddress: function () { return Promise.resolve(signerAddress); }
+        });
+    };
+    PantheonProvider.prototype.cliqueGetSigners = function (blockParameter) {
+        return this._runPerform("cliqueGetSigners", {
+            blockParameter: function () { return Promise.resolve(blockParameter); }
+        });
+    };
+    PantheonProvider.prototype.cliqueGetSignersAtHash = function (hash) {
+        return this._runPerform("cliqueGetSigners", {
+            hash: function () { return Promise.resolve(hash); }
+        });
+    };
+    PantheonProvider.prototype.cliquePropose = function (signerAddress, add) {
+        return this._runPerform("cliquePropose", {
+            signerAddress: function () { return Promise.resolve(signerAddress); },
+            add: function () { return Promise.resolve(add); },
+        });
+    };
+    PantheonProvider.prototype.cliqueGetProposals = function () {
+        return this._runPerform("cliqueGetProposals", {});
+    };
+    // IBFT
     // Override the base perform method to add the pantheon API calls
     PantheonProvider.prototype.perform = function (method, params) {
         switch (method) {
             // Pantheon administration
             case "addPeer":
                 return this.send("admin_addPeer", [
-                    params.enodeUrl
+                    params.enodeUrl,
                 ]);
             case "changeLogLevel":
                 return this.send("admin_changeLogLevel", [
-                    params.level
+                    params.level,
                 ]);
             case "getNodeInfo":
                 return this.send("admin_nodeInfo", []);
@@ -68,14 +96,37 @@ var PantheonProvider = /** @class */ (function (_super) {
                 return this.send("admin_peers", []);
             case "removePeer":
                 return this.send("admin_removePeer", [
-                    params.enodeUrl
+                    params.enodeUrl,
                 ]);
+            // Miscellaneous
             case "getModuleVersions":
                 return this.send("rpc_modules", []);
+            // Txpool
             case "getPantheonStatistics":
                 return this.send("txpool_pantheonStatistics", []);
             case "getPantheonTransactions":
                 return this.send("txpool_pantheonTransactions", []);
+            // Clique
+            case "cliqueDiscard":
+                return this.send("clique_discard", [
+                    params.signerAddress,
+                ]);
+            case "cliqueGetSigners":
+                return this.send("clique_getSigners", [
+                    params.blockParameter,
+                ]);
+            case "cliqueGetSignersAtHash":
+                return this.send("clique_getSignersAtHash", [
+                    params.hash,
+                ]);
+            case "cliquePropose":
+                return this.send("clique_propose", [
+                    params.signerAddress,
+                    params.add,
+                ]);
+            case "cliqueProposals":
+                return this.send("clique_proposals", []);
+            // IBFT
             default:
                 return _super.prototype.perform.call(this, method, params);
         }

@@ -31,6 +31,7 @@ export interface PantheonTransaction {
     isReceivedFromLocalSource: boolean;
     addedToPoolAt: string;
 }
+export declare type BlockParameter = number | 'earliest' | 'latest' | 'pending';
 export declare class PantheonProvider extends PrivateJsonRpcProvider {
     addPeer(enodeUrl: string | Promise<string>): Promise<boolean>;
     changeLogLevel(level: string | Promise<string>): Promise<boolean>;
@@ -40,5 +41,12 @@ export declare class PantheonProvider extends PrivateJsonRpcProvider {
     getModuleVersions(): Promise<object>;
     getPantheonStatistics(): Promise<PantheonStatistics>;
     getPantheonTransactions(): Promise<PantheonTransaction[]>;
+    cliqueDiscard(signerAddress: string): Promise<boolean>;
+    cliqueGetSigners(blockParameter: BlockParameter): Promise<string[]>;
+    cliqueGetSignersAtHash(hash: string): Promise<string[]>;
+    cliquePropose(signerAddress: string, add: boolean): Promise<boolean>;
+    cliqueGetProposals(): Promise<{
+        [index: string]: boolean;
+    }[]>;
     perform(method: string, params: any): Promise<any>;
 }

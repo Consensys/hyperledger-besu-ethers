@@ -11,7 +11,7 @@ const providerNode1 = new providers.PrivateJsonRpcProvider("http://localhost:200
 
 async function example() {
   // Create a new privacy group
-  const privacyGroupId = providerNode1.createPrivacyGroup(
+  const privacyGroupId = await providerNode1.createPrivacyGroup(
     [node1, node2],
     'Name of group',
     'Description of top secret group')
@@ -19,7 +19,7 @@ async function example() {
   console.log(privacyGroupId) // GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=
 
   // find privacy groups
-  const results = providerNode1.findPrivacyGroup([node1, node2])
+  const results = await providerNode1.findPrivacyGroup([node1, node2])
 
   console.log(results)
   /*
@@ -33,7 +33,7 @@ async function example() {
    */
 
   // delete privacy group
-  const deletedId = providerNode1.deletePrivacyGroup(privacyGroupId)
+  const deletedId = await providerNode1.deletePrivacyGroup(privacyGroupId)
 
   console.log(deletedId) // GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=
 }

@@ -4,37 +4,49 @@ An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/eth
 
 Private transactions are supported by PegaSys's [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/) Ethereum client and J.P.Morgan's [Quorum](https://github.com/jpmorganchase/quorum) distributed ledger. Unfortunately, Quorum's JSON-RPC interface for private transactions is different to the EEA specification, so this library only works with Pantheon and not Quorum.
 
-The library also adds support for Pantheon's [admin](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods), [txpool](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool-methods) and [miscellaneous](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#miscellaneous-methods) JSON-RPC APIs.
+The library also adds support for Pantheon's
+[Admin](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods), 
+[Clique](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique-methods), 
+[IBFT 2.0](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft-20-methods), 
+[Permissioning](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#permissioning-methods), 
+[Txpool](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool-methods) and
+[miscellaneous](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#miscellaneous-methods) JSON-RPC APIs.
 
-## Install
+# Install
 
 To install as a node module
 ```bash
 npm install pantheon-ethers
 ```
 
-## Usage
+# Usage
 
 See [Ethers.js version 5](https://docs.ethers.io/ethers.js/v5-beta/) documentation for details on how the Ethers.js library works.
 
-### Privacy Group Management
+Here's how to instantiate a Pantheon provider used in the below examples
+```js
+const providers = require('pantheon-ethers').providers
+const provider = new providers.PantheonProvider("http://localhost:20000");
+```
+
+## Privacy Group Management
 
 Create, find and delete a [privacy group](https://docs.pantheon.pegasys.tech/en/stable/Privacy/Explanation/Privacy-Groups/).
 
 Full code examples using promises [examples/privacyGroupManagementPromises.js](./examples/privacyGroupManagementPromises.js) or async/await [example/privacyGroupManagementAsync.js](./examples/privacyGroupManagementAsync.js) work against the [Privacy Enabled Quickstart Tutorial](https://docs.pantheon.pegasys.tech/en/stable/Tutorials/Privacy-Quickstart/).
 
-#### Create a new privacy group - [priv_createPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_createprivacygroup)
+### Create a new privacy group - [priv_createPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_createprivacygroup)
 ```js
-  const privacyGroupId = providerNode1.createPrivacyGroup(
+  const privacyGroupId = provider.createPrivacyGroup(
     [node1, node2],
     'Name of group',
     'Description of top secret group')
   console.log(privacyGroupId) // GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=
 ```
 
-#### Find privacy groups - [priv_findPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_findprivacygroup)
+### Find privacy groups - [priv_findPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_findprivacygroup)
 ```js
-  const results = providerNode1.findPrivacyGroup([node1, node2])
+  const results = provider.findPrivacyGroup([node1, node2])
   console.log(results)
   /*
   [ { privacyGroupId: 'GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=', 
@@ -47,33 +59,33 @@ Full code examples using promises [examples/privacyGroupManagementPromises.js](.
    */
 ```
 
-#### Delete privacy group - [priv_deletePrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_deleteprivacygroup)
+### Delete privacy group - [priv_deletePrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_deleteprivacygroup)
 ```js
-  const deletedId = providerNode1.deletePrivacyGroup(privacyGroupId)
+  const deletedId = provider.deletePrivacyGroup(privacyGroupId)
   console.log(deletedId) // GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=
 ```
 
-### Pantheon Administration
+## Pantheon Administration
 
 Calls Pantheon's [administration methods](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods) JSON-RPC APIs. See [examples/pantheonAdmin.js](./examples/pantheonAdmin.js) for the full example code async/await.
 
 The admin methods require the `ADMIN` API methods to be enabled by Pantheon's [--rpc-http-api](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/) command line option.
 
-#### Get module versions - [rpc_modules](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#rpc_modules)
+### Get module versions - [rpc_modules](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#rpc_modules)
 ```ts
 const moduleVersions = await provider.getModuleVersions()
 console.log(moduleVersions) // {eea: '1.0', web3: '1.0', eth: '1.0', admin: '1.0', priv: '1.0', net: '1.0'}
 ```
 
-#### Change log level - [admin_changeLogLevel](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#admin_changeloglevel)
+### Change log level - [admin_changeLogLevel](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#admin_changeloglevel)
 
 See [logging](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/#logging) for the allowed log levels.
-```ts
+```js
 await provider.changeLogLevel('TRACE')
 ```
 
-#### Get node information - [admin_nodeInfo](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_nodeinfo)
-```ts
+### Get node information - [admin_nodeInfo](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_nodeinfo)
+```js
 const nodeInfo = await provider.getNodeInfo()
 console.log(nodeInfo)
 /*
@@ -103,8 +115,8 @@ console.log(nodeInfo)
 */
 ```
 
-#### Get peers - [admin_peers](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_peers)
-```ts
+### Get peers - [admin_peers](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_peers)
+```js
 const peers = await provider.getPeers()
 console.log(peers)
 /*
@@ -151,29 +163,71 @@ console.log(peers)
 */
 ```
 
-#### Remove peer - [admin_removePeer](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_removePeer)
-```ts
-const success = removePeer("enode://af80b90d25145da28c583359beb47b21796b2fe1a23c1511e443e7a64dfdb27d7434c380f0aa4c500e220aa1a9d068514b1ff4d5019e624e7ba1efe82b340a59@127.0.0.1:30304")
+### Remove peer - [admin_removePeer](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_removePeer)
+```js
+const success = await provider.removePeer("enode://af80b90d25145da28c583359beb47b21796b2fe1a23c1511e443e7a64dfdb27d7434c380f0aa4c500e220aa1a9d068514b1ff4d5019e624e7ba1efe82b340a59@127.0.0.1:30304")
 ```
 
-#### Add peer - [admin_addPeer](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_addPeer)
-```ts
-const success = addPeer("enode://af80b90d25145da28c583359beb47b21796b2fe1a23c1511e443e7a64dfdb27d7434c380f0aa4c500e220aa1a9d068514b1ff4d5019e624e7ba1efe82b340a59@127.0.0.1:30304")
+### Add peer - [admin_addPeer](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin_addPeer)
+```js
+const success = await provider.addPeer("enode://af80b90d25145da28c583359beb47b21796b2fe1a23c1511e443e7a64dfdb27d7434c380f0aa4c500e220aa1a9d068514b1ff4d5019e624e7ba1efe82b340a59@127.0.0.1:30304")
 ```
 
-### Txpool Methods
+## Clique Methods
+
+The Clique methods require the `CLIQUE` API methods to be enabled by Pantheon's [--rpc-http-api](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/) command line option.
+
+### Get Signers - [clique_getSigners](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique_getSigners)
+```js
+const signers = await provider.cliqueGetSigners('latest')
+console.log(signers)
+// [ "0x42eb768f2244c8811c63729a21a3569731535f06", "0x7ffc57839b00206d1ad20c69a1981b489f772031", "0xb279182d99e65703f0076e4812653aab85fca0f0" ]
+```
+
+### Get Signers at hash - [clique_getSignersAtHash](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique_getsignersathash)
+```js
+const signers = await provider.cliqueGetSignersAtHash('0x98b2ddb5106b03649d2d337d42154702796438b3c74fd25a5782940e84237a48')
+console.log(signers)
+// [ "0x42eb768f2244c8811c63729a21a3569731535f06", "0x7ffc57839b00206d1ad20c69a1981b489f772031", "0xb279182d99e65703f0076e4812653aab85fca0f0" ]
+```
+
+### Propose - [clique_propose](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique_propose)
+```js
+let success = await provider.cliquePropose("0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73", true)
+console.log(success)  // true
+```
+
+### Discard - [clique_discard](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique_discard)
+```js
+const success = await provider.cliqueDiscard("0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73")
+console.log(success)  // true
+```
+
+### Get Proposals - [clique_proposals](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique_proposals)
+```js
+const proposals = await provider.cliqueGetProposals()
+console.log(proposals)
+/*
+{
+    "0x42eb768f2244c8811c63729a21a3569731535f07": false,
+    "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73": true
+}
+*/
+```
+
+## Txpool Methods
 
 The txpool methods require the `TXPOOL` API methods to be enabled by Pantheon's [--rpc-http-api](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/) command line option.
 
-#### Pantheon Statistics - [txpool_pantheonstatistics](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool_pantheonstatistics)
-```ts
-const stats = pantheonStatistics()
+### Pantheon Statistics - [txpool_pantheonstatistics](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool_pantheonstatistics)
+```js
+const stats = await provider.pantheonStatistics()
 console.log(stats)  // {"maxSize": 4096, "localCount": 1, "remoteCount": 0}
 ```
 
-#### Pantheon Transactions - [txpool_pantheontransactions](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool_pantheontransactions)
-```ts
-const results = pantheonStatistics()
+### Pantheon Transactions - [txpool_pantheontransactions](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool_pantheontransactions)
+```js
+const results = await provider.pantheonStatistics()
 console.log(results)
 /* [
     {
@@ -189,7 +243,7 @@ console.log(results)
 */
 ```
 
-## Pantheon
+# Pantheon
 
 This library will only work against Pantheon 1.2 and above. It will not work against the 1.1.x releases. The library uses Pantheon's [JSON-RPC APIs](https://docs.pantheon.pegasys.tech/en/latest/Pantheon-API/JSON-RPC-API/) over HTTP.
 
@@ -237,11 +291,12 @@ The Pantheon tags for the Docker images can be found at https://hub.docker.com/r
 
 There are three pre-funded accounts if you run Pantheon in dev mode. See the `alloc` section in https://github.com/PegaSysEng/pantheon/blob/master/config/src/main/resources/dev.json
 
-### Web3.js
+# Web3.js
 
 Pantheon has an [EEA JavaScript library](https://github.com/PegaSysEng/web3js-eea#eea-javascript-libraries---eeajs) that is an extension of the [Web3.js](https://web3js.readthedocs.io/en/1.0/) JavaScript library. The EEA JavaScript library is an alternative to this Ethers.js extended library. It can also be used as a reference to how Pantheon privacy transactions are encoded.
+The EEA Web3js library does not include the Pantheon extended APIs like admin, clique, ibft, txpool, perm and priv.
 
-## Ethers.js version
+# Ethers.js
 
 Currently, Ethers.js version 5 is used as it is more module making it easier to extend the transaction serialization and parsing. See Richard's blog on [Beta Release: ethers.js v5](https://blog.ricmoo.com/beta-release-ethers-js-v5-59d0db222d7b) for more details.
 
@@ -253,8 +308,9 @@ npm i ethers-4@npm:ethers@4.0.33
 Ethers version 5
 * [Documentation](https://docs.ethers.io/ethers.js/v5-beta/)
 * [Code on branch ethers-v5-beta](https://github.com/ethers-io/ethers.js/tree/ethers-v5-beta)
+* [Ethers Gitter](https://gitter.im/ethers-io/Lobby)
 
-## Privacy group limitations
+# Privacy Group Limitations
 
 There are a number of limitations in the Pantheon 1.2 release that is being addressed for the 1.3 release:
 * There is no way to check if a private transaction succeeded or failed as there is no `status` or `gasUsed` fields on the private transaction receipt.
