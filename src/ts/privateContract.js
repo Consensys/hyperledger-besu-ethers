@@ -31,7 +31,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var abstract_signer_1 = require("@ethersproject/abstract-signer");
 var address_1 = require("@ethersproject/address");
 var bytes_1 = require("@ethersproject/bytes");
 var bignumber_1 = require("@ethersproject/bignumber");
@@ -47,14 +46,16 @@ var privateTransaction_1 = require("./privateTransaction");
 var privacyGroup_1 = require("./privacyGroup");
 var PrivateContract = /** @class */ (function (_super) {
     __extends(PrivateContract, _super);
-    function PrivateContract(addressOrName, contractInterface, signerOrProvider) {
-        return _super.call(this, addressOrName, contractInterface, signerOrProvider, runPrivateMethod) || this;
+    function PrivateContract(addressOrName, privacyGroupOptions, contractInterface, signerOrProvider) {
+        var _this = _super.call(this, addressOrName, contractInterface, signerOrProvider, runPrivateMethod) || this;
+        // Validate the privacyGroupOptions
+        privacyGroup_1.generatePrivacyGroup(privacyGroupOptions);
+        properties_1.defineReadOnly(_this, "privacyGroupOptions", privacyGroupOptions);
+        return _this;
     }
     PrivateContract.prototype.connect = function (signerOrProvider) {
-        if (typeof (signerOrProvider) === "string") {
-            signerOrProvider = new abstract_signer_1.VoidSigner(signerOrProvider, this.provider);
-        }
-        var contract = new (this.constructor)(this.address, this.interface, signerOrProvider);
+        var contract = new (this.constructor)(this.address, this.privacyGroupOptions, this.interface, signerOrProvider);
+        properties_1.defineReadOnly(contract, "privacyGroupOptions", this.privacyGroupOptions);
         if (this.deployPrivateTransaction) {
             properties_1.defineReadOnly(contract, "deployPrivateTransaction", this.deployPrivateTransaction);
         }
@@ -62,7 +63,7 @@ var PrivateContract = /** @class */ (function (_super) {
     };
     // Re-attach to a different on-chain instance of this contract
     PrivateContract.prototype.attach = function (addressOrName) {
-        return new (this.constructor)(addressOrName, this.interface, this.signer || this.provider);
+        return new (this.constructor)(addressOrName, this.privacyGroupOptions, this.interface, this.signer || this.provider);
     };
     return PrivateContract;
 }(contracts_2.Contract));
@@ -108,20 +109,7 @@ function runPrivateMethod(contract, functionName, options) {
         return resolveAddresses(contract.signer || contract.provider, params, method.inputs).then(function (params) {
             tx.data = contract.interface.encodeFunctionData(method, params);
             // Add private transaction properties to the transaction
-            if (contract.deployPrivateTransaction) {
-                if (contract.deployPrivateTransaction.privateFrom) {
-                    tx.privateFrom = contract.deployPrivateTransaction.privateFrom;
-                }
-                tx.privateFor = contract.deployPrivateTransaction.privateFor;
-                tx.restriction = contract.deployPrivateTransaction.restriction;
-            }
-            else {
-                errors.throwError("private transaction not sent as contract not yet deployed", errors.UNSUPPORTED_OPERATION, {
-                    transaction: tx,
-                    deployPrivateTransaction: contract.deployPrivateTransaction,
-                    operation: "runPrivateMethod"
-                });
-            }
+            tx = __assign({}, tx, contract.privacyGroupOptions);
             if (method.constant || options.callStatic) {
                 // Call (constant functions) always cost 0 ether
                 if (options.estimate) {
@@ -270,14 +258,14 @@ var PrivateContractFactory = /** @class */ (function (_super) {
             // Send the deployment transaction
             return _this.signer.sendPrivateTransaction(privateTx).then(function (deployedTx) {
                 var address = (_this.constructor).getPrivateContractAddress(deployedTx);
-                var contract = (_this.constructor).getPrivateContract(address, _this.interface, _this.signer);
+                var contract = (_this.constructor).getPrivateContract(address, privacyGroupOptions, _this.interface, _this.signer);
                 properties_1.defineReadOnly(contract, "deployPrivateTransaction", deployedTx);
                 return contract;
             });
         });
     };
-    PrivateContractFactory.getPrivateContract = function (address, contractInterface, signer) {
-        return new PrivateContract(address, contractInterface, signer);
+    PrivateContractFactory.getPrivateContract = function (address, privacyGroupOptions, contractInterface, signer) {
+        return new PrivateContract(address, privacyGroupOptions, contractInterface, signer);
     };
     PrivateContractFactory.getPrivateContractAddress = function (transaction) {
         var from = null;

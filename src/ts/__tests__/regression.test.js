@@ -47,6 +47,8 @@ var provider = new index_1.providers.JsonRpcProvider(url);
 provider.on('debug', function (info) {
     console.log("Sent \"" + info.action + "\" action with request: " + JSON.stringify(info.request) + "\nResponse: " + JSON.stringify(info.response));
 });
+var testContractAbi = fs_1.readFileSync('./src/abis/TestContract.abi', 'utf8');
+var bytecode = fs_1.readFileSync('./src/abis/TestContract.bin', 'utf8');
 describe('Ethers Regression', function () {
     var noEtherWallet = new index_1.Wallet('0x1000000000000000000000000000000000000000000000000000000000000000');
     // one of the three pre-funded dev accounts
@@ -81,12 +83,10 @@ describe('Ethers Regression', function () {
         var contract;
         var txHash;
         test('deploy test contract', function () { return __awaiter(_this, void 0, void 0, function () {
-            var testContractAbi, bytecode, factory, txReceipt;
+            var factory, txReceipt;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        testContractAbi = fs_1.readFileSync('./src/abis/TestContract.abi', 'utf8');
-                        bytecode = fs_1.readFileSync('./src/abis/TestContract.bin', 'utf8');
                         factory = new index_1.ContractFactory(testContractAbi, bytecode, contractWallet);
                         return [4 /*yield*/, factory.deploy()];
                     case 1:
@@ -222,23 +222,31 @@ describe('Ethers Regression', function () {
         });
         describe('send transaction', function () {
             test('to write data', function () { return __awaiter(_this, void 0, void 0, function () {
-                var tx, _a, _b;
+                var tx, _a, _b, value;
                 return __generator(this, function (_c) {
                     switch (_c.label) {
                         case 0: return [4 /*yield*/, contract.setTestUint(2)];
                         case 1:
                             tx = _c.sent();
+                            expect(tx.hash).toMatch(RegEx_1.transactionHash);
                             expect(tx.to).toEqual(contract.address);
                             _b = (_a = expect(tx.from)).toEqual;
                             return [4 /*yield*/, contractWallet.getAddress()];
                         case 2:
                             _b.apply(_a, [_c.sent()]);
+                            return [4 /*yield*/, tx.wait()];
+                        case 3:
+                            _c.sent();
+                            return [4 /*yield*/, contract.getTestUint()];
+                        case 4:
+                            value = _c.sent();
+                            expect(value.eq(2)).toBeTruthy();
                             return [2 /*return*/];
                     }
                 });
             }); });
             test('to write data with gasLimit', function () { return __awaiter(_this, void 0, void 0, function () {
-                var tx, _a, _b;
+                var tx, _a, _b, value;
                 return __generator(this, function (_c) {
                     switch (_c.label) {
                         case 0: return [4 /*yield*/, contract.setTestUint(3, {
@@ -246,11 +254,19 @@ describe('Ethers Regression', function () {
                             })];
                         case 1:
                             tx = _c.sent();
+                            expect(tx.hash).toMatch(RegEx_1.transactionHash);
                             expect(tx.to).toEqual(contract.address);
                             _b = (_a = expect(tx.from)).toEqual;
                             return [4 /*yield*/, contractWallet.getAddress()];
                         case 2:
                             _b.apply(_a, [_c.sent()]);
+                            return [4 /*yield*/, provider.waitForTransaction(tx.hash)];
+                        case 3:
+                            _c.sent();
+                            return [4 /*yield*/, contract.getTestUint()];
+                        case 4:
+                            value = _c.sent();
+                            expect(value.eq(3)).toBeTruthy();
                             return [2 /*return*/];
                     }
                 });
@@ -262,6 +278,7 @@ describe('Ethers Regression', function () {
                         case 0: return [4 /*yield*/, contract.txFail()];
                         case 1:
                             tx = _a.sent();
+                            expect(tx.hash).toMatch(RegEx_1.transactionHash);
                             return [4 /*yield*/, provider.waitForTransaction(tx.hash)];
                         case 2:
                             receipt = _a.sent();
@@ -272,6 +289,47 @@ describe('Ethers Regression', function () {
             }); });
         });
         // get an event
+        describe('Connect to an existing contract from node 2', function () {
+            var providerNode2;
+            var existingContract;
+            test('instantiate', function () {
+                providerNode2 = new index_1.providers.JsonRpcProvider("http://localhost:20000");
+                var walletNode2 = new index_1.Wallet('0x0000000000000000000000000000000000000000000000000000000000000002', providerNode2);
+                existingContract = new index_1.Contract(contract.address, testContractAbi, walletNode2);
+            });
+            test('write data to contract', function () { return __awaiter(_this, void 0, void 0, function () {
+                var tx, _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0: return [4 /*yield*/, existingContract.setTestUint(4)];
+                        case 1:
+                            tx = _c.sent();
+                            expect(tx.hash).toMatch(RegEx_1.transactionHash);
+                            expect(tx.to).toEqual(contract.address);
+                            _b = (_a = expect(tx.from)).toEqual;
+                            return [4 /*yield*/, contractWallet.getAddress()];
+                        case 2:
+                            _b.apply(_a, [_c.sent()]);
+                            return [4 /*yield*/, tx.wait()];
+                        case 3:
+                            _c.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            test('read data back from contract', function () { return __awaiter(_this, void 0, void 0, function () {
+                var value;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, existingContract.getTestUint()];
+                        case 1:
+                            value = _a.sent();
+                            expect(value.eq(4)).toBeTruthy();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+        });
     });
     describe('getTransactionReceipt', function () {
         describe('Failed getTransactionReceipt', function () {

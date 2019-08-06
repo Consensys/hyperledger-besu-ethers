@@ -7,8 +7,8 @@ import * as RegEx from './utils/RegEx'
 
 export interface PrivacyGroupOptions {
     privateFrom?: string;
-    privateFor?: string[] | string;
-    privacyGroupId?: string;
+    privateFor: string[] | string;
+    restriction: 'restricted' | 'unrestricted';
 }
 
 // This logic has been derived from the PagaSys's EEA Web3js client

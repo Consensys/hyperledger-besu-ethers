@@ -73,7 +73,8 @@ describe('Deploy contract using contract factory', () => {
             expect(privacyGroupId).toHaveLength(44)
 
             privacyGroupOptions = {
-                privateFor: privacyGroupId
+                privateFor: privacyGroupId,
+                restriction: 'restricted',
             }
         })
 
@@ -209,27 +210,50 @@ describe('Deploy contract using contract factory', () => {
             })
         })
 
-        describe('node 2 interacts with private contract deployed from node 1', () => {
-            test('connecting to existing contract using contract connect', () => {
-                contractNode2 = new PrivateContract(contractNode1.address, testContractAbi, providerNode2)
-                contractNode2 = contractNode1.connect(walletNode2)
-                // contractNode2 = new PrivateContract(contractNode1.address, testContractAbi, walletNode2)
-                expect(contractNode2.address).toEqual(contractNode1.address)
+        describe('node 2 interacts to existing contract deployed from node 1 using', () => {
+            describe('contract connect function', () => {
+                test('instantiate contract', async() => {
+                    contractNode2 = new PrivateContract(contractNode1.address, privacyGroupOptions, testContractAbi, providerNode2)
+                    contractNode2 = contractNode1.connect(walletNode2)
+                    expect(contractNode2.address).toEqual(contractNode1.address)
+                })
+
+                test('read data', async() => {
+                    const value = await contractNode2.getTestUint()
+                    expect(value.eq(3)).toBeTruthy()
+                })
+
+                test('write data', async() => {
+                    const tx = await contractNode2.setTestUint(4)
+                    expect(tx.publicHash).toMatch(utils.RegEx.bytes32)
+                    expect(tx.to).toEqual(contractNode1.address)
+                    expect(tx.from).toEqual(signerAddress)
+
+                    const receipt = await providerNode2.waitForTransaction(tx.publicHash)
+                    expect(receipt.status).toEqual(1)
+                })
             })
 
-            test('views changes made by node 1', async() => {
-                const value = await contractNode2.getTestUint()
-                expect(value.eq(3)).toBeTruthy()
-            })
+            describe('contract constructor', () => {
+                test('instantiate contract', async() => {
+                    contractNode2 = new PrivateContract(contractNode1.address, privacyGroupOptions, testContractAbi, walletNode2)
+                    expect(contractNode2.address).toEqual(contractNode1.address)
+                })
 
-            test('write data', async() => {
-                const tx = await contractNode2.setTestUint(4)
-                expect(tx.publicHash).toMatch(utils.RegEx.bytes32)
-                expect(tx.to).toEqual(contractNode1.address)
-                expect(tx.from).toEqual(signerAddress)
+                test('read data', async() => {
+                    const value = await contractNode2.getTestUint()
+                    expect(value.eq(4)).toBeTruthy()
+                })
 
-                const receipt = await providerNode2.waitForTransaction(tx.publicHash)
-                expect(receipt.status).toEqual(1)
+                test('write data', async() => {
+                    const tx = await contractNode2.setTestUint(4)
+                    expect(tx.publicHash).toMatch(utils.RegEx.bytes32)
+                    expect(tx.to).toEqual(contractNode1.address)
+                    expect(tx.from).toEqual(signerAddress)
+
+                    const receipt = await providerNode2.waitForTransaction(tx.publicHash)
+                    expect(receipt.status).toEqual(1)
+                })
             })
         })
 

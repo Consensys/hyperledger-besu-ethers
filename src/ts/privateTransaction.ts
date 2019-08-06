@@ -146,8 +146,8 @@ export interface PrivateTransactionRequest {
 
     // Extra EEA privacy properties
     privateFrom?: string
-    privateFor?: string | string[]
-    restriction?: string
+    privateFor: string | string[]
+    restriction: 'restricted' | 'unrestricted'
 };
 
 export interface PrivateTransactionReceipt {

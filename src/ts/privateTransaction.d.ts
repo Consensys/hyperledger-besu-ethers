@@ -46,8 +46,8 @@ export interface PrivateTransactionRequest {
     value?: BigNumberish | Promise<BigNumberish>;
     chainId?: number | Promise<number>;
     privateFrom?: string;
-    privateFor?: string | string[];
-    restriction?: string;
+    privateFor: string | string[];
+    restriction: 'restricted' | 'unrestricted';
 }
 export interface PrivateTransactionReceipt {
     to?: string;

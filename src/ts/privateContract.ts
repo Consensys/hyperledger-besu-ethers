@@ -1,6 +1,6 @@
 
 import { ParamType } from "@ethersproject/abi";
-import { Signer, VoidSigner } from "@ethersproject/abstract-signer";
+import { Signer } from "@ethersproject/abstract-signer";
 import { Block, Log, Provider } from "@ethersproject/abstract-provider";
 import { getAddress } from "@ethersproject/address";
 import { arrayify, hexDataSlice, stripZeros } from "@ethersproject/bytes";
@@ -63,30 +63,44 @@ export class PrivateContract extends Contract {
     readonly provider: PrivateProvider;
     readonly privacyGroupId: string;
     readonly deployPrivateTransaction: PrivateTransactionResponse;
+    readonly privacyGroupOptions: PrivacyGroupOptions
 
     constructor(
         addressOrName: string,
+        privacyGroupOptions: PrivacyGroupOptions,
         contractInterface: ContractInterface,
         signerOrProvider: PrivateSigner | PrivateProvider)
     {
         super(addressOrName, contractInterface, signerOrProvider, runPrivateMethod);
+
+        // Validate the privacyGroupOptions
+        generatePrivacyGroup(privacyGroupOptions)
+        defineReadOnly(this, "privacyGroupOptions", privacyGroupOptions);
     }
 
-    connect(signerOrProvider: Signer | Provider | string): PrivateContract {
-        if (typeof(signerOrProvider) === "string") {
-            signerOrProvider = new VoidSigner(signerOrProvider, this.provider);
-        }
+    connect(signerOrProvider: PrivateSigner | PrivateProvider): PrivateContract {
+        let contract = new (<{ new(...args: any[]): PrivateContract }>(this.constructor))(
+            this.address,
+            this.privacyGroupOptions,
+            this.interface,
+            signerOrProvider);
 
-        let contract = new (<{ new(...args: any[]): PrivateContract }>(this.constructor))(this.address, this.interface, signerOrProvider);
+        defineReadOnly(contract, "privacyGroupOptions", this.privacyGroupOptions);
+
         if (this.deployPrivateTransaction) {
             defineReadOnly(contract, "deployPrivateTransaction", this.deployPrivateTransaction);
         }
+
         return contract;
     }
 
     // Re-attach to a different on-chain instance of this contract
     attach(addressOrName: string): PrivateContract {
-        return new (<{ new(...args: any[]): PrivateContract }>(this.constructor))(addressOrName, this.interface, this.signer || this.provider);
+        return new (<{ new(...args: any[]): PrivateContract }>(this.constructor))(
+            addressOrName,
+            this.privacyGroupOptions,
+            this.interface,
+            this.signer || this.provider);
     }
 }
 
@@ -134,19 +148,9 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
             tx.data = contract.interface.encodeFunctionData(method, params);
 
             // Add private transaction properties to the transaction
-            if (contract.deployPrivateTransaction) {
-                if (contract.deployPrivateTransaction.privateFrom) {
-                    tx.privateFrom = contract.deployPrivateTransaction.privateFrom
-                }
-                tx.privateFor = contract.deployPrivateTransaction.privateFor
-                tx.restriction = contract.deployPrivateTransaction.restriction
-            }
-            else {
-                errors.throwError("private transaction not sent as contract not yet deployed", errors.UNSUPPORTED_OPERATION, {
-                    transaction: tx,
-                    deployPrivateTransaction: contract.deployPrivateTransaction,
-                    operation: "runPrivateMethod"
-                });
+            tx = {
+                ...tx,
+                ...contract.privacyGroupOptions,
             }
 
             if (method.constant || options.callStatic) {
@@ -328,7 +332,11 @@ export class PrivateContractFactory extends ContractFactory {
             return this.signer.sendPrivateTransaction(privateTx).then(deployedTx => {
 
                 const address = (<any>(this.constructor)).getPrivateContractAddress(deployedTx);
-                const contract = (<any>(this.constructor)).getPrivateContract(address, this.interface, this.signer);
+                const contract = (<any>(this.constructor)).getPrivateContract(
+                    address,
+                    privacyGroupOptions,
+                    this.interface,
+                    this.signer);
 
                 defineReadOnly(contract, "deployPrivateTransaction", deployedTx);
 
@@ -338,14 +346,16 @@ export class PrivateContractFactory extends ContractFactory {
     }
 
     static getPrivateContract(
-        address: string, contractInterface: ContractInterface,
+        address: string,
+        privacyGroupOptions: PrivacyGroupOptions,
+        contractInterface: ContractInterface,
         signer?: PrivateSigner,
     ): PrivateContract {
-        return new PrivateContract(address, contractInterface, signer);
+        return new PrivateContract(address, privacyGroupOptions, contractInterface, signer);
     }
 
     static getPrivateContractAddress(
-        transaction: { from: string, nonce: BigNumberish, privateFor: string, privateFrom: string },
+        transaction: { from: string, nonce: BigNumberish, privateFor: string, privateFrom?: string, restriction: 'restricted' | 'unrestricted' },
     ): string {
         let from: string = null;
         try {

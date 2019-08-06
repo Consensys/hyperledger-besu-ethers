@@ -195,7 +195,8 @@ describe('Pantheon Ethers', function () {
                         expect(testPrivacyGroupId).toMatch(index_1.utils.RegEx.base64);
                         expect(testPrivacyGroupId).toHaveLength(44);
                         testPrivacyGroupOptions = {
-                            privateFor: testPrivacyGroupId
+                            privateFor: testPrivacyGroupId,
+                            restriction: 'restricted',
                         };
                         return [2 /*return*/];
                 }
@@ -278,7 +279,8 @@ describe('Pantheon Ethers', function () {
                             data: deployData,
                             chainId: 2018,
                             privateFrom: node3,
-                            privateFor: testPrivacyGroupId
+                            privateFor: testPrivacyGroupId,
+                            restriction: 'restricted'
                         };
                         return [4 /*yield*/, eeaWallet.signPrivateTransaction(unsignedTransaction)];
                     case 1:

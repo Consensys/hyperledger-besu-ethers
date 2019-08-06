@@ -101,7 +101,8 @@ describe('Deploy contract using contract factory', function () {
                         expect(privacyGroupId).toMatch(index_1.utils.RegEx.base64);
                         expect(privacyGroupId).toHaveLength(44);
                         privacyGroupOptions = {
-                            privateFor: privacyGroupId
+                            privateFor: privacyGroupId,
+                            restriction: 'restricted',
                         };
                         return [2 /*return*/];
                 }
@@ -317,43 +318,86 @@ describe('Deploy contract using contract factory', function () {
                 });
             }); });
         });
-        describe('node 2 interacts with private contract deployed from node 1', function () {
-            test('connecting to existing contract using contract connect', function () {
-                contractNode2 = new index_1.PrivateContract(contractNode1.address, testContractAbi, providerNode2);
-                contractNode2 = contractNode1.connect(walletNode2);
-                // contractNode2 = new PrivateContract(contractNode1.address, testContractAbi, walletNode2)
-                expect(contractNode2.address).toEqual(contractNode1.address);
+        describe('node 2 interacts to existing contract deployed from node 1 using', function () {
+            describe('contract connect function', function () {
+                test('instantiate contract', function () { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        contractNode2 = new index_1.PrivateContract(contractNode1.address, privacyGroupOptions, testContractAbi, providerNode2);
+                        contractNode2 = contractNode1.connect(walletNode2);
+                        expect(contractNode2.address).toEqual(contractNode1.address);
+                        return [2 /*return*/];
+                    });
+                }); });
+                test('read data', function () { return __awaiter(_this, void 0, void 0, function () {
+                    var value;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, contractNode2.getTestUint()];
+                            case 1:
+                                value = _a.sent();
+                                expect(value.eq(3)).toBeTruthy();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
+                test('write data', function () { return __awaiter(_this, void 0, void 0, function () {
+                    var tx, receipt;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, contractNode2.setTestUint(4)];
+                            case 1:
+                                tx = _a.sent();
+                                expect(tx.publicHash).toMatch(index_1.utils.RegEx.bytes32);
+                                expect(tx.to).toEqual(contractNode1.address);
+                                expect(tx.from).toEqual(signerAddress);
+                                return [4 /*yield*/, providerNode2.waitForTransaction(tx.publicHash)];
+                            case 2:
+                                receipt = _a.sent();
+                                expect(receipt.status).toEqual(1);
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
             });
-            test('views changes made by node 1', function () { return __awaiter(_this, void 0, void 0, function () {
-                var value;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, contractNode2.getTestUint()];
-                        case 1:
-                            value = _a.sent();
-                            expect(value.eq(3)).toBeTruthy();
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
-            test('write data', function () { return __awaiter(_this, void 0, void 0, function () {
-                var tx, receipt;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, contractNode2.setTestUint(4)];
-                        case 1:
-                            tx = _a.sent();
-                            expect(tx.publicHash).toMatch(index_1.utils.RegEx.bytes32);
-                            expect(tx.to).toEqual(contractNode1.address);
-                            expect(tx.from).toEqual(signerAddress);
-                            return [4 /*yield*/, providerNode2.waitForTransaction(tx.publicHash)];
-                        case 2:
-                            receipt = _a.sent();
-                            expect(receipt.status).toEqual(1);
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
+            describe('contract constructor', function () {
+                test('instantiate contract', function () { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        contractNode2 = new index_1.PrivateContract(contractNode1.address, privacyGroupOptions, testContractAbi, walletNode2);
+                        expect(contractNode2.address).toEqual(contractNode1.address);
+                        return [2 /*return*/];
+                    });
+                }); });
+                test('read data', function () { return __awaiter(_this, void 0, void 0, function () {
+                    var value;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, contractNode2.getTestUint()];
+                            case 1:
+                                value = _a.sent();
+                                expect(value.eq(4)).toBeTruthy();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
+                test('write data', function () { return __awaiter(_this, void 0, void 0, function () {
+                    var tx, receipt;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, contractNode2.setTestUint(4)];
+                            case 1:
+                                tx = _a.sent();
+                                expect(tx.publicHash).toMatch(index_1.utils.RegEx.bytes32);
+                                expect(tx.to).toEqual(contractNode1.address);
+                                expect(tx.from).toEqual(signerAddress);
+                                return [4 /*yield*/, providerNode2.waitForTransaction(tx.publicHash)];
+                            case 2:
+                                receipt = _a.sent();
+                                expect(receipt.status).toEqual(1);
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
+            });
         });
         test('Delete privacy group', function () { return __awaiter(_this, void 0, void 0, function () {
             var result;

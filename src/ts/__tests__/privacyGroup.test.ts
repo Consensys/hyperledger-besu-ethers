@@ -1,5 +1,5 @@
 
-import * as privacyGroup from '../privacyGroup'
+import { generatePrivacyGroup, PrivacyGroupOptions } from '../privacyGroup'
 
 describe('Privacy Group unit tests', () => {
 
@@ -7,32 +7,35 @@ describe('Privacy Group unit tests', () => {
 
         test('with one privateFor address', () => {
 
-            const testOptions = {
+            const testOptions: PrivacyGroupOptions = {
                 privateFrom: 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=',
                 privateFor: ['Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='],
+                restriction: 'restricted',
             }
 
-            expect(privacyGroup.generatePrivacyGroup(testOptions)).toEqual('DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w=')
+            expect(generatePrivacyGroup(testOptions)).toEqual('DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w=')
         })
 
         test('with 2 privateFor members', () => {
 
-            const testOptions = {
+            const testOptions: PrivacyGroupOptions = {
                 privateFrom: 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=',
                 privateFor: ['Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs=', 'k2zXEin4Ip/qBGlRkJejnGWdP9cjkK+DAvKNW31L2C8='],
+                restriction: 'restricted',
             }
 
-            expect(privacyGroup.generatePrivacyGroup(testOptions)).toEqual('95yIn/OYTZ1xN7SiBX1MdBJv9Bqk6Oq7fy+7XSaInyY=')
+            expect(generatePrivacyGroup(testOptions)).toEqual('95yIn/OYTZ1xN7SiBX1MdBJv9Bqk6Oq7fy+7XSaInyY=')
         })
 
         test('with privateFor the privacy group id', () => {
 
-            const testOptions = {
+            const testOptions: PrivacyGroupOptions = {
                 privateFrom: 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=',
                 privateFor: '95yIn/OYTZ1xN7SiBX1MdBJv9Bqk6Oq7fy+7XSaInyY=',
+                restriction: 'restricted',
             }
 
-            expect(privacyGroup.generatePrivacyGroup(testOptions)).toEqual('95yIn/OYTZ1xN7SiBX1MdBJv9Bqk6Oq7fy+7XSaInyY=')
+            expect(generatePrivacyGroup(testOptions)).toEqual('95yIn/OYTZ1xN7SiBX1MdBJv9Bqk6Oq7fy+7XSaInyY=')
         })
     })
 
@@ -59,9 +62,10 @@ describe('Privacy Group unit tests', () => {
             ({privateFrom, privateFor, errorRegEx}) => {
 
             expect(() => {
-                privacyGroup.generatePrivacyGroup({
+                generatePrivacyGroup({
                     privateFrom,
                     privateFor,
+                    restriction: 'restricted'
                 })
             }).toThrow(errorRegEx)
         });

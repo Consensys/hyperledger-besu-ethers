@@ -12,6 +12,9 @@ provider.on('debug', (info) => {
     console.log(`Sent "${info.action}" action with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
 
+const testContractAbi = readFileSync('./src/abis/TestContract.abi', 'utf8')
+const bytecode = readFileSync('./src/abis/TestContract.bin', 'utf8')
+
 describe('Ethers Regression', () => {
 
     const noEtherWallet = new Wallet('0x1000000000000000000000000000000000000000000000000000000000000000')
@@ -46,9 +49,6 @@ describe('Ethers Regression', () => {
         let txHash: string
 
         test('deploy test contract', async() => {
-
-            const testContractAbi = readFileSync('./src/abis/TestContract.abi', 'utf8')
-            const bytecode = readFileSync('./src/abis/TestContract.bin', 'utf8')
 
             const factory = new ContractFactory(testContractAbi, bytecode, contractWallet);
 
@@ -126,20 +126,33 @@ describe('Ethers Regression', () => {
         describe('send transaction', () => {
             test('to write data', async() => {
                 const tx = await contract.setTestUint(2)
+                expect(tx.hash).toMatch(transactionHash)
                 expect(tx.to).toEqual(contract.address)
                 expect(tx.from).toEqual(await contractWallet.getAddress())
+
+                await tx.wait()
+
+                const value = await contract.getTestUint()
+                expect(value.eq(2)).toBeTruthy()
             })
 
             test('to write data with gasLimit', async() => {
                 const tx = await contract.setTestUint(3, {
                     gasLimit: 100000
                 })
+                expect(tx.hash).toMatch(transactionHash)
                 expect(tx.to).toEqual(contract.address)
                 expect(tx.from).toEqual(await contractWallet.getAddress())
+
+                await provider.waitForTransaction(tx.hash)
+
+                const value = await contract.getTestUint()
+                expect(value.eq(3)).toBeTruthy()
             })
 
             test('that will fail from tx function', async() => {
                 const tx = await contract.txFail()
+                expect(tx.hash).toMatch(transactionHash)
 
                 const receipt = await provider.waitForTransaction(tx.hash)
                 expect(receipt.status).toEqual(0)
@@ -147,6 +160,31 @@ describe('Ethers Regression', () => {
         })
 
         // get an event
+
+        describe('Connect to an existing contract from node 2', () => {
+            let providerNode2: any
+            let existingContract: Contract
+
+            test('instantiate', () => {
+                providerNode2 = new providers.JsonRpcProvider("http://localhost:20000");
+                const walletNode2 = new Wallet('0x0000000000000000000000000000000000000000000000000000000000000002', providerNode2)
+                existingContract = new Contract(contract.address, testContractAbi, walletNode2)
+            })
+
+            test('write data to contract', async() => {
+                const tx = await existingContract.setTestUint(4)
+                expect(tx.hash).toMatch(transactionHash)
+                expect(tx.to).toEqual(contract.address)
+                expect(tx.from).toEqual(await contractWallet.getAddress())
+
+                await tx.wait()
+            })
+
+            test('read data back from contract', async() => {
+                const value = await existingContract.getTestUint()
+                expect(value.eq(4)).toBeTruthy()
+            })
+        })
     })
 
     describe('getTransactionReceipt', () => {

@@ -126,7 +126,8 @@ describe('Pantheon Ethers', () => {
             expect(testPrivacyGroupId).toHaveLength(44)
 
             testPrivacyGroupOptions = {
-                privateFor: testPrivacyGroupId
+                privateFor: testPrivacyGroupId,
+                restriction: 'restricted',
             }
         })
 
@@ -173,7 +174,8 @@ describe('Pantheon Ethers', () => {
                 data: deployData,
                 chainId: 2018,
                 privateFrom: node3,
-                privateFor: testPrivacyGroupId
+                privateFor: testPrivacyGroupId,
+                restriction: 'restricted'
             }
 
             const signedTransaction = await eeaWallet.signPrivateTransaction(unsignedTransaction)
