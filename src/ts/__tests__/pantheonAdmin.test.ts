@@ -2,11 +2,11 @@ import { providers } from '../index'
 
 jest.setTimeout(15000)
 
-const provider = new providers.PrivateJsonRpcProvider("http://localhost:20000");
+const provider = new providers.PantheonProvider("http://localhost:20000");
 provider.on('debug', (info) => {
     console.log(`Sent "${info.action}" action to node 1 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
-const providerNode2 = new providers.PrivateJsonRpcProvider("http://localhost:20002");
+const providerNode2 = new providers.PantheonProvider("http://localhost:20002");
 
 describe('Pantheon Admin APIs', () => {
 

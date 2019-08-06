@@ -16,9 +16,9 @@ import { encode } from "@ethersproject/rlp";
 // FIXME a workaround until this Ethers issue has been solved https://github.com/ethers-io/ethers.js/issues/577
 import { Contract } from "./contracts";
 
-import { PrivateJsonRpcProvider } from './privateProvider'
+import { PrivateProvider } from './privateProvider'
 import { allowedTransactionKeys, PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction'
-import {generatePrivacyGroup, PrivacyGroupOptions} from './privacyGroup'
+import { generatePrivacyGroup, PrivacyGroupOptions} from './privacyGroup'
 import { PrivateSigner } from './privateWallet'
 
 type RunFunction = (...params: Array<any>) => Promise<any>;
@@ -60,14 +60,14 @@ export interface PrivateContractReceipt extends PrivateTransactionReceipt {
 export class PrivateContract extends Contract {
 
     readonly signer: PrivateSigner;
-    readonly provider: PrivateJsonRpcProvider;
+    readonly provider: PrivateProvider;
     readonly privacyGroupId: string;
     readonly deployPrivateTransaction: PrivateTransactionResponse;
 
     constructor(
         addressOrName: string,
         contractInterface: ContractInterface,
-        signerOrProvider: PrivateSigner | PrivateJsonRpcProvider)
+        signerOrProvider: PrivateSigner | PrivateProvider)
     {
         super(addressOrName, contractInterface, signerOrProvider, runPrivateMethod);
     }

@@ -2,7 +2,9 @@ import * as ethers from 'ethers';
 export * from 'ethers';
 export * from './privateContract';
 import * as privateProviders from './privateProvider';
+import * as pantheonProviders from './pantheonProvider';
 export declare const providers: {
+    PantheonProvider: typeof pantheonProviders.PantheonProvider;
     PrivateJsonRpcProvider: typeof privateProviders.PrivateJsonRpcProvider;
     Provider: typeof ethers.ethers.providers.Provider;
     BaseProvider: typeof ethers.ethers.providers.BaseProvider;
@@ -22,10 +24,10 @@ import * as privateTransactions from './privateTransaction';
 export * from './privateTransaction';
 export * from './privacyGroup';
 export declare const utils: {
-    computeAddress(key: string | ArrayLike<number>): string;
-    recoverAddress(digest: string | ArrayLike<number>, signature: import("@ethersproject/bytes").SignatureLike): string;
+    computeAddress(key: ethers.ethers.utils.BytesLike): string;
+    recoverAddress(digest: ethers.ethers.utils.BytesLike, signature: import("@ethersproject/bytes").SignatureLike): string;
     serialize(transaction: privateTransactions.PrivateUnsignedTransaction, signature?: import("@ethersproject/bytes").SignatureLike): string;
-    parse(rawTransaction: string | ArrayLike<number>): privateTransactions.PrivateTransaction;
+    parse(rawTransaction: ethers.ethers.utils.BytesLike): privateTransactions.PrivateTransaction;
     allowedTransactionKeys: {
         [key: string]: boolean;
     };
@@ -38,7 +40,7 @@ export declare const utils: {
         base64: RegExp;
     };
     encode(object: any): string;
-    decode(data: string | ArrayLike<number>): any;
+    decode(data: ethers.ethers.utils.BytesLike): any;
     arrayify(value: string | number | ArrayLike<number> | ethers.ethers.utils.Hexable, options?: import("@ethersproject/bytes").DataOptions): Uint8Array;
     hexlify(value: string | number | ArrayLike<number> | ethers.ethers.utils.Hexable, options?: import("@ethersproject/bytes").DataOptions): string;
     AbiCoder: typeof ethers.ethers.utils.AbiCoder;

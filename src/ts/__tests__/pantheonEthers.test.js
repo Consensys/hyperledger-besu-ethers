@@ -100,6 +100,7 @@ describe('Pantheon Ethers', function () {
         expect(PantheonEthers.utils.serialize).toBeInstanceOf(Function);
         expect(PantheonEthers.utils.encode).toBeInstanceOf(Function);
         expect(PantheonEthers.providers.PrivateJsonRpcProvider).toBeInstanceOf(Function);
+        expect(PantheonEthers.providers.PantheonProvider).toBeInstanceOf(Function);
     });
     test('signed transaction matches EEA client', function () { return __awaiter(_this, void 0, void 0, function () {
         var privateKey, wallet, unsignedTransaction, eeaSignedRlpEncoded, signedTransaction, parsedTransaction, _a, _b;

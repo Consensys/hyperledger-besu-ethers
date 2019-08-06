@@ -75,7 +75,6 @@ var web_1 = require("@ethersproject/web");
 var bytes_2 = require("./bytes");
 var privateFormatter_1 = require("./privateFormatter");
 var privacyGroup_1 = require("./privacyGroup");
-var privateTransaction_1 = require("./privateTransaction");
 function getResult(payload) {
     if (payload.error) {
         // @TODO: not any
@@ -313,39 +312,7 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
     PrivateJsonRpcProvider.prototype.getPrivacyPrecompileAddress = function () {
         return this._runPerform("getPrivacyPrecompileAddress", {});
     };
-    // Pantheon administration
-    PrivateJsonRpcProvider.prototype.addPeer = function (enodeUrl) {
-        return this._runPerform("addPeer", {
-            enodeUrl: function () { return Promise.resolve(enodeUrl); }
-        });
-    };
-    PrivateJsonRpcProvider.prototype.changeLogLevel = function (level) {
-        return this._runPerform("changeLogLevel", {
-            level: function () { return Promise.resolve(level); }
-        });
-    };
-    PrivateJsonRpcProvider.prototype.getNodeInfo = function () {
-        return this._runPerform("getNodeInfo", {});
-    };
-    PrivateJsonRpcProvider.prototype.getPeers = function () {
-        return this._runPerform("getPeers", {});
-    };
-    PrivateJsonRpcProvider.prototype.removePeer = function (enodeUrl) {
-        return this._runPerform("removePeer", {
-            enodeUrl: function () { return Promise.resolve(enodeUrl); }
-        });
-    };
-    PrivateJsonRpcProvider.prototype.getModuleVersions = function () {
-        return this._runPerform("getModuleVersions", {});
-    };
-    PrivateJsonRpcProvider.prototype.getPantheonStatistics = function () {
-        return this._runPerform("getPantheonStatistics", {});
-    };
-    PrivateJsonRpcProvider.prototype.getPantheonTransactions = function () {
-        return this._runPerform("getPantheonTransactions", {});
-    };
-    // Override the base perform method to add the pantheon
-    // calls
+    // Override the base perform method to add the private API calls
     PrivateJsonRpcProvider.prototype.perform = function (method, params) {
         switch (method) {
             // privacy transactions
@@ -390,76 +357,9 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
                 return this.send("priv_findPrivacyGroup", [params.members]);
             case "getPrivacyPrecompileAddress":
                 return this.send("priv_getPrivacyPrecompileAddress", []);
-            // Pantheon administration
-            case "addPeer":
-                return this.send("admin_addPeer", [
-                    params.enodeUrl
-                ]);
-            case "changeLogLevel":
-                return this.send("admin_changeLogLevel", [
-                    params.level
-                ]);
-            case "getNodeInfo":
-                return this.send("admin_nodeInfo", []);
-            case "getPeers":
-                return this.send("admin_peers", []);
-            case "removePeer":
-                return this.send("admin_removePeer", [
-                    params.enodeUrl
-                ]);
-            case "getModuleVersions":
-                return this.send("rpc_modules", []);
-            case "getPantheonStatistics":
-                return this.send("txpool_pantheonStatistics", []);
-            case "getPantheonTransactions":
-                return this.send("txpool_pantheonTransactions", []);
             default:
                 return _super.prototype.perform.call(this, method, params);
         }
-    };
-    // Convert an ethers.js transaction into a JSON-RPC transaction
-    //  - gasLimit => gas
-    //  - All values hexlified
-    //  - All numeric values zero-striped
-    // NOTE: This allows a TransactionRequest, but all values should be resolved
-    //       before this is called
-    PrivateJsonRpcProvider.hexlifyTransaction = function (transaction, allowExtra) {
-        // Check only allowed properties are given
-        var allowed = properties_1.shallowCopy(privateTransaction_1.allowedTransactionKeys);
-        if (allowExtra) {
-            for (var key in allowExtra) {
-                if (allowExtra[key]) {
-                    allowed[key] = true;
-                }
-            }
-        }
-        properties_1.checkProperties(transaction, allowed);
-        var result = {};
-        // Some nodes (INFURA ropsten; INFURA mainnet is fine) do not like leading zeros.
-        ["gasLimit", "gasPrice", "nonce", "value"].forEach(function (key) {
-            if (transaction[key] == null) {
-                return;
-            }
-            var value = bytes_1.hexValue(transaction[key]);
-            if (key === "gasLimit") {
-                key = "gas";
-            }
-            result[key] = value;
-        });
-        ["from", "to", "data"].forEach(function (key) {
-            if (transaction[key] == null) {
-                return;
-            }
-            result[key] = bytes_2.hexlify(transaction[key]);
-        });
-        // Add extra EEA transaction keys
-        ["privateFrom", "privateFor", "restricted"].forEach(function (key) {
-            if (transaction[key] == null) {
-                return;
-            }
-            result[key] = bytes_2.hexlify(transaction[key]);
-        });
-        return result;
     };
     return PrivateJsonRpcProvider;
 }(providers_1.JsonRpcProvider));

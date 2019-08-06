@@ -1,17 +1,16 @@
 
-import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { BigNumber } from "@ethersproject/bignumber";
-import { hexDataLength, hexValue } from "@ethersproject/bytes";
+import { hexDataLength } from "@ethersproject/bytes";
 import * as errors from "@ethersproject/errors";
 import { Networkish } from "@ethersproject/networks";
-import { checkProperties, resolveProperties, shallowCopy } from "@ethersproject/properties";
-import { JsonRpcProvider } from "@ethersproject/providers";
+import { resolveProperties } from "@ethersproject/properties";
+import { JsonRpcProvider, Provider } from "@ethersproject/providers";
 import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
 
 import { hexlify } from "./bytes";
 import { PrivateFormatter } from './privateFormatter'
 import { PrivacyGroupOptions, generatePrivacyGroup } from './privacyGroup'
-import { allowedTransactionKeys, PrivateTransaction, PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction'
+import { PrivateTransaction, PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction'
 
 export interface FindPrivacyGroup {
     privacyGroupId: string,
@@ -20,42 +19,18 @@ export interface FindPrivacyGroup {
     description?: string,
 }
 
-export interface NodeInfo {
-    enode: string,
-    listenAddr: string,
-    name : string,
-    id: string,
-    ports: {
-        discovery: number
-        listener: number
-    },
-    protocols: object[]
-}
+export interface PrivateProvider extends Provider {
+    sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<PrivateTransactionResponse>,
+    getPrivateTransactionCount(addressOrName: string | Promise<string>, privacyGroupOptions: PrivacyGroupOptions): Promise<number>,
+    getPrivateTransactionReceipt(publicTransactionHash: string): Promise<PrivateTransactionReceipt>,
+    getPrivateTransaction(transactionHash: string): Promise<PrivateTransactionResponse>
 
-export interface PeerInfo {
-    version: string,
-    name: string,
-    caps : string[],
-    network: {
-        localAddress: string,
-        remoteAddress: string,
-    },
-    port: string,
-    id: string,
+    // Privacy Group functions
+    createPrivacyGroup(members: string[] | Promise<string[]>, name?: string | Promise<string>, description?: string | Promise<string>): Promise<string>,
+    deletePrivacyGroup(privacyGroupId: string | Promise<string>): Promise<string>,
+    findPrivacyGroup(members: string[] | Promise<string[]>): Promise<FindPrivacyGroup[]>,
+    getPrivacyPrecompileAddress(): Promise<string>
 }
-
-export interface PantheonStatistics {
-    maxSize: number,
-    localCount: number,
-    remoteCount: number,
-}
-
-export interface PantheonTransaction {
-    hash: string,
-    isReceivedFromLocalSource: boolean,
-    addedToPoolAt: string,
-}
-
 
 function getResult(payload: { error?: { code?: number, data?: any, message?: string }, result?: any }): any {
     if (payload.error) {
@@ -76,7 +51,7 @@ function getLowerCase(value: string): string {
 
 let defaultFormatter: PrivateFormatter = null;
 
-export class PrivateJsonRpcProvider extends JsonRpcProvider {
+export class PrivateJsonRpcProvider extends JsonRpcProvider implements PrivateProvider {
 
     formatter: PrivateFormatter;
 
@@ -207,6 +182,7 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
             return resolveProperties({ transactionHash: publicTransactionHash }).then(({ transactionHash }) => {
                 let params = { transactionHash: this.formatter.hash(transactionHash, true) };
                 return poll(() => {
+                    // TODO refactor this to use asymnc/await to make it easier to read
                     return this.perform("getPrivateTransactionReceipt", params).then((result) => {
                         if (result == null) {
                             if (this._emitted["t:" + transactionHash] == null) {
@@ -335,53 +311,7 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
         return this._runPerform("getPrivacyPrecompileAddress", {});
     }
 
-    // Pantheon administration
-    addPeer(
-        enodeUrl: string | Promise<string>,
-    ): Promise<boolean> {
-        return this._runPerform("addPeer", {
-            enodeUrl: () => Promise.resolve(enodeUrl)
-        });
-    }
-
-    changeLogLevel(
-        level: string | Promise<string>,
-    ): Promise<boolean> {
-        return this._runPerform("changeLogLevel", {
-            level: () => Promise.resolve(level)
-        });
-    }
-
-    getNodeInfo(): Promise<NodeInfo> {
-        return this._runPerform("getNodeInfo", {});
-    }
-
-    getPeers(): Promise<PeerInfo[]> {
-        return this._runPerform("getPeers", {});
-    }
-
-    removePeer(
-        enodeUrl: string | Promise<string>,
-    ): Promise<PeerInfo[]> {
-        return this._runPerform("removePeer", {
-            enodeUrl: () => Promise.resolve(enodeUrl)
-        });
-    }
-
-    getModuleVersions(): Promise<object> {
-        return this._runPerform("getModuleVersions", {});
-    }
-
-    getPantheonStatistics(): Promise<PantheonStatistics> {
-        return this._runPerform("getPantheonStatistics", {});
-    }
-
-    getPantheonTransactions(): Promise<PantheonTransaction[]> {
-        return this._runPerform("getPantheonTransactions", {});
-    }
-
-    // Override the base perform method to add the pantheon
-    // calls
+    // Override the base perform method to add the private API calls
     perform(method: string, params: any): Promise<any> {
         switch (method) {
             // privacy transactions
@@ -434,80 +364,8 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider {
             case "getPrivacyPrecompileAddress":
                 return this.send("priv_getPrivacyPrecompileAddress", []);
 
-            // Pantheon administration
-            case "addPeer":
-                return this.send("admin_addPeer", [
-                    params.enodeUrl
-                ]);
-
-            case "changeLogLevel":
-                return this.send("admin_changeLogLevel", [
-                    params.level
-                ]);
-
-            case "getNodeInfo":
-                return this.send("admin_nodeInfo", []);
-
-            case "getPeers":
-                return this.send("admin_peers", []);
-
-            case "removePeer":
-                return this.send("admin_removePeer", [
-                    params.enodeUrl
-                ]);
-
-            case "getModuleVersions":
-                return this.send("rpc_modules", []);
-
-            case "getPantheonStatistics":
-                return this.send("txpool_pantheonStatistics", []);
-
-            case "getPantheonTransactions":
-                return this.send("txpool_pantheonTransactions", []);
-
             default:
                 return super.perform(method, params)
         }
-    }
-
-
-    // Convert an ethers.js transaction into a JSON-RPC transaction
-    //  - gasLimit => gas
-    //  - All values hexlified
-    //  - All numeric values zero-striped
-    // NOTE: This allows a TransactionRequest, but all values should be resolved
-    //       before this is called
-    static hexlifyTransaction(transaction: TransactionRequest, allowExtra?: { [key: string]: boolean }): { [key: string]: string } {
-        // Check only allowed properties are given
-        let allowed = shallowCopy(allowedTransactionKeys);
-        if (allowExtra) {
-            for (let key in allowExtra) {
-                if (allowExtra[key]) { allowed[key] = true; }
-            }
-        }
-        checkProperties(transaction, allowed);
-
-        let result: { [key: string]: string } = {};
-
-        // Some nodes (INFURA ropsten; INFURA mainnet is fine) do not like leading zeros.
-        ["gasLimit", "gasPrice", "nonce", "value"].forEach(function(key) {
-            if ((<any>transaction)[key] == null) { return; }
-            let value = hexValue((<any>transaction)[key]);
-            if (key === "gasLimit") { key = "gas"; }
-            result[key] = value;
-        });
-
-        ["from", "to", "data"].forEach(function(key) {
-            if ((<any>transaction)[key] == null) { return; }
-            result[key] = hexlify((<any>transaction)[key]);
-        });
-
-        // Add extra EEA transaction keys
-        ["privateFrom", "privateFor", "restricted"].forEach(function(key) {
-            if ((<any>transaction)[key] == null) { return; }
-            result[key] = hexlify((<any>transaction)[key]);
-        });
-
-        return result;
     }
 }

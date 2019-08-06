@@ -43,6 +43,7 @@ describe('Pantheon Ethers', () => {
         expect(PantheonEthers.utils.serialize).toBeInstanceOf(Function)
         expect(PantheonEthers.utils.encode).toBeInstanceOf(Function)
         expect(PantheonEthers.providers.PrivateJsonRpcProvider).toBeInstanceOf(Function)
+        expect(PantheonEthers.providers.PantheonProvider).toBeInstanceOf(Function)
     })
 
     test('signed transaction matches EEA client', async() => {

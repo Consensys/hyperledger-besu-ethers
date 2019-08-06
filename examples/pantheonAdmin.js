@@ -1,6 +1,6 @@
 const providers = require('pantheon-ethers').providers
 
-const provider = new providers.PrivateJsonRpcProvider("http://localhost:20000");
+const provider = new providers.PantheonProvider("http://localhost:20000");
 
 async function example() {
 

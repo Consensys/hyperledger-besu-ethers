@@ -4,7 +4,7 @@ import { BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
 import { ContractFactory, ContractInterface } from '@ethersproject/contracts';
 import { Contract } from "./contracts";
-import { PrivateJsonRpcProvider } from './privateProvider';
+import { PrivateProvider } from './privateProvider';
 import { PrivateTransactionReceipt, PrivateTransactionResponse } from './privateTransaction';
 import { PrivacyGroupOptions } from './privacyGroup';
 import { PrivateSigner } from './privateWallet';
@@ -23,10 +23,10 @@ export interface PrivateContractReceipt extends PrivateTransactionReceipt {
 }
 export declare class PrivateContract extends Contract {
     readonly signer: PrivateSigner;
-    readonly provider: PrivateJsonRpcProvider;
+    readonly provider: PrivateProvider;
     readonly privacyGroupId: string;
     readonly deployPrivateTransaction: PrivateTransactionResponse;
-    constructor(addressOrName: string, contractInterface: ContractInterface, signerOrProvider: PrivateSigner | PrivateJsonRpcProvider);
+    constructor(addressOrName: string, contractInterface: ContractInterface, signerOrProvider: PrivateSigner | PrivateProvider);
     connect(signerOrProvider: Signer | Provider | string): PrivateContract;
     attach(addressOrName: string): PrivateContract;
 }

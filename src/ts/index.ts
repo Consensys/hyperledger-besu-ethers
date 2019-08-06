@@ -5,9 +5,11 @@ export * from './privateContract'
 
 // Import the overridden transaction functions
 import * as privateProviders from './privateProvider'
+import * as pantheonProviders from './pantheonProvider'
 export const providers = {
     ...ethers.providers,
     ...privateProviders,
+    ...pantheonProviders,
 }
 
 import * as privateTransactions from './privateTransaction'

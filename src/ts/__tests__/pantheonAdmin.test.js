@@ -38,11 +38,11 @@ var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var index_1 = require("../index");
 jest.setTimeout(15000);
-var provider = new index_1.providers.PrivateJsonRpcProvider("http://localhost:20000");
+var provider = new index_1.providers.PantheonProvider("http://localhost:20000");
 provider.on('debug', function (info) {
     console.log("Sent \"" + info.action + "\" action to node 1 with request: " + JSON.stringify(info.request) + "\nResponse: " + JSON.stringify(info.response));
 });
-var providerNode2 = new index_1.providers.PrivateJsonRpcProvider("http://localhost:20002");
+var providerNode2 = new index_1.providers.PantheonProvider("http://localhost:20002");
 describe('Pantheon Admin APIs', function () {
     var node2enode;
     test('change log level', function () { return __awaiter(_this, void 0, void 0, function () {
