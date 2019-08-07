@@ -6,7 +6,7 @@ The library also adds support for Pantheon's
 [Clique](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique-methods), 
 [IBFT 2.0](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft-20-methods), 
 [Permissioning](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#permissioning-methods), 
-[Txpool](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool-methods) and
+[Txpool](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool-methods) and 
 [miscellaneous](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#miscellaneous-methods) JSON-RPC APIs.
 
 - [Disclaimer](#disclaimer)
@@ -22,13 +22,13 @@ The library also adds support for Pantheon's
 - [Pantheon](#pantheon)
   * [Web3.js](#web3js)
 - [Ethers.js](#ethersjs)
-- [Privacy Group Limitations](#privacy-group-limitations)N
+- [Privacy Group Limitations](#privacy-group-limitations)
 
 # Disclaimer
 
 This library uses Ethers.js version 5 which is still in experimental status. It is not yet ready for production use. See [Ethers.js](#ethersjs) for more details.
 
-Pantheon's new privacy group features are still being built out are are not ready for production use. See [Privacy Group Limitations](#privacy-group-limitations) for more details.
+Pantheon's new privacy group features are still being built out are not ready for production use. See [Privacy Group Limitations](#privacy-group-limitations) for more details.
 
 # Install
 
@@ -39,7 +39,11 @@ npm install --production pantheon-ethers
 
 # Usage - Private Transaction
 
-This includes support for [private transactions](https://entethalliance.github.io/client-spec/spec.html#sec-private-transactions) in accordance with [Enterprise Ethereum Alliance's](https://entethalliance.org/) [Ethereum Client Specification](https://entethalliance.github.io/client-spec/spec.html). At a high level, it adds the `privateFor`, `privateFrom` and `restriction` transaction properties to the JSON-RPC API calls.
+Pantheon's private transactions are based off
+[Enterprise Ethereum Alliance's](https://entethalliance.org/) 
+[Ethereum Client Specification](https://entethalliance.github.io/client-spec/spec.html) for 
+[private transactions](https://entethalliance.github.io/client-spec/spec.html#sec-private-transactions).
+At a high level, it adds the `privateFor`, `privateFrom` and `restriction` transaction properties to the JSON-RPC API calls. The spec is not yet finalised so hopefully it can be brought into line with the features Pantheon currently has and has planned in its roadmap.
 
 Private transactions are supported by PegaSys's [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/) Ethereum client and J.P.Morgan's [Quorum](https://github.com/jpmorganchase/quorum) distributed ledger. Unfortunately, Quorum's and Pantheon's JSON-RPC interfaces for private transactions are different and both don't match the EEA specification, so this library only works with Pantheon and not Quorum.
 
@@ -63,13 +67,6 @@ export interface PrivateProvider extends Provider {
 }
 ```
 
-New `PantheonProvider` provider that extends the above `PrivateJsonRpcProvider` class and adds the Pantheon specifics APIs that are not to do with private transactions. eg Admin, Clique, IBFT, Txpool.
-How to instantiate a Pantheon provider used in the below examples
-```js
-const providers = require('pantheon-ethers').providers
-const provider = new providers.PantheonProvider("http://localhost:20000");
-```
-
 New `PrivateWallet` that extends [Wallet](https://docs.ethers.io/ethers.js/v5-beta/api-wallet.html#wallet) and implements the `PrivateSigner` interace
 ```ts
 export interface PrivateSigner extends Signer {
@@ -91,8 +88,15 @@ See [privateTransactions.js](./examples/privateTransactions.js) for an example o
 
 Also see [src/ts/\_\_tests__/contract.test.ts](./src/ts/__tests__/contract.test.ts) for examples in unit tests.
 
-
 # Usage - Pantheon APIs
+
+A new `PantheonProvider` provider that extends the new `PrivateJsonRpcProvider` class adds the Pantheon specifics APIs that are not to do with private transactions. eg Admin, Clique, IBFT, Txpool.
+
+The `PantheonProvider` used in the below examples can be instantiated with
+```js
+const providers = require('pantheon-ethers').providers
+const provider = new providers.PantheonProvider("http://localhost:20000");
+```
 
 ## Privacy Group Management
 
@@ -416,7 +420,7 @@ The EEA Web3js library does not include the Pantheon extended APIs like admin, c
 
 # Ethers.js
 
-Ethers.js version 5 is used as its modular packages make it easier to extend the classes to add private transaction support. See Richard's blog on [Beta Release: ethers.js v5](https://blog.ricmoo.com/beta-release-ethers-js-v5-59d0db222d7b) for more details.
+Ethers.js version 5 is used as its modular packages makes it easier to extend the classes to add private transaction support. See Richard's blog on [Beta Release: ethers.js v5](https://blog.ricmoo.com/beta-release-ethers-js-v5-59d0db222d7b) for more details.
 
 For regression testing purposes, ethers version 4 is also installed in the devDependencies. This uses an npm alias which is available from npm version 6.9.0. See (this)[https://stackoverflow.com/a/56495895/3144809] Stack Overflow answer for more information.
 ```bash
@@ -433,7 +437,7 @@ Ethers.js links
 
 There are a number of limitations in the Pantheon 1.2 release that is being addressed for the 1.3 release:
 * There is no way to check if a private transaction succeeded or failed as there is no `status` or `gasUsed` fields on the private transaction receipt.
-* Calling readonly functions are done via sending a signed transaction as there is no equivalent of [eth_call](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_call) for private transactions.
+* Calling read-only functions are done via sending a signed transaction as there is no equivalent of [eth_call](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_call) for private transactions.
 * Private transactions default to 10 million gas limit as there is no equivalent of [eth_estimateGas](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_estimategas) to estimate the gas of a private transaction. This gas limit can be overridden via Ethers.js' optional override object.
 * The client must wait until a contract has been mined before calling a contract method. Ethers.js supports calling function methods before a deployed contract has been mined by polling [eth_getCode](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_getcode). There is no equivalent method for private transactions.
 * You can't get events from private transactions as there is no equivalent of [getLogs](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_getlogs) for private transactions.
