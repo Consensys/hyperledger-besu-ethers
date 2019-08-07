@@ -1,6 +1,6 @@
 # Ethers.js for Pantheon
 
-An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that adds support for [Pantheon private transactions](https://docs.pantheon.pegasys.tech/en/latest/Privacy/Explanation/Privacy-Overview/) and Pantheon's extended APIs like
+An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that adds support for [Pantheon's private transactions](https://docs.pantheon.pegasys.tech/en/latest/Privacy/Explanation/Privacy-Overview/) and Pantheon's extended APIs like
 [Admin](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods), 
 [Clique](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique-methods), 
 [IBFT 2.0](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft-20-methods), 
@@ -27,7 +27,7 @@ An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/eth
 
 This library uses Ethers.js version 5 which is still in experimental status. It is not yet ready for production use. See [Ethers.js](#ethersjs) for more details.
 
-Pantheon's new privacy group features are still being built out are not ready for production use. See [Privacy Group Limitations](#privacy-group-limitations) for more details.
+Pantheon's new privacy features are not ready for production use. See [Privacy Group Limitations](#privacy-group-limitations) for more details.
 
 # Install
 
@@ -83,9 +83,46 @@ The `PrivateUnsignedTransaction`, `PrivateTransaction`, `PrivateTransactionReque
     restriction?: 'restricted' | 'unrestricted';
 ```
 
-See [privateTransactions.js](./examples/privateTransactions.js) for an example of how a private contract can be deployed and its functions called.
+See [privateTransactions.js](./examples/privateTransactions.js) for a full example of how a private contract can be deployed and its functions called from different nodes. Here's a short summary
+```js
+const PanEthers = require('pantheon-ethers')
 
-Also see [src/ts/\_\_tests__/contract.test.ts](./src/ts/__tests__/contract.test.ts) for examples in unit tests.
+// Create providers pointing to node 1 in the Privacy Enabled Quickstart Tutorial
+const providerNode1 = new PanEthers.providers.PrivateJsonRpcProvider("http://localhost:20000");
+
+// Create a privacy group for nodes 1 and 2. Node 3 will not see the private contract
+const privacyGroupId = await providerNode1.createPrivacyGroup(
+    ['A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=', 'Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='],
+    'Name of top secret group',
+    'Description of super secret group')
+
+// Create a wallet which will have address 0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF
+const walletNode1 = new PanEthers.PrivateWallet('0x0000000000000000000000000000000000000000000000000000000000000002', providerNode1)
+
+// Simple Storage contract application programming interface and EVM byte code
+const abi = [{"constant":false,"inputs":[{"name":"x","type":"uint256"}],"name":"set","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"get","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"}]
+const bytecode = '6080604052348015600f57600080fd5b5060ab8061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c806360fe47b11460375780636d4ce63c146053575b600080fd5b605160048036036020811015604b57600080fd5b5035606b565b005b60596070565b60408051918252519081900360200190f35b600055565b6000549056fea265627a7a72305820b53c3a12a533365b0624ed636be47997f66ab3082086dde2044ab5b5e529c2fd64736f6c634300050a0032'
+
+// PrivateContractFactory is like Ethers ContractFactory
+const factory = new PanEthers.PrivateContractFactory(abi, bytecode, walletNode1);
+
+// Deploy a private contract using an existing privacy group
+const contractNode1 = await factory.privateDeploy({privateFor: privacyGroupId});
+
+// wait until the contract has been deployed
+const deployReceipt = await contractNode1.deployPrivateTransaction.wait()
+
+// Send a transaction to call the set function on the SimpleStorage contract
+let tx = await contractNode1.set(666)
+
+// Wait for the transaction to be mined. This returns a transaction receipt
+await tx.wait()
+
+// Read the stored value back
+const value = await contractNode1.get()
+```
+
+More examples are in the [src/ts/\_\_tests__/contract.test.ts](./src/ts/__tests__/contract.test.ts) unit tests.
 
 ## Privacy Group Management
 
