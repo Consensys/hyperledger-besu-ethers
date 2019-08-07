@@ -13,9 +13,9 @@ The library also adds support for Pantheon's
 - [Install](#install)
 - [Usage - Private Transaction](#usage---private-transaction)
   * [New Private Classes](#new-private-classes)
+  * [Privacy Group Management](#privacy-group-management)
   * [Privacy Group Limitations](#privacy-group-limitations)
 - [Usage - Pantheon APIs](#usage---pantheon-apis)
-  * [Privacy Group Management](#privacy-group-management)
   * [Pantheon Administration](#pantheon-administration)
   * [Clique](#clique)
   * [IBFT 2.0](#ibft-20)
@@ -88,28 +88,6 @@ See [privateTransactions.js](./examples/privateTransactions.js) for an example o
 
 Also see [src/ts/\_\_tests__/contract.test.ts](./src/ts/__tests__/contract.test.ts) for examples in unit tests.
 
-## Privacy Group Limitations
-
-There are a number of limitations in the Pantheon 1.2 release that is being addressed for the 1.3 release:
-* There is no way to check if a private transaction succeeded or failed as there is no `status` or `gasUsed` fields on the private transaction receipt.
-* Calling read-only functions are done via sending a signed transaction as there is no equivalent of [eth_call](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_call) for private transactions.
-* Private transactions default to 10 million gas limit as there is no equivalent of [eth_estimateGas](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_estimategas) to estimate the gas of a private transaction. This gas limit can be overridden via Ethers.js' optional override object.
-* The client must wait until a contract has been mined before calling a contract method. Ethers.js supports calling function methods before a deployed contract has been mined by polling [eth_getCode](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_getcode). There is no equivalent method for private transactions.
-* You can't get events from private transactions as there is no equivalent of [getLogs](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_getlogs) for private transactions.
-* The public marker transactions leak who sent the private transaction as the public transaction is signed by the node. Ideally, each public transaction would be signed by a randomly generated account.
-* You can not add/remove nodes to/from a privacy group.
-
-
-# Usage - Pantheon APIs
-
-A new `PantheonProvider` provider that extends the new `PrivateJsonRpcProvider` class adds the Pantheon specifics APIs that are not to do with private transactions. eg Admin, Clique, IBFT, Txpool.
-
-The `PantheonProvider` used in the below examples can be instantiated with
-```js
-const providers = require('pantheon-ethers').providers
-const provider = new providers.PantheonProvider("http://localhost:20000");
-```
-
 ## Privacy Group Management
 
 Create, find and delete a [privacy group](https://docs.pantheon.pegasys.tech/en/stable/Privacy/Explanation/Privacy-Groups/).
@@ -144,6 +122,27 @@ Full code examples using promises [examples/privacyGroupManagementPromises.js](.
 ```js
   const deletedId = await provider.deletePrivacyGroup(privacyGroupId)
   console.log(deletedId) // GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=
+```
+
+## Privacy Group Limitations
+
+There are a number of limitations in the Pantheon 1.2 release that is being addressed for the 1.3 release:
+* There is no way to check if a private transaction succeeded or failed as there is no `status` or `gasUsed` fields on the private transaction receipt.
+* Calling read-only functions are done via sending a signed transaction as there is no equivalent of [eth_call](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_call) for private transactions.
+* Private transactions default to 10 million gas limit as there is no equivalent of [eth_estimateGas](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_estimategas) to estimate the gas of a private transaction. This gas limit can be overridden via Ethers.js' optional override object.
+* The client must wait until a contract has been mined before calling a contract method. Ethers.js supports calling function methods before a deployed contract has been mined by polling [eth_getCode](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_getcode). There is no equivalent method for private transactions.
+* You can't get events from private transactions as there is no equivalent of [getLogs](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_getlogs) for private transactions.
+* The public marker transactions leak who sent the private transaction as the public transaction is signed by the node. Ideally, each public transaction would be signed by a randomly generated account.
+* You can not add/remove nodes to/from a privacy group.
+
+# Usage - Pantheon APIs
+
+A new `PantheonProvider` provider that extends the new `PrivateJsonRpcProvider` class adds the Pantheon specifics APIs that are not to do with private transactions. eg Admin, Clique, IBFT, Txpool.
+
+The `PantheonProvider` used in the below examples can be instantiated with
+```js
+const providers = require('pantheon-ethers').providers
+const provider = new providers.PantheonProvider("http://localhost:20000");
 ```
 
 ## Pantheon Administration
