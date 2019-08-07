@@ -7,7 +7,7 @@
     "privacyGroup": "node privacyGroupManagement.js"
   },
   "dependencies": {
-    "pantheon-ethers": "github:naddison36/pantheon-ethers"
+    "pantheon-ethers": "^0.0.1"
   },
   "author": "Nick Addison",
   "license": "MIT"

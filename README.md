@@ -1,5 +1,7 @@
 # Ethers.js for Pantheon
 
+[![npm version](https://badge.fury.io/js/pantheon-ethers.svg)](https://badge.fury.io/js/pantheon-ethers)
+
 An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that adds support for [Pantheon's private transactions](https://docs.pantheon.pegasys.tech/en/latest/Privacy/Explanation/Privacy-Overview/) and Pantheon's extended APIs like
 [Admin](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods), 
 [Clique](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique-methods), 

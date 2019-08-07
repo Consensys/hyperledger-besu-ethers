@@ -7,3 +7,4 @@ testchain
 .idea
 .vscode
 *.tgz
+examples/package-lock.json

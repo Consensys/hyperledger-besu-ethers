@@ -74,7 +74,7 @@ async function example() {
   // does not currently include the status field so we don't know if the transaction was successful or not
   await tx.wait()
 
-  // Read the stored value back from node 1 which will be of Ethers BigNumber
+  // Read the stored value back from node 1 which will be of Ethers BigNumber type
   const value = await contractNode1.get()
   console.log(`Read value from ${value} node 1`)
   // Read value 666 from node 1
