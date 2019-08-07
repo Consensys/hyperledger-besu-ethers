@@ -6,6 +6,7 @@ export declare const allowedTransactionKeys: {
 };
 export declare function computeAddress(key: BytesLike | string): string;
 export declare function recoverAddress(digest: BytesLike, signature: SignatureLike): string;
+export declare type Restriction = 'restricted' | 'unrestricted';
 export declare type PrivateUnsignedTransaction = {
     to?: string;
     nonce?: number;
@@ -16,7 +17,7 @@ export declare type PrivateUnsignedTransaction = {
     chainId?: number;
     privateFrom?: string;
     privateFor?: string | string[];
-    restriction?: string;
+    restriction?: Restriction;
 };
 export interface PrivateTransaction {
     publicHash?: string;
@@ -29,9 +30,9 @@ export interface PrivateTransaction {
     data: string;
     value: BigNumber;
     chainId: number;
-    privateFrom: string;
+    privateFrom?: string;
     privateFor: string | string[];
-    restriction?: string;
+    restriction?: Restriction;
     r?: string;
     s?: string;
     v?: number;
@@ -47,7 +48,7 @@ export interface PrivateTransactionRequest {
     chainId?: number | Promise<number>;
     privateFrom?: string;
     privateFor: string | string[];
-    restriction: 'restricted' | 'unrestricted';
+    restriction: Restriction;
 }
 export interface PrivateTransactionReceipt {
     to?: string;

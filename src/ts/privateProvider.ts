@@ -281,8 +281,8 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider implements PrivatePr
 
     createPrivacyGroup(
         members: string[] | Promise<string[]>,
-        name?: string | Promise<string>,
-        description?: string | Promise<string>,
+        name: string | Promise<string>,
+        description: string | Promise<string>,
     ): Promise<string> {
         return this._runPerform("createPrivacyGroup", {
             members: () => Promise.resolve(members),

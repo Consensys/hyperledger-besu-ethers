@@ -167,6 +167,7 @@ describe('Privacy Group Management APIs', () => {
             ${'invalid node in members'} | ${/Error creating privacy group/} | ${'Test'} | ${'Test desc'} | ${[node2, invalidNode]}
             ${'privateFrom not in members'} | ${/Error creating privacy group/} | ${'Second group'} | ${'Second group with the same members'} | ${[node2, node3]}
             ${'only self in group'} | ${/Error creating privacy group/} | ${'Self'} | ${'Only self in group'} | ${[node3]}
+            ${'no name or description'} | ${/Error creating privacy group/} | ${undefined} | ${undefined} | ${[node1, node2]}
             `('$reason to fail with $errorRegEx when name $name, description $description and members $members',
 
                 async ({privateFrom, errorRegEx, name, description, members}) => {

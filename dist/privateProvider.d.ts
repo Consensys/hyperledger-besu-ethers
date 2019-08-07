@@ -30,7 +30,7 @@ export declare class PrivateJsonRpcProvider extends JsonRpcProvider implements P
     getPrivateTransactionCount(addressOrName: string | Promise<string>, privacyGroupOptions: PrivacyGroupOptions): Promise<number>;
     getPrivateTransactionReceipt(publicTransactionHash: string): Promise<PrivateTransactionReceipt>;
     getPrivateTransaction(transactionHash: string): Promise<PrivateTransactionResponse>;
-    createPrivacyGroup(members: string[] | Promise<string[]>, name?: string | Promise<string>, description?: string | Promise<string>): Promise<string>;
+    createPrivacyGroup(members: string[] | Promise<string[]>, name: string | Promise<string>, description: string | Promise<string>): Promise<string>;
     deletePrivacyGroup(privacyGroupId: string | Promise<string>): Promise<string>;
     findPrivacyGroup(members: string[] | Promise<string[]>): Promise<FindPrivacyGroup[]>;
     getPrivacyPrecompileAddress(): Promise<string>;

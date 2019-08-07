@@ -172,6 +172,7 @@ function parse(rawTransaction) {
         chainId: 0,
         privateFrom: handlePrivateAddress(transaction[9]),
         privateFor: handlePrivateFor(transaction[10]),
+        // @ts-ignore parse value may not be restricted or unrestricted
         restriction: handleString(transaction[11]),
     };
     try {
