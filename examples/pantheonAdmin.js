@@ -1,5 +1,8 @@
-const providers = require('pantheon-ethers').providers
+// This example works against the Private Network with Privacy Enabled Quickstart Tutorial
+// https://docs.pantheon.pegasys.tech/en/latest/Privacy/Privacy-Quickstart/
+// Node.js 8 or above is required as async/await is used.
 
+const providers = require('pantheon-ethers').providers
 const provider = new providers.PantheonProvider("http://localhost:20000");
 
 async function example() {

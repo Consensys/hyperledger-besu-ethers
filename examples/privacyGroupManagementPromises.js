@@ -1,14 +1,15 @@
+// This example works against the Private Network with Privacy Enabled Quickstart Tutorial
+// https://docs.pantheon.pegasys.tech/en/latest/Privacy/Privacy-Quickstart/
 
 const providers = require('pantheon-ethers').providers
+// Create a Pantheon provider which will have the privacy group functions
+const provider = new providers.PrivateJsonRpcProvider("http://localhost:20000")
 
 const node1 = 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo='
 const node2 = 'Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='
 
-// Create a Pantheon provider which will have the privacy group functions
-const providerNode1 = new providers.PrivateJsonRpcProvider("http://localhost:20000")
-
 // Create a new privacy group
-providerNode1.createPrivacyGroup(
+provider.createPrivacyGroup(
   [node1, node2],
   'Name of group',
   'Description of top secret group')
@@ -21,7 +22,7 @@ providerNode1.createPrivacyGroup(
   .then(privacyGroupId => {
 
     // find privacy groups
-    providerNode1.findPrivacyGroup([node1, node2])
+    provider.findPrivacyGroup([node1, node2])
       .then(results => {
         console.log(results)
         /*
@@ -41,7 +42,7 @@ providerNode1.createPrivacyGroup(
   .then(privacyGroupId => {
 
     // delete privacy group
-    providerNode1.deletePrivacyGroup(privacyGroupId)
+    provider.deletePrivacyGroup(privacyGroupId)
       .then(result => {
         console.log(result) // GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=
       })

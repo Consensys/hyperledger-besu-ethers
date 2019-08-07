@@ -6,3 +6,4 @@ logs
 testchain
 .idea
 .vscode
+*.tgz
