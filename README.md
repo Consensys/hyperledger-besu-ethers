@@ -2,13 +2,13 @@
 
 [![npm version](https://badge.fury.io/js/pantheon-ethers.svg)](https://badge.fury.io/js/pantheon-ethers)
 
-An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that adds support for [Pantheon's private transactions](https://docs.pantheon.pegasys.tech/en/latest/Privacy/Explanation/Privacy-Overview/) and Pantheon's extended APIs like
+An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum JavaScript library that adds support for [Pantheon's private transactions](https://docs.pantheon.pegasys.tech/en/latest/Privacy/Explanation/Privacy-Overview/) and [Pantheon](https://docs.pantheon.pegasys.tech/en/latest/#what-is-pantheon)'s extended APIs like
 [Admin](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods), 
 [Clique](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique-methods), 
 [IBFT 2.0](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft-20-methods), 
-[Permissioning](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#permissioning-methods), 
-[Txpool](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool-methods) and 
-[miscellaneous](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#miscellaneous-methods) JSON-RPC APIs.
+[Permissioning](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#permissioning-methods) and 
+[Txpool](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool-methods) 
+JSON-RPC APIs.
 
 - [Disclaimer](#disclaimer)
 - [Install](#install)
@@ -85,7 +85,7 @@ The `PrivateUnsignedTransaction`, `PrivateTransaction`, `PrivateTransactionReque
     restriction?: 'restricted' | 'unrestricted';
 ```
 
-See [privateTransactions.js](./examples/privateTransactions.js) for a full example of how a private contract can be deployed and its functions called from different nodes. Here's a short summary
+See [privateTransactions.js](./examples/privateTransactions.js) for a full example of how a private contract can be deployed and its functions called from different nodes. Here's a short summary using the [Simple Storage](./src/contracts/SimpleStorage.sol) contract.
 ```js
 const PanEthers = require('pantheon-ethers')
 
@@ -101,7 +101,7 @@ const privacyGroupId = await providerNode1.createPrivacyGroup(
 // Create a wallet which will have address 0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF
 const walletNode1 = new PanEthers.PrivateWallet('0x0000000000000000000000000000000000000000000000000000000000000002', providerNode1)
 
-// Simple Storage contract application programming interface and EVM byte code
+// Simple Storage contract application programming interface (ABI) and Ethereum virtual machine (EVM) byte code
 const abi = [{"constant":false,"inputs":[{"name":"x","type":"uint256"}],"name":"set","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"get","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"}]
 const bytecode = '6080604052348015600f57600080fd5b5060ab8061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c806360fe47b11460375780636d4ce63c146053575b600080fd5b605160048036036020811015604b57600080fd5b5035606b565b005b60596070565b60408051918252519081900360200190f35b600055565b6000549056fea265627a7a72305820b53c3a12a533365b0624ed636be47997f66ab3082086dde2044ab5b5e529c2fd64736f6c634300050a0032'
 
@@ -132,10 +132,16 @@ Create, find and delete a [privacy group](https://docs.pantheon.pegasys.tech/en/
 
 Full code examples using promises [examples/privacyGroupManagementPromises.js](./examples/privacyGroupManagementPromises.js) or async/await [example/privacyGroupManagementAsync.js](./examples/privacyGroupManagementAsync.js) work against the [Privacy Enabled Quickstart Tutorial](https://docs.pantheon.pegasys.tech/en/stable/Tutorials/Privacy-Quickstart/).
 
+The `PrivateJsonRpcProvider` used in the below examples can be instantiated with
+```js
+const providers = require('pantheon-ethers').providers
+const provider = new providers.PrivateJsonRpcProvider("http://localhost:20000");
+```
+
 ### Create a new privacy group - [priv_createPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_createprivacygroup)
 ```js
   const privacyGroupId = await provider.createPrivacyGroup(
-    [node1, node2],
+    ['A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=', 'Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='],
     'Name of group',
     'Description of top secret group')
   console.log(privacyGroupId) // GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=
@@ -143,7 +149,7 @@ Full code examples using promises [examples/privacyGroupManagementPromises.js](.
 
 ### Find privacy groups - [priv_findPrivacyGroup](https://docs.pantheon.pegasys.tech/en/stable/Reference/Pantheon-API-Methods/#priv_findprivacygroup)
 ```js
-  const results = await provider.findPrivacyGroup([node1, node2])
+  const results = await provider.findPrivacyGroup(['A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=', 'Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='])
   console.log(results)
   /*
   [ { privacyGroupId: 'GcFhoLY7EMQg7jxJDC6Aei1GZTN/ZaRepptX48VcUBk=', 
