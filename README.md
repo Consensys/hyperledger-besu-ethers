@@ -1,9 +1,6 @@
 # Ethers.js for Pantheon
 
-An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that adds [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/#what-is-pantheon)'s extended APIs. This includes support for [private transactions](https://entethalliance.github.io/client-spec/spec.html#sec-private-transactions) in accordance with [Enterprise Ethereum Alliance's](https://entethalliance.org/) [Ethereum Client Specification](https://entethalliance.github.io/client-spec/spec.html). Specifically, it adds the `privateFor`, `privateFrom` and `restriction` transaction properties to the [sendTransaction](https://entethalliance.github.io/client-spec/spec.html#sec-eea-sendTransaction) and [sendRawTransaction](https://entethalliance.github.io/client-spec/spec.html#sec-eea-sendRawTransaction) JSON-RPC API calls.
-
-Private transactions are supported by PegaSys's [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/) Ethereum client and J.P.Morgan's [Quorum](https://github.com/jpmorganchase/quorum) distributed ledger. Unfortunately, Quorum's JSON-RPC interface for private transactions is different to the EEA specification, so this library only works with Pantheon and not Quorum.
-
+An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that adds [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/#what-is-pantheon)'s extended APIs.
 The library also adds support for Pantheon's
 [Admin](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods), 
 [Clique](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique-methods), 
@@ -12,8 +9,11 @@ The library also adds support for Pantheon's
 [Txpool](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#txpool-methods) and
 [miscellaneous](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#miscellaneous-methods) JSON-RPC APIs.
 
+- [Disclaimer](#disclaimer)
 - [Install](#install)
-- [Usage](#usage)
+- [Usage - Private Transaction](#usage---private-transaction)
+  * [New Private Classes](#new-private-classes)
+- [Usage - Pantheon APIs](#usage---pantheon-apis)
   * [Privacy Group Management](#privacy-group-management)
   * [Pantheon Administration](#pantheon-administration)
   * [Clique](#clique)
@@ -22,7 +22,13 @@ The library also adds support for Pantheon's
 - [Pantheon](#pantheon)
   * [Web3.js](#web3js)
 - [Ethers.js](#ethersjs)
-- [Privacy Group Limitations](#privacy-group-limitations)
+- [Privacy Group Limitations](#privacy-group-limitations)N
+
+# Disclaimer
+
+This library uses Ethers.js version 5 which is still in experimental status. It is not yet ready for production use. See [Ethers.js](#ethersjs) for more details.
+
+Pantheon's new privacy group features are still being built out are are not ready for production use. See [Privacy Group Limitations](#privacy-group-limitations) for more details.
 
 # Install
 
@@ -31,15 +37,62 @@ To install as a node module
 npm install --production pantheon-ethers
 ```
 
-# Usage
+# Usage - Private Transaction
 
-See [Ethers.js version 5](https://docs.ethers.io/ethers.js/v5-beta/) documentation for details on how the Ethers.js library works.
+This includes support for [private transactions](https://entethalliance.github.io/client-spec/spec.html#sec-private-transactions) in accordance with [Enterprise Ethereum Alliance's](https://entethalliance.org/) [Ethereum Client Specification](https://entethalliance.github.io/client-spec/spec.html). At a high level, it adds the `privateFor`, `privateFrom` and `restriction` transaction properties to the JSON-RPC API calls.
 
-Here's how to instantiate a Pantheon provider used in the below examples
+Private transactions are supported by PegaSys's [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/) Ethereum client and J.P.Morgan's [Quorum](https://github.com/jpmorganchase/quorum) distributed ledger. Unfortunately, Quorum's and Pantheon's JSON-RPC interfaces for private transactions are different and both don't match the EEA specification, so this library only works with Pantheon and not Quorum.
+
+## New Private Classes
+
+See [Ethers.js version 5](https://docs.ethers.io/ethers.js/v5-beta/) documentation for details on how the Ethers.js library works. This section will just document the differences for private transactions.
+
+New `PrivateJsonRpcProvider` provider that extends [JsonRpcProvider](https://docs.ethers.io/ethers.js/v5-beta/api-providers.html#jsonrpcsigner) and implements the `PrivateProvider` interface
+```ts
+export interface PrivateProvider extends Provider {
+    sendPrivateTransaction(signedTransaction: string | Promise<string>): Promise<PrivateTransactionResponse>,
+    getPrivateTransactionCount(addressOrName: string | Promise<string>, privacyGroupOptions: PrivacyGroupOptions): Promise<number>,
+    getPrivateTransactionReceipt(publicTransactionHash: string): Promise<PrivateTransactionReceipt>,
+    getPrivateTransaction(transactionHash: string): Promise<PrivateTransactionResponse>
+
+    // Privacy Group functions
+    createPrivacyGroup(members: string[] | Promise<string[]>, name?: string | Promise<string>, description?: string | Promise<string>): Promise<string>,
+    deletePrivacyGroup(privacyGroupId: string | Promise<string>): Promise<string>,
+    findPrivacyGroup(members: string[] | Promise<string[]>): Promise<FindPrivacyGroup[]>,
+    getPrivacyPrecompileAddress(): Promise<string>
+}
+```
+
+New `PantheonProvider` provider that extends the above `PrivateJsonRpcProvider` class and adds the Pantheon specifics APIs that are not to do with private transactions. eg Admin, Clique, IBFT, Txpool.
+How to instantiate a Pantheon provider used in the below examples
 ```js
 const providers = require('pantheon-ethers').providers
 const provider = new providers.PantheonProvider("http://localhost:20000");
 ```
+
+New `PrivateWallet` that extends [Wallet](https://docs.ethers.io/ethers.js/v5-beta/api-wallet.html#wallet) and implements the `PrivateSigner` interace
+```ts
+export interface PrivateSigner extends Signer {
+    readonly provider: PrivateProvider;
+    privateCall(transaction: PrivateTransactionRequest): Promise<string>;
+    signPrivateTransaction(transaction: PrivateTransactionRequest): Promise<string>;
+    sendPrivateTransaction(transaction: PrivateTransactionRequest): Promise<PrivateTransactionResponse>;
+}
+```
+
+The `PrivateUnsignedTransaction`, `PrivateTransaction`, `PrivateTransactionRequest` interfaces have the following privacy fields added to them.
+```ts
+    privateFrom?: string;
+    privateFor?: string | string[];
+    restriction?: 'restricted' | 'unrestricted';
+```
+
+See [privateTransactions.js](./examples/privateTransactions.js) for an example of how a private contract can be deployed and its functions called.
+
+Also see [src/ts/\_\_tests__/contract.test.ts](./src/ts/__tests__/contract.test.ts) for examples in unit tests.
+
+
+# Usage - Pantheon APIs
 
 ## Privacy Group Management
 
@@ -360,18 +413,20 @@ There are three pre-funded accounts if you run Pantheon in dev mode. See the `al
 Pantheon has an [EEA JavaScript library](https://github.com/PegaSysEng/web3js-eea#eea-javascript-libraries---eeajs) that is an extension of the [Web3.js](https://web3js.readthedocs.io/en/1.0/) JavaScript library. The EEA JavaScript library is an alternative to this Ethers.js extended library. It can also be used as a reference to how Pantheon privacy transactions are encoded.
 The EEA Web3js library does not include the Pantheon extended APIs like admin, clique, ibft, txpool, perm and priv.
 
+
 # Ethers.js
 
-Currently, Ethers.js version 5 is used as it is more module making it easier to extend the transaction serialization and parsing. See Richard's blog on [Beta Release: ethers.js v5](https://blog.ricmoo.com/beta-release-ethers-js-v5-59d0db222d7b) for more details.
+Ethers.js version 5 is used as its modular packages make it easier to extend the classes to add private transaction support. See Richard's blog on [Beta Release: ethers.js v5](https://blog.ricmoo.com/beta-release-ethers-js-v5-59d0db222d7b) for more details.
 
 For regression testing purposes, ethers version 4 is also installed in the devDependencies. This uses an npm alias which is available from npm version 6.9.0. See (this)[https://stackoverflow.com/a/56495895/3144809] Stack Overflow answer for more information.
 ```bash
 npm i ethers-4@npm:ethers@4.0.33
 ```
 
-Ethers version 5
-* [Documentation](https://docs.ethers.io/ethers.js/v5-beta/)
-* [Code on branch ethers-v5-beta](https://github.com/ethers-io/ethers.js/tree/ethers-v5-beta)
+Ethers.js links
+* [Version 5 Documentation](https://docs.ethers.io/ethers.js/v5-beta/)
+* [Version 4 Documentation](https://docs.ethers.io/ethers.js/)
+* [Version 5 code on branch ethers-v5-beta](https://github.com/ethers-io/ethers.js/tree/ethers-v5-beta)
 * [Ethers Gitter](https://gitter.im/ethers-io/Lobby)
 
 # Privacy Group Limitations
