@@ -47,8 +47,8 @@ var provider = new index_1.providers.JsonRpcProvider(url);
 provider.on('debug', function (info) {
     console.log("Sent \"" + info.action + "\" action with request: " + JSON.stringify(info.request) + "\nResponse: " + JSON.stringify(info.response));
 });
-var testContractAbi = fs_1.readFileSync('./src/abis/TestContract.abi', 'utf8');
-var bytecode = fs_1.readFileSync('./src/abis/TestContract.bin', 'utf8');
+var testContractAbi = fs_1.readFileSync('./dist/abis/TestContract.abi', 'utf8');
+var bytecode = fs_1.readFileSync('./dist/abis/TestContract.bin', 'utf8');
 describe('Ethers Regression', function () {
     var noEtherWallet = new index_1.Wallet('0x1000000000000000000000000000000000000000000000000000000000000000');
     // one of the three pre-funded dev accounts

@@ -59,8 +59,8 @@ describe('Deploy contract using contract factory', () => {
         let bytecode: string
 
         beforeAll(() => {
-            testContractAbi = readFileSync('./src/abis/TestContract.abi', 'utf8')
-            bytecode = readFileSync('./src/abis/TestContract.bin', 'utf8')
+            testContractAbi = readFileSync('./dist/abis/TestContract.abi', 'utf8')
+            bytecode = readFileSync('./dist/abis/TestContract.bin', 'utf8')
         })
 
         test('Create privacy group', async () => {
@@ -277,8 +277,8 @@ describe('Deploy contract using contract factory', () => {
     //
     //     test('deploy test contract', async() => {
     //
-    //         const testContractAbi = readFileSync('./src/abis/TestContract.abi', 'utf8')
-    //         const bytecode = readFileSync('./src/abis/TestContract.bin', 'utf8')
+    //         const testContractAbi = readFileSync('./dist/abis/TestContract.abi', 'utf8')
+    //         const bytecode = readFileSync('./dist/abis/TestContract.bin', 'utf8')
     //
     //         const factory = new PrivateContractFactory(testContractAbi, bytecode, node1Wallet);
     //

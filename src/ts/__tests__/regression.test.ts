@@ -12,8 +12,8 @@ provider.on('debug', (info) => {
     console.log(`Sent "${info.action}" action with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
 
-const testContractAbi = readFileSync('./src/abis/TestContract.abi', 'utf8')
-const bytecode = readFileSync('./src/abis/TestContract.bin', 'utf8')
+const testContractAbi = readFileSync('./dist/abis/TestContract.abi', 'utf8')
+const bytecode = readFileSync('./dist/abis/TestContract.bin', 'utf8')
 
 describe('Ethers Regression', () => {
 

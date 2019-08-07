@@ -1,6 +1,7 @@
 // This example works against the Private Network with Privacy Enabled Quickstart Tutorial
 // https://docs.pantheon.pegasys.tech/en/latest/Privacy/Privacy-Quickstart/
 // Node.js 8 or above is required as async/await is used.
+// Run the following to build the simple storage contract: npm run buildSol
 
 const readFileSync = require("fs").readFileSync
 
@@ -16,8 +17,8 @@ const node1 = 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo='
 const node2 = 'Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='
 
 // Load the Application Binary Interface and EVM byte code from disk
-const abi = readFileSync('../src/abis/SimpleStorage.abi', 'utf8')
-const bytecode = readFileSync('../src/abis/SimpleStorage.bin', 'utf8')
+const abi = readFileSync('../dist/abis/SimpleStorage.abi', 'utf8')
+const bytecode = readFileSync('../dist/abis/SimpleStorage.bin', 'utf8')
 
 async function example() {
 
