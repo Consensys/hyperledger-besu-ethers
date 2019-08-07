@@ -1,7 +1,6 @@
 # Ethers.js for Pantheon
 
-An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that adds [Pantheon](https://docs.pantheon.pegasys.tech/en/stable/#what-is-pantheon)'s extended APIs.
-The library also adds support for Pantheon's
+An extension of Richard Moore's excellent [Ethers.js](https://docs.ethers.io/ethers.js/html/) Ethereum library that adds support for [Pantheon private transactions](https://docs.pantheon.pegasys.tech/en/latest/Privacy/Explanation/Privacy-Overview/) and Pantheon's extended APIs like
 [Admin](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#admin-methods), 
 [Clique](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#clique-methods), 
 [IBFT 2.0](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#ibft-20-methods), 
@@ -377,7 +376,10 @@ console.log(results)
 
 # Pantheon
 
-This library will only work against Pantheon 1.2 and above. It will not work against the 1.1.x releases. The library uses Pantheon's [JSON-RPC APIs](https://docs.pantheon.pegasys.tech/en/latest/Pantheon-API/JSON-RPC-API/) over HTTP.
+[Pantheon](https://docs.pantheon.pegasys.tech/en/latest/#what-is-pantheon) is an open-source Ethereum client written in Java. It runs on the Ethereum public network, private networks, and test networks such as Rinkeby, Ropsten, and Görli. Pantheon implements Proof of Work (Ethash) and Proof of Authority (IBFT 2.0 and Clique) consensus mechanisms.
+
+This library will only work against [Pantheon 1.2.0](https://github.com/PegaSysEng/pantheon/releases/tag/1.2.0) and above. It will not work against the 1.1.x releases. 
+The library uses Pantheon's [JSON-RPC APIs](https://docs.pantheon.pegasys.tech/en/latest/Pantheon-API/JSON-RPC-API/) over HTTP.
 
 See [Pantheon Privacy](https://docs.pantheon.pegasys.tech/en/latest/Privacy/Privacy-Overview/) for more details on how Pantheon supports private transactions.
 

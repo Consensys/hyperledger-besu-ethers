@@ -92,6 +92,8 @@ export function recoverAddress(digest: BytesLike, signature: SignatureLike): str
     return computeAddress(recoverPublicKey(arrayify(digest), signature));
 }
 
+export type Restriction = 'restricted' | 'unrestricted'
+
 export type PrivateUnsignedTransaction = {
     to?: string;
     nonce?: number;
@@ -106,7 +108,7 @@ export type PrivateUnsignedTransaction = {
     // Extra EEA privacy properties
     privateFrom?: string;
     privateFor?: string | string[];
-    restriction?: string;
+    restriction?: Restriction;
 }
 
 export interface PrivateTransaction {
@@ -125,9 +127,9 @@ export interface PrivateTransaction {
     chainId: number;
 
     // Extra EEA privacy properties
-    privateFrom: string;
+    privateFrom?: string;
     privateFor: string | string[];
-    restriction?: string;
+    restriction?: Restriction;
 
     r?: string;
     s?: string;
@@ -147,7 +149,7 @@ export interface PrivateTransactionRequest {
     // Extra EEA privacy properties
     privateFrom?: string
     privateFor: string | string[]
-    restriction: 'restricted' | 'unrestricted'
+    restriction: Restriction
 };
 
 export interface PrivateTransactionReceipt {
@@ -272,6 +274,7 @@ export function parse(rawTransaction: BytesLike): PrivateTransaction {
         chainId:  0,
         privateFrom: handlePrivateAddress(transaction[9]),
         privateFor: handlePrivateFor(transaction[10]),
+        // @ts-ignore parse value may not be restricted or unrestricted
         restriction: handleString(transaction[11]),
     };
 
