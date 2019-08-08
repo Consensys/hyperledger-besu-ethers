@@ -38,6 +38,7 @@ export interface PantheonTransaction {
 }
 
 export type BlockParameter = number | 'earliest' | 'latest' | 'pending'
+export type PermissioningResult = 'Success' | 'error'
 
 export class PantheonProvider extends PrivateJsonRpcProvider {
 
@@ -148,6 +149,51 @@ export class PantheonProvider extends PrivateJsonRpcProvider {
         });
     }
 
+    // Permissioning
+    addAccountsToWhitelist(
+        accounts: string[] | Promise<string[]>,
+    ): Promise<PermissioningResult> {
+        return this._runPerform("addAccountsToWhitelist", {
+            accounts: () => Promise.resolve(accounts),
+        });
+    }
+
+    getAccountsWhitelist(): Promise<string[]> {
+        return this._runPerform("getAccountsWhitelist", { });
+    }
+
+    removeAccountsFromWhitelist(
+        accounts: string[] | Promise<string[]>,
+    ): Promise<PermissioningResult> {
+        return this._runPerform("removeAccountsFromWhitelist", {
+            accounts: () => Promise.resolve(accounts),
+        });
+    }
+
+    addNodesToWhitelist(
+        nodes: string[] | Promise<string[]>,
+    ): Promise<PermissioningResult> {
+        return this._runPerform("addNodesToWhitelist", {
+            nodes: () => Promise.resolve(nodes),
+        });
+    }
+
+    getNodesWhitelist(): Promise<string[]> {
+        return this._runPerform("getNodesWhitelist", { });
+    }
+
+    removeNodesFromWhitelist(
+        nodes: string[] | Promise<string[]>,
+    ): Promise<PermissioningResult> {
+        return this._runPerform("removeNodesFromWhitelist", {
+            nodes: () => Promise.resolve(nodes),
+        });
+    }
+
+    reloadPermissionsFromFile(): Promise<PermissioningResult> {
+        return this._runPerform("reloadPermissionsFromFile", { });
+    }
+
     // Override the base perform method to add the pantheon API calls
     perform(method: string, params: any): Promise<any> {
         switch (method) {
@@ -234,6 +280,28 @@ export class PantheonProvider extends PrivateJsonRpcProvider {
                     params.validatorAddress,
                     params.add,
                 ]);
+
+            // Permissioning
+            case "addAccountsToWhitelist":
+                return this.send("perm_addAccountsToWhitelist", [ params.accounts ]);
+
+            case "getAccountsWhitelist":
+                return this.send("perm_getAccountsWhitelist", []);
+
+            case "removeAccountsFromWhitelist":
+                return this.send("perm_removeAccountsFromWhitelist", [ params.accounts ]);
+
+            case "addNodesToWhitelist":
+                return this.send("perm_addAccountsToWhitelist", [ params.nodes ]);
+
+            case "getNodesWhitelist":
+                return this.send("perm_getAccountsWhitelist", []);
+
+            case "removeNodesFromWhitelist":
+                return this.send("perm_removeAccountsFromWhitelist", [ params.nodes ]);
+
+            case "reloadPermissionsFromFile":
+                return this.send("perm_reloadPermissionsFromFile", []);
 
             default:
                 return super.perform(method, params)

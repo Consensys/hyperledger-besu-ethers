@@ -20,13 +20,14 @@ JSON-RPC APIs.
   * [Pantheon Administration](#pantheon-administration)
   * [Clique](#clique)
   * [IBFT 2.0](#ibft-20)
+  * [Permissioning](#permissioning)
   * [Txpool](#txpool)
 - [Pantheon](#pantheon)
   * [Web3.js](#web3js)
 - [Ethers.js](#ethersjs)
 - [Development](#development)
   * [Build](#build)
-  * [Tests](#test)
+  * [Test](#test)
   * [Publish](#publish)
 
 # Disclaimer
@@ -369,6 +370,60 @@ console.log(validatorVotes)
     "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73": true
   }
 */
+```
+## Permissioning
+
+Calls Pantheon's [permissioning](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#permissioning-methods) JSON-RPC APIs.
+See [examples/pantheronPermissioning.js](./examples/pantheronPermissioning.js) for the full example code using async/await.
+
+The local permissioning methods require the `PERM` API methods to be enabled by Pantheon's [--rpc-http-api](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/) command line option.
+
+Pantheon's account and node whitelists also need to be configured for the below API calls to work. See [Local Permissioning](https://docs.pantheon.pegasys.tech/en/latest/Permissions/Local-Permissioning/) for how to do this.
+
+### Add Accounts To Whitelist - [perm_addAccountsToWhitelist](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#perm_addaccountstowhitelist)
+```js
+const result = await provider.addAccountsToWhitelist(["0xb9b81ee349c3807e46bc71aa2632203c5b462032", "0xb9b81ee349c3807e46bc71aa2632203c5b462034"])
+console.log(result) // Success
+```
+
+### Get Accounts on Whitelist - [perm_getAccountsWhitelist](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#perm_getaccountswhitelist)
+```js
+const accounts = await provider.getAccountsWhitelist()
+console.log(accounts) // ["0xb9b81ee349c3807e46bc71aa2632203c5b462032", "0xb9b81ee349c3807e46bc71aa2632203c5b462034"]
+```
+
+### Remove Accounts To Whitelist - [perm_removeAccountsFromWhitelist](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#perm_removeAccountsfromwhitelist)
+```js
+const result = await provider.removeAccountsFromWhitelist(["0xb9b81ee349c3807e46bc71aa2632203c5b462032", "0xb9b81ee349c3807e46bc71aa2632203c5b462034"])
+console.log(result) // Success
+```
+
+### Add Nodes To Whitelist - [perm_addNodesToWhitelist](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#perm_addnodestowhitelist)
+```js
+const result = await provider.addNodesToWhitelist(["enode://7e4ef30e9ec683f26ad76ffca5b5148fa7a6575f4cfad4eb0f52f9c3d8335f4a9b6f9e66fcc73ef95ed7a2a52784d4f372e7750ac8ae0b544309a5b391a23dd7@127.0.0.1:30303","enode://2feb33b3c6c4a8f77d84a5ce44954e83e5f163e7a65f7f7a7fec499ceb0ddd76a46ef635408c513d64c076470eac86b7f2c8ae4fcd112cb28ce82c0d64ec2c94@127.0.0.1:30304"])
+console.log(result) // Success
+```
+
+### Get Nodes on Whitelist - [perm_getNodesWhitelist](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#perm_getnodeswhitelist)
+```js
+const nodes = await provider.getNodesWhitelist()
+console.log(nodes) 
+/* [
+  "enode://7b61d5ee4b44335873e6912cb5dd3e3877c860ba21417c9b9ef1f7e500a82213737d4b269046d0669fb2299a234ca03443f25fe5f706b693b3669e5c92478ade@127.0.0.1:30305",
+  "enode://2feb33b3c6c4a8f77d84a5ce44954e83e5f163e7a65f7f7a7fec499ceb0ddd76a46ef635408c513d64c076470eac86b7f2c8ae4fcd112cb28ce82c0d64ec2c94@127.0.0.1:30304"
+] */
+```
+
+### Remove Nodes To Whitelist - [perm_removeNodesFromWhitelist](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#perm_removenodesfromwhitelist)
+```js
+const result = await provider.removeNodesFromWhitelist(["enode://7e4ef30e9ec683f26ad76ffca5b5148fa7a6575f4cfad4eb0f52f9c3d8335f4a9b6f9e66fcc73ef95ed7a2a52784d4f372e7750ac8ae0b544309a5b391a23dd7@127.0.0.1:30303","enode://2feb33b3c6c4a8f77d84a5ce44954e83e5f163e7a65f7f7a7fec499ceb0ddd76a46ef635408c513d64c076470eac86b7f2c8ae4fcd112cb28ce82c0d64ec2c94@127.0.0.1:30304"])
+console.log(result) // Success
+```
+
+### Reload Permissions From File - [perm_reloadPermissionsFromFile](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#perm_reloadpermissionsfromfile)
+```js
+const result = await provider.reloadPermissionsFromFile()
+console.log(result) // Success
 ```
 
 ## Txpool

@@ -32,6 +32,7 @@ export interface PantheonTransaction {
     addedToPoolAt: string;
 }
 export declare type BlockParameter = number | 'earliest' | 'latest' | 'pending';
+export declare type PermissioningResult = 'Success' | 'error';
 export declare class PantheonProvider extends PrivateJsonRpcProvider {
     addPeer(enodeUrl: string | Promise<string>): Promise<boolean>;
     changeLogLevel(level: string | Promise<string>): Promise<boolean>;
@@ -55,5 +56,12 @@ export declare class PantheonProvider extends PrivateJsonRpcProvider {
     ibftGetValidatorsByBlockHash(hash: string): Promise<string[]>;
     ibftGetValidatorsByBlockNumber(blockParameter: BlockParameter): Promise<string[]>;
     ibftProposeValidatorVote(validatorAddress: string, add: boolean): Promise<boolean>;
+    addAccountsToWhitelist(accounts: string[] | Promise<string[]>): Promise<PermissioningResult>;
+    getAccountsWhitelist(): Promise<string[]>;
+    removeAccountsFromWhitelist(accounts: string[] | Promise<string[]>): Promise<PermissioningResult>;
+    addNodesToWhitelist(nodes: string[] | Promise<string[]>): Promise<PermissioningResult>;
+    getNodesWhitelist(): Promise<string[]>;
+    removeNodesFromWhitelist(nodes: string[] | Promise<string[]>): Promise<PermissioningResult>;
+    reloadPermissionsFromFile(): Promise<PermissioningResult>;
     perform(method: string, params: any): Promise<any>;
 }

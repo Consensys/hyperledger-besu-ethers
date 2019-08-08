@@ -102,6 +102,36 @@ var PantheonProvider = /** @class */ (function (_super) {
             add: function () { return Promise.resolve(add); },
         });
     };
+    // Permissioning
+    PantheonProvider.prototype.addAccountsToWhitelist = function (accounts) {
+        return this._runPerform("addAccountsToWhitelist", {
+            accounts: function () { return Promise.resolve(accounts); },
+        });
+    };
+    PantheonProvider.prototype.getAccountsWhitelist = function () {
+        return this._runPerform("getAccountsWhitelist", {});
+    };
+    PantheonProvider.prototype.removeAccountsFromWhitelist = function (accounts) {
+        return this._runPerform("removeAccountsFromWhitelist", {
+            accounts: function () { return Promise.resolve(accounts); },
+        });
+    };
+    PantheonProvider.prototype.addNodesToWhitelist = function (nodes) {
+        return this._runPerform("addNodesToWhitelist", {
+            nodes: function () { return Promise.resolve(nodes); },
+        });
+    };
+    PantheonProvider.prototype.getNodesWhitelist = function () {
+        return this._runPerform("getNodesWhitelist", {});
+    };
+    PantheonProvider.prototype.removeNodesFromWhitelist = function (nodes) {
+        return this._runPerform("removeNodesFromWhitelist", {
+            nodes: function () { return Promise.resolve(nodes); },
+        });
+    };
+    PantheonProvider.prototype.reloadPermissionsFromFile = function () {
+        return this._runPerform("reloadPermissionsFromFile", {});
+    };
     // Override the base perform method to add the pantheon API calls
     PantheonProvider.prototype.perform = function (method, params) {
         switch (method) {
@@ -170,6 +200,21 @@ var PantheonProvider = /** @class */ (function (_super) {
                     params.validatorAddress,
                     params.add,
                 ]);
+            // Permissioning
+            case "addAccountsToWhitelist":
+                return this.send("perm_addAccountsToWhitelist", [params.accounts]);
+            case "getAccountsWhitelist":
+                return this.send("perm_getAccountsWhitelist", []);
+            case "removeAccountsFromWhitelist":
+                return this.send("perm_removeAccountsFromWhitelist", [params.accounts]);
+            case "addNodesToWhitelist":
+                return this.send("perm_addAccountsToWhitelist", [params.nodes]);
+            case "getNodesWhitelist":
+                return this.send("perm_getAccountsWhitelist", []);
+            case "removeNodesFromWhitelist":
+                return this.send("perm_removeAccountsFromWhitelist", [params.nodes]);
+            case "reloadPermissionsFromFile":
+                return this.send("perm_reloadPermissionsFromFile", []);
             default:
                 return _super.prototype.perform.call(this, method, params);
         }
