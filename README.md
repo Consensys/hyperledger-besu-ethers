@@ -374,11 +374,11 @@ console.log(validatorVotes)
 ## Permissioning
 
 Calls Pantheon's [permissioning](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#permissioning-methods) JSON-RPC APIs.
-See [examples/pantheronPermissioning.js](./examples/pantheronPermissioning.js) for the full example code using async/await.
+See [examples/pantheonPermissioning.js](./examples/pantheonPermissioning.js) for the full example code using async/await.
 
 The local permissioning methods require the `PERM` API methods to be enabled by Pantheon's [--rpc-http-api](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-CLI-Syntax/) command line option.
 
-Pantheon's account and node whitelists also need to be configured for the below API calls to work. See [Local Permissioning](https://docs.pantheon.pegasys.tech/en/latest/Permissions/Local-Permissioning/) for how to do this.
+Pantheon's account and node whitelists also need to be configured for the below API calls to work. See Pantheon [Local Permissioning](https://docs.pantheon.pegasys.tech/en/latest/Permissions/Local-Permissioning/) documentation for how to do this.
 
 ### Add Accounts To Whitelist - [perm_addAccountsToWhitelist](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#perm_addaccountstowhitelist)
 ```js
