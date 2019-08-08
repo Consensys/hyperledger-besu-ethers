@@ -1,7 +1,10 @@
 'use strict'
 
-import { Formatter } from '@ethersproject/providers'
-import * as errors from '@ethersproject/errors'
+import { Formatter } from '@ethersproject/providers';
+import { Logger } from "@ethersproject/logger";
+import { version } from "./_version";
+
+const logger = new Logger(version);
 
 import { parse as parseTransaction, PrivateTransactionResponse, PrivateTransactionReceipt } from './privateTransaction'
 import * as RegEx from './utils/RegEx'
@@ -72,7 +75,7 @@ export class PrivateFormatter extends Formatter {
             return privateAddress;
         }
 
-        throw errors.makeError('invalid private address. Has to be base64 encoded string of 44 characters.', 'privateAddress', privateAddress);
+        throw logger.makeError('invalid private address. Has to be base64 encoded string of 44 characters.', 'privateAddress', privateAddress);
     }
 
     privateFor(privateFor: any): string[] | string | null {
@@ -90,7 +93,7 @@ export class PrivateFormatter extends Formatter {
             return this.privateAddress(privateFor);
         }
         catch (err) {
-            throw errors.makeError('invalid privateFor. Has to be base64 encoded string or an array of base64 encoded strings.', 'privateFor', privateFor);
+            throw logger.makeError('invalid privateFor. Has to be base64 encoded string or an array of base64 encoded strings.', 'privateFor', privateFor);
         }
     }
 
@@ -100,7 +103,7 @@ export class PrivateFormatter extends Formatter {
             return restriction;
         }
 
-        throw errors.makeError('invalid restriction. Must be either \'restricted\' or \'unrestricted\'.', 'InvalidRestriction', { restriction });
+        throw logger.makeError('invalid restriction. Must be either \'restricted\' or \'unrestricted\'.', 'InvalidRestriction', { restriction });
     }
 
     transaction(value: any): any {

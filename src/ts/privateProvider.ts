@@ -1,11 +1,14 @@
 
 import { BigNumber } from "@ethersproject/bignumber";
 import { hexDataLength } from "@ethersproject/bytes";
-import * as errors from "@ethersproject/errors";
 import { Networkish } from "@ethersproject/networks";
 import { resolveProperties } from "@ethersproject/properties";
 import { JsonRpcProvider, Provider } from "@ethersproject/providers";
 import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
+import { Logger } from "@ethersproject/logger";
+import { version } from "./_version";
+
+const logger = new Logger(version);
 
 import { hexlify } from "./bytes";
 import { PrivateFormatter } from './privateFormatter'
@@ -88,13 +91,13 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider implements PrivatePr
                 });
 
                 if (result && result.message) {
-                    throw errors.makeError(result.message, result.code, {})
+                    throw logger.makeError(result.message, result.code, {})
                 }
 
                 return result;
             })
             .catch((err) => {
-                throw errors.makeError(`Failed JSON-RPC call.`, err.code, {
+                throw logger.makeError(`Failed JSON-RPC call.`, err.code, {
                     method, params, cause: err,
                 });
             });
@@ -117,7 +120,7 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider implements PrivatePr
 
     _wrapPrivateTransaction(tx: PrivateTransaction, publicTransactionHash?: string): PrivateTransactionResponse {
         if (publicTransactionHash != null && hexDataLength(publicTransactionHash) !== 32) {
-            errors.throwArgumentError("invalid public transaction hash", "publicTransactionHash" , publicTransactionHash);
+            logger.throwArgumentError("invalid public transaction hash", "publicTransactionHash" , publicTransactionHash);
         }
 
         let result = <PrivateTransactionResponse>tx;
@@ -141,7 +144,7 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider implements PrivatePr
                 this._emitted["t:" + tx.publicHash] = publicReceipt.blockNumber;
 
                 if (publicReceipt.status === 0) {
-                    errors.throwError("transaction failed", errors.CALL_EXCEPTION, {
+                    logger.throwError("transaction failed", Logger.errors.CALL_EXCEPTION, {
                         publicHash: tx.publicHash,
                         transaction: tx
                     });
@@ -231,7 +234,7 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider implements PrivatePr
                             return receipt
                         })
                     }).catch((err) => {
-                        errors.throwError(`Failed to get private transaction receipt. Error: ${err.message}`, err.code, {
+                        logger.throwError(`Failed to get private transaction receipt. Error: ${err.message}`, err.code, {
                             err,
                             publicTransactionHash,
                         });
@@ -322,15 +325,15 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider implements PrivatePr
                         if (error.responseText) {
                             // "insufficient funds for gas * price + value"
                             if (error.responseText.indexOf("insufficient funds") > 0) {
-                                errors.throwError("insufficient funds", errors.INSUFFICIENT_FUNDS, { });
+                                logger.throwError("insufficient funds", Logger.errors.INSUFFICIENT_FUNDS, { });
                             }
                             // "nonce too low"
                             if (error.responseText.indexOf("nonce too low") > 0) {
-                                errors.throwError("nonce has already been used", errors.NONCE_EXPIRED, { });
+                                logger.throwError("nonce has already been used", Logger.errors.NONCE_EXPIRED, { });
                             }
                             // "replacement transaction underpriced"
                             if (error.responseText.indexOf("replacement transaction underpriced") > 0) {
-                                errors.throwError("replacement fee too low", errors.REPLACEMENT_UNDERPRICED, { });
+                                logger.throwError("replacement fee too low", Logger.errors.REPLACEMENT_UNDERPRICED, { });
                             }
                         }
                         throw error;

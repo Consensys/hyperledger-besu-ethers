@@ -12,19 +12,14 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 var address_1 = require("@ethersproject/address");
 var keccak256_1 = require("@ethersproject/keccak256");
-var errors = __importStar(require("@ethersproject/errors"));
 var properties_1 = require("@ethersproject/properties");
+var logger_1 = require("@ethersproject/logger");
 var wallet_1 = require("@ethersproject/wallet");
+var _version_1 = require("./_version");
+var logger = new logger_1.Logger(_version_1.version);
 var privateTransaction_1 = require("./privateTransaction");
 var allowedPrivateTransactionKeys = [
     "chainId", "data", "from", "gasLimit", "gasPrice", "nonce", "to", "value",
@@ -94,7 +89,7 @@ var PrivateWallet = /** @class */ (function (_super) {
                     _this.provider.resolveName(tx.from)
                 ]).then(function (results) {
                     if (results[0] !== results[1]) {
-                        errors.throwArgumentError("from address mismatch", "transaction", transaction);
+                        logger.throwArgumentError("from address mismatch", "transaction", transaction);
                     }
                     return results[0];
                 });
@@ -115,7 +110,7 @@ var PrivateWallet = /** @class */ (function (_super) {
     PrivateWallet.prototype.checkTransaction = function (transaction) {
         for (var key in transaction) {
             if (allowedPrivateTransactionKeys.indexOf(key) === -1) {
-                errors.throwArgumentError("invalid transaction key: " + key, "transaction", transaction);
+                logger.throwArgumentError("invalid transaction key: " + key, "transaction", transaction);
             }
         }
         var tx = properties_1.shallowCopy(transaction);

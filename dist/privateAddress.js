@@ -7,11 +7,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var errors = __importStar(require("@ethersproject/errors"));
+var logger_1 = require("@ethersproject/logger");
+var _version_1 = require("./_version");
+var logger = new logger_1.Logger(_version_1.version);
 var RegEx = __importStar(require("./utils/RegEx"));
 function getPrivateAddress(privateAddress) {
     if (typeof (privateAddress) !== "string") {
-        errors.throwArgumentError("invalid private address. Not a string", "private address", privateAddress);
+        logger.throwArgumentError("invalid private address. Not a string", "privateAddress", privateAddress);
     }
     if (privateAddress.match(RegEx.bytes)) {
         // 32 bytes hexadecimal encoded with 0x prefix gives 64 + 2 = 66 characters
@@ -21,7 +23,7 @@ function getPrivateAddress(privateAddress) {
             return buf.toString('base64');
         }
         else {
-            return errors.throwArgumentError("invalid hexadecimal encoded private address. Length " + privateAddress.length + " and not 66", "private address", privateAddress);
+            return logger.throwArgumentError("invalid hexadecimal encoded private address. Length " + privateAddress.length + " and not 66", "privateAddress", privateAddress);
         }
     }
     // strip 0x prefix
@@ -34,9 +36,9 @@ function getPrivateAddress(privateAddress) {
             return privateAddress;
         }
         else {
-            return errors.throwArgumentError("invalid base64 encoded private address. Length " + privateAddress.length + " and not 44", "private address", privateAddress);
+            return logger.throwArgumentError("invalid base64 encoded private address. Length " + privateAddress.length + " and not 44", "privateAddress", privateAddress);
         }
     }
-    return errors.throwArgumentError("invalid private address. No hexadecimal or base64 encoded", "private address", privateAddress);
+    return logger.throwArgumentError("invalid private address. No hexadecimal or base64 encoded", "privateAddress", privateAddress);
 }
 exports.getPrivateAddress = getPrivateAddress;

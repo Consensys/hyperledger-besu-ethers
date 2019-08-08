@@ -52,6 +52,7 @@ export declare const utils: {
     FormatTypes: {
         [name: string]: string;
     };
+    Logger: typeof ethers.ethers.utils.Logger;
     RLP: typeof ethers.ethers.utils.RLP;
     fetchJson: typeof ethers.ethers.utils.fetchJson;
     poll: typeof ethers.ethers.utils.poll;

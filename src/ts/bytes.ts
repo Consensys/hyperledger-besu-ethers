@@ -1,6 +1,9 @@
 
 import { BytesLike, Hexable, DataOptions, isBytes, isHexString } from '@ethersproject/bytes';
-import * as errors from "@ethersproject/errors";
+import { Logger } from "@ethersproject/logger";
+import { version } from "./_version";
+
+const logger = new Logger(version);
 
 // the following two functions are not currently exported from @ethersproject/bytes
 // so need to declare here
@@ -23,7 +26,7 @@ export function arrayify(value: BytesLike | Hexable | number | string, options?:
     if (!options) { options = { }; }
 
     if (typeof(value) === "number") {
-        errors.checkSafeUint53(value, "invalid arrayify value");
+        logger.checkSafeUint53(value, "invalid arrayify value");
 
         let result = [];
         while (value) {
@@ -44,7 +47,7 @@ export function arrayify(value: BytesLike | Hexable | number | string, options?:
     if (isHexString(value)) {
         let hex = (<string>value).substring(2);
         if (!options.allowOddLength && hex.length % 2) {
-            errors.throwArgumentError("hex data is odd-length", "value", value);
+            logger.throwArgumentError("hex data is odd-length", "value", value);
         }
 
         let result = [];
@@ -65,7 +68,7 @@ export function arrayify(value: BytesLike | Hexable | number | string, options?:
         return addSlice(new Uint8Array(value));
     }
 
-    return errors.throwArgumentError("invalid arrayify value", "value", value);
+    return logger.throwArgumentError("invalid arrayify value", "value", value);
 }
 
 const HexCharacters: string = "0123456789abcdef";
@@ -76,7 +79,7 @@ export function hexlify(value: BytesLike | Hexable | number | string,
     if (!options) { options = { }; }
 
     if (typeof(value) === "number") {
-        errors.checkSafeUint53(value, "invalid hexlify value");
+        logger.checkSafeUint53(value, "invalid hexlify value");
 
         let hex = "";
         while (value) {
@@ -100,7 +103,7 @@ export function hexlify(value: BytesLike | Hexable | number | string,
 
     if (isHexString(value)) {
         if (!options.allowOddLength && (<string>value).length % 2) {
-            errors.throwArgumentError("hex data is odd-length", "value", value);
+            logger.throwArgumentError("hex data is odd-length", "value", value);
         }
         return (<string>value).toLowerCase();
     }
@@ -120,5 +123,5 @@ export function hexlify(value: BytesLike | Hexable | number | string,
         return result;
     }
 
-    return errors.throwArgumentError("invalid hexlify value", "value", value);
+    return logger.throwArgumentError("invalid hexlify value", "value", value);
 }

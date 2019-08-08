@@ -58,20 +58,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 var bignumber_1 = require("@ethersproject/bignumber");
 var bytes_1 = require("@ethersproject/bytes");
-var errors = __importStar(require("@ethersproject/errors"));
 var properties_1 = require("@ethersproject/properties");
 var providers_1 = require("@ethersproject/providers");
 var web_1 = require("@ethersproject/web");
+var logger_1 = require("@ethersproject/logger");
+var _version_1 = require("./_version");
+var logger = new logger_1.Logger(_version_1.version);
 var bytes_2 = require("./bytes");
 var privateFormatter_1 = require("./privateFormatter");
 var privacyGroup_1 = require("./privacyGroup");
@@ -124,12 +119,12 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
                 provider: _this
             });
             if (result && result.message) {
-                throw errors.makeError(result.message, result.code, {});
+                throw logger.makeError(result.message, result.code, {});
             }
             return result;
         })
             .catch(function (err) {
-            throw errors.makeError("Failed JSON-RPC call.", err.code, {
+            throw logger.makeError("Failed JSON-RPC call.", err.code, {
                 method: method, params: params, cause: err,
             });
         });
@@ -152,7 +147,7 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
     PrivateJsonRpcProvider.prototype._wrapPrivateTransaction = function (tx, publicTransactionHash) {
         var _this = this;
         if (publicTransactionHash != null && bytes_1.hexDataLength(publicTransactionHash) !== 32) {
-            errors.throwArgumentError("invalid public transaction hash", "publicTransactionHash", publicTransactionHash);
+            logger.throwArgumentError("invalid public transaction hash", "publicTransactionHash", publicTransactionHash);
         }
         var result = tx;
         tx.publicHash = publicTransactionHash;
@@ -175,7 +170,7 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
                             // No longer pending, allow the polling loop to garbage collect this
                             this._emitted["t:" + tx.publicHash] = publicReceipt.blockNumber;
                             if (publicReceipt.status === 0) {
-                                errors.throwError("transaction failed", errors.CALL_EXCEPTION, {
+                                logger.throwError("transaction failed", logger_1.Logger.errors.CALL_EXCEPTION, {
                                     publicHash: tx.publicHash,
                                     transaction: tx
                                 });
@@ -247,7 +242,7 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
                                 })];
                         });
                     }); }).catch(function (err) {
-                        errors.throwError("Failed to get private transaction receipt. Error: " + err.message, err.code, {
+                        logger.throwError("Failed to get private transaction receipt. Error: " + err.message, err.code, {
                             err: err,
                             publicTransactionHash: publicTransactionHash,
                         });
@@ -323,15 +318,15 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
                     if (error.responseText) {
                         // "insufficient funds for gas * price + value"
                         if (error.responseText.indexOf("insufficient funds") > 0) {
-                            errors.throwError("insufficient funds", errors.INSUFFICIENT_FUNDS, {});
+                            logger.throwError("insufficient funds", logger_1.Logger.errors.INSUFFICIENT_FUNDS, {});
                         }
                         // "nonce too low"
                         if (error.responseText.indexOf("nonce too low") > 0) {
-                            errors.throwError("nonce has already been used", errors.NONCE_EXPIRED, {});
+                            logger.throwError("nonce has already been used", logger_1.Logger.errors.NONCE_EXPIRED, {});
                         }
                         // "replacement transaction underpriced"
                         if (error.responseText.indexOf("replacement transaction underpriced") > 0) {
-                            errors.throwError("replacement fee too low", errors.REPLACEMENT_UNDERPRICED, {});
+                            logger.throwError("replacement fee too low", logger_1.Logger.errors.REPLACEMENT_UNDERPRICED, {});
                         }
                     }
                     throw error;

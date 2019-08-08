@@ -32,7 +32,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var providers_1 = require("@ethersproject/providers");
-var errors = __importStar(require("@ethersproject/errors"));
+var logger_1 = require("@ethersproject/logger");
+var _version_1 = require("./_version");
+var logger = new logger_1.Logger(_version_1.version);
 var privateTransaction_1 = require("./privateTransaction");
 var RegEx = __importStar(require("./utils/RegEx"));
 // Override the formatting of the transaction as it now includes the new EEA
@@ -68,7 +70,7 @@ var PrivateFormatter = /** @class */ (function (_super) {
             privateAddress.length === 44) {
             return privateAddress;
         }
-        throw errors.makeError('invalid private address. Has to be base64 encoded string of 44 characters.', 'privateAddress', privateAddress);
+        throw logger.makeError('invalid private address. Has to be base64 encoded string of 44 characters.', 'privateAddress', privateAddress);
     };
     PrivateFormatter.prototype.privateFor = function (privateFor) {
         if (!privateFor) {
@@ -85,7 +87,7 @@ var PrivateFormatter = /** @class */ (function (_super) {
             return this.privateAddress(privateFor);
         }
         catch (err) {
-            throw errors.makeError('invalid privateFor. Has to be base64 encoded string or an array of base64 encoded strings.', 'privateFor', privateFor);
+            throw logger.makeError('invalid privateFor. Has to be base64 encoded string or an array of base64 encoded strings.', 'privateFor', privateFor);
         }
     };
     PrivateFormatter.prototype.restriction = function (restriction) {
@@ -95,7 +97,7 @@ var PrivateFormatter = /** @class */ (function (_super) {
         if (restriction === 'restricted' || restriction === 'unrestricted') {
             return restriction;
         }
-        throw errors.makeError('invalid restriction. Must be either \'restricted\' or \'unrestricted\'.', 'InvalidRestriction', { restriction: restriction });
+        throw logger.makeError('invalid restriction. Must be either \'restricted\' or \'unrestricted\'.', 'InvalidRestriction', { restriction: restriction });
     };
     PrivateFormatter.prototype.transaction = function (value) {
         return privateTransaction_1.parse(value);

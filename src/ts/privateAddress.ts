@@ -1,13 +1,16 @@
 
 
-import * as errors from "@ethersproject/errors";
+import { Logger } from "@ethersproject/logger";
+import { version } from "./_version";
+
+const logger = new Logger(version);
 
 import * as RegEx from './utils/RegEx'
 
 export function getPrivateAddress(privateAddress: string): string {
 
     if (typeof(privateAddress) !== "string") {
-        errors.throwArgumentError("invalid private address. Not a string", "private address", privateAddress);
+        logger.throwArgumentError("invalid private address. Not a string", "privateAddress", privateAddress);
     }
 
     if (privateAddress.match(RegEx.bytes)) {
@@ -18,7 +21,7 @@ export function getPrivateAddress(privateAddress: string): string {
             return buf.toString('base64');
         }
         else {
-            return errors.throwArgumentError(`invalid hexadecimal encoded private address. Length ${privateAddress.length} and not 66`, "private address", privateAddress);
+            return logger.throwArgumentError(`invalid hexadecimal encoded private address. Length ${privateAddress.length} and not 66`, "privateAddress", privateAddress);
         }
     }
 
@@ -33,10 +36,10 @@ export function getPrivateAddress(privateAddress: string): string {
             return privateAddress;
         }
         else {
-            return errors.throwArgumentError(`invalid base64 encoded private address. Length ${privateAddress.length} and not 44`, "private address", privateAddress);
+            return logger.throwArgumentError(`invalid base64 encoded private address. Length ${privateAddress.length} and not 44`, "privateAddress", privateAddress);
         }
 
     }
 
-    return errors.throwArgumentError("invalid private address. No hexadecimal or base64 encoded", "private address", privateAddress);
+    return logger.throwArgumentError("invalid private address. No hexadecimal or base64 encoded", "privateAddress", privateAddress);
 }

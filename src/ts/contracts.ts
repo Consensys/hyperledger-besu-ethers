@@ -7,9 +7,12 @@ import { getContractAddress } from "@ethersproject/address";
 import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike, isHexString } from "@ethersproject/bytes";
 import { Zero } from "@ethersproject/constants";
-import * as errors from "@ethersproject/errors";
 import { defineReadOnly, deepCopy, getStatic, resolveProperties, shallowCopy } from "@ethersproject/properties";
 import { UnsignedTransaction } from "@ethersproject/transactions";
+import { Logger } from "@ethersproject/logger";
+import { version } from "./_version";
+
+const logger = new Logger(version);
 
 
 export interface Overrides {
@@ -131,17 +134,17 @@ function runMethod(contract: Contract, functionName: string, options: RunOptions
             // Check for unexpected keys (e.g. using "gas" instead of "gasLimit")
             for (let key in tx) {
                 if (!allowedTransactionKeys[key]) {
-                    errors.throwError(("unknown transaxction override - " + key), "overrides", tx);
+                    logger.throwError(("unknown transaction override - " + key), "overrides", tx);
                 }
             }
         }
 
-        errors.checkArgumentCount(params.length, method.inputs.length, "passed to contract");
+        logger.checkArgumentCount(params.length, method.inputs.length, "passed to contract");
 
         // Check overrides make sense
         ["data", "to"].forEach(function(key) {
             if (tx[key] != null) {
-                errors.throwError("cannot override " + key, errors.UNSUPPORTED_OPERATION, { operation: key });
+                logger.throwError("cannot override " + key, Logger.errors.UNSUPPORTED_OPERATION, { operation: key });
             }
         });
 
@@ -164,7 +167,7 @@ function runMethod(contract: Contract, functionName: string, options: RunOptions
                 }
 
                 if (!contract.provider && !contract.signer) {
-                    errors.throwError("call (constant functions) require a provider or signer", errors.UNSUPPORTED_OPERATION, { operation: "call" })
+                    logger.throwError("call (constant functions) require a provider or signer", Logger.errors.UNSUPPORTED_OPERATION, { operation: "call" })
                 }
 
                 // Check overrides make sense
@@ -186,7 +189,7 @@ function runMethod(contract: Contract, functionName: string, options: RunOptions
                         return result;
 
                     } catch (error) {
-                        if (error.code === errors.CALL_EXCEPTION) {
+                        if (error.code === Logger.errors.CALL_EXCEPTION) {
                             error.address = contract.address;
                             error.args = params;
                             error.transaction = tx;
@@ -200,7 +203,7 @@ function runMethod(contract: Contract, functionName: string, options: RunOptions
             // Only computing the transaction estimate
             if (options.estimate) {
                 if (!contract.provider && !contract.signer) {
-                    errors.throwError("estimate require a provider or signer", errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" })
+                    logger.throwError("estimate require a provider or signer", Logger.errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" })
                 }
 
                 return (contract.signer || contract.provider).estimateGas(tx);
@@ -211,7 +214,7 @@ function runMethod(contract: Contract, functionName: string, options: RunOptions
             }
 
             if (tx.value != null && !method.payable) {
-                errors.throwError("contract method is not payable", errors.INVALID_ARGUMENT, {
+                logger.throwError("contract method is not payable", Logger.errors.INVALID_ARGUMENT, {
                     argument: "sendTransaction",
                     value: tx,
                     method: method.format()
@@ -221,7 +224,7 @@ function runMethod(contract: Contract, functionName: string, options: RunOptions
             if (options.transaction) { return resolveProperties(tx); }
 
             if (!contract.signer) {
-                errors.throwError("sending a transaction require a signer", errors.UNSUPPORTED_OPERATION, { operation: "sendTransaction" })
+                logger.throwError("sending a transaction require a signer", Logger.errors.UNSUPPORTED_OPERATION, { operation: "sendTransaction" })
             }
 
             return contract.signer.sendTransaction(tx).then((tx) => {
@@ -353,7 +356,7 @@ class FragmentRunningEvent extends RunningEvent {
 
         let topic = contractInterface.getEventTopic(fragment);
         if (topics) {
-            if (topic !== topics[0]) { errors.throwArgumentError("topic mismatch", "topics", topics); }
+            if (topic !== topics[0]) { logger.throwArgumentError("topic mismatch", "topics", topics); }
             filter.topics = topics.slice();
         } else {
             filter.topics = [ topic ];
@@ -450,7 +453,7 @@ export class Contract {
         // Added optional runMethodOverride function that defaults to the original runMethod function
         runMethodOverride: (contract: Contract, functionName: string, options: RunOptions) => RunFunction = runMethod)
     {
-        errors.checkNew(new.target, Contract);
+        logger.checkNew(new.target, Contract);
 
         // @TODO: Maybe still check the addressOrName looks like a valid address or name?
         //address = getAddress(address);
@@ -463,7 +466,7 @@ export class Contract {
             defineReadOnly(this, "provider", signerOrProvider);
             defineReadOnly(this, "signer", null);
         } else {
-            errors.throwError("invalid signer or provider", errors.INVALID_ARGUMENT, { arg: "signerOrProvider", value: signerOrProvider });
+            logger.throwError("invalid signer or provider", Logger.errors.INVALID_ARGUMENT, { arg: "signerOrProvider", value: signerOrProvider });
         }
 
         defineReadOnly(this, "callStatic", { });
@@ -500,7 +503,7 @@ export class Contract {
                 defineReadOnly(this, "addressPromise", Promise.resolve((<any>(this.interface.constructor)).getAddress(addressOrName)));
             } catch (error) {
                 // Without a provider, we cannot use ENS names
-                errors.throwError("provider is required to use non-address contract address", errors.INVALID_ARGUMENT, { argument: "addressOrName", value: addressOrName });
+                logger.throwError("provider is required to use non-address contract address", Logger.errors.INVALID_ARGUMENT, { argument: "addressOrName", value: addressOrName });
             }
         }
 
@@ -561,7 +564,7 @@ export class Contract {
                 // Otherwise, poll for our code to be deployed
                 this._deployedPromise = this.provider.getCode(this.address, blockTag).then((code) => {
                     if (code === "0x") {
-                        errors.throwError("contract not deployed", errors.UNSUPPORTED_OPERATION, {
+                        logger.throwError("contract not deployed", Logger.errors.UNSUPPORTED_OPERATION, {
                             contractAddress: this.address,
                             operation: "getDeployed"
                         });
@@ -582,14 +585,14 @@ export class Contract {
 
     fallback(overrides?: TransactionRequest): Promise<TransactionResponse> {
         if (!this.signer) {
-            errors.throwError("sending a transaction require a signer", errors.UNSUPPORTED_OPERATION, { operation: "sendTransaction(fallback)" })
+            logger.throwError("sending a transaction require a signer", Logger.errors.UNSUPPORTED_OPERATION, { operation: "sendTransaction(fallback)" })
         }
 
         let tx: TransactionRequest = shallowCopy(overrides || {});
 
         ["from", "to"].forEach(function(key) {
             if ((<any>tx)[key] == null) { return; }
-            errors.throwError("cannot override " + key, errors.UNSUPPORTED_OPERATION, { operation: key })
+            logger.throwError("cannot override " + key, Logger.errors.UNSUPPORTED_OPERATION, { operation: key })
         });
 
         tx.to = this.addressPromise;
@@ -645,7 +648,7 @@ export class Contract {
 
             let fragment = this.interface.getEvent(eventName)
             if (!fragment) {
-                errors.throwError("unknown event - " + eventName, errors.INVALID_ARGUMENT, { argumnet: "eventName", value: eventName });
+                logger.throwError("unknown event - " + eventName, Logger.errors.INVALID_ARGUMENT, { argumnet: "eventName", value: eventName });
             }
 
             return this._normalizeRunningEvent(new FragmentRunningEvent(this.address, this.interface, fragment));
@@ -709,7 +712,7 @@ export class Contract {
 
     private _addEventListener(runningEvent: RunningEvent, listener: Listener, once: boolean): void {
         if (!this.provider) {
-            errors.throwError("events require a provider or a signer with a provider", errors.UNSUPPORTED_OPERATION, { operation: "once" })
+            logger.throwError("events require a provider or a signer with a provider", Logger.errors.UNSUPPORTED_OPERATION, { operation: "once" })
         }
 
         runningEvent.addListener(listener, once);
@@ -740,7 +743,7 @@ export class Contract {
 
         if (typeof(fromBlockOrBlockhash) === "string" && isHexString(fromBlockOrBlockhash, 32)) {
             if (toBlock != null) {
-                errors.throwArgumentError("cannot specify toBlock with blockhash", "toBlock", toBlock);
+                logger.throwArgumentError("cannot specify toBlock with blockhash", "toBlock", toBlock);
             }
             filter.blockhash = fromBlockOrBlockhash;
         } else {

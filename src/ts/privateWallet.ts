@@ -1,10 +1,13 @@
 
 import { getAddress } from "@ethersproject/address"
 import { keccak256 } from "@ethersproject/keccak256"
-import * as errors from "@ethersproject/errors";
 import { resolveProperties, shallowCopy } from "@ethersproject/properties"
 import { Signer } from "@ethersproject/abstract-signer";
+import { Logger } from "@ethersproject/logger";
 import { Wallet } from '@ethersproject/wallet'
+import { version } from "./_version";
+
+const logger = new Logger(version);
 
 import { PrivateTransactionRequest, PrivateTransactionResponse, serialize} from './privateTransaction'
 import { PrivateProvider } from './privateProvider'
@@ -82,7 +85,7 @@ export class PrivateWallet extends Wallet implements PrivateSigner {
                     this.provider.resolveName(tx.from)
                 ]).then((results) => {
                     if (results[0] !== results[1]) {
-                        errors.throwArgumentError("from address mismatch", "transaction", transaction);
+                        logger.throwArgumentError("from address mismatch", "transaction", transaction);
                     }
                     return results[0];
                 });
@@ -104,7 +107,7 @@ export class PrivateWallet extends Wallet implements PrivateSigner {
     checkTransaction(transaction: PrivateTransactionRequest): PrivateTransactionRequest {
         for (let key in transaction) {
             if (allowedPrivateTransactionKeys.indexOf(key) === -1) {
-                errors.throwArgumentError("invalid transaction key: " + key, "transaction", transaction);
+                logger.throwArgumentError("invalid transaction key: " + key, "transaction", transaction);
             }
         }
 

@@ -12,13 +12,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 var abi_1 = require("@ethersproject/abi");
 var abstract_provider_1 = require("@ethersproject/abstract-provider");
@@ -27,8 +20,10 @@ var address_1 = require("@ethersproject/address");
 var bignumber_1 = require("@ethersproject/bignumber");
 var bytes_1 = require("@ethersproject/bytes");
 var constants_1 = require("@ethersproject/constants");
-var errors = __importStar(require("@ethersproject/errors"));
 var properties_1 = require("@ethersproject/properties");
+var logger_1 = require("@ethersproject/logger");
+var _version_1 = require("./_version");
+var logger = new logger_1.Logger(_version_1.version);
 ///////////////////////////////
 var allowedTransactionKeys = {
     chainId: true, data: true, from: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true
@@ -74,15 +69,15 @@ function runMethod(contract, functionName, options) {
             // Check for unexpected keys (e.g. using "gas" instead of "gasLimit")
             for (var key in tx) {
                 if (!allowedTransactionKeys[key]) {
-                    errors.throwError(("unknown transaxction override - " + key), "overrides", tx);
+                    logger.throwError(("unknown transaction override - " + key), "overrides", tx);
                 }
             }
         }
-        errors.checkArgumentCount(params.length, method.inputs.length, "passed to contract");
+        logger.checkArgumentCount(params.length, method.inputs.length, "passed to contract");
         // Check overrides make sense
         ["data", "to"].forEach(function (key) {
             if (tx[key] != null) {
-                errors.throwError("cannot override " + key, errors.UNSUPPORTED_OPERATION, { operation: key });
+                logger.throwError("cannot override " + key, logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: key });
             }
         });
         // If the contract was just deployed, wait until it is minded
@@ -102,7 +97,7 @@ function runMethod(contract, functionName, options) {
                     return Promise.resolve(constants_1.Zero);
                 }
                 if (!contract.provider && !contract.signer) {
-                    errors.throwError("call (constant functions) require a provider or signer", errors.UNSUPPORTED_OPERATION, { operation: "call" });
+                    logger.throwError("call (constant functions) require a provider or signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "call" });
                 }
                 // Check overrides make sense
                 ["gasLimit", "gasPrice", "value"].forEach(function (key) {
@@ -122,7 +117,7 @@ function runMethod(contract, functionName, options) {
                         return result;
                     }
                     catch (error) {
-                        if (error.code === errors.CALL_EXCEPTION) {
+                        if (error.code === logger_1.Logger.errors.CALL_EXCEPTION) {
                             error.address = contract.address;
                             error.args = params;
                             error.transaction = tx;
@@ -134,7 +129,7 @@ function runMethod(contract, functionName, options) {
             // Only computing the transaction estimate
             if (options.estimate) {
                 if (!contract.provider && !contract.signer) {
-                    errors.throwError("estimate require a provider or signer", errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" });
+                    logger.throwError("estimate require a provider or signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" });
                 }
                 return (contract.signer || contract.provider).estimateGas(tx);
             }
@@ -142,7 +137,7 @@ function runMethod(contract, functionName, options) {
                 tx.gasLimit = bignumber_1.BigNumber.from(method.gas).add(21000);
             }
             if (tx.value != null && !method.payable) {
-                errors.throwError("contract method is not payable", errors.INVALID_ARGUMENT, {
+                logger.throwError("contract method is not payable", logger_1.Logger.errors.INVALID_ARGUMENT, {
                     argument: "sendTransaction",
                     value: tx,
                     method: method.format()
@@ -152,7 +147,7 @@ function runMethod(contract, functionName, options) {
                 return properties_1.resolveProperties(tx);
             }
             if (!contract.signer) {
-                errors.throwError("sending a transaction require a signer", errors.UNSUPPORTED_OPERATION, { operation: "sendTransaction" });
+                logger.throwError("sending a transaction require a signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "sendTransaction" });
             }
             return contract.signer.sendTransaction(tx).then(function (tx) {
                 var wait = tx.wait.bind(tx);
@@ -258,7 +253,7 @@ var FragmentRunningEvent = /** @class */ (function (_super) {
         var topic = contractInterface.getEventTopic(fragment);
         if (topics) {
             if (topic !== topics[0]) {
-                errors.throwArgumentError("topic mismatch", "topics", topics);
+                logger.throwArgumentError("topic mismatch", "topics", topics);
             }
             filter.topics = topics.slice();
         }
@@ -315,7 +310,7 @@ var Contract = /** @class */ (function () {
         var _newTarget = this.constructor;
         var _this = this;
         if (runMethodOverride === void 0) { runMethodOverride = runMethod; }
-        errors.checkNew(_newTarget, Contract);
+        logger.checkNew(_newTarget, Contract);
         // @TODO: Maybe still check the addressOrName looks like a valid address or name?
         //address = getAddress(address);
         properties_1.defineReadOnly(this, "interface", properties_1.getStatic((_newTarget), "getInterface")(contractInterface));
@@ -328,7 +323,7 @@ var Contract = /** @class */ (function () {
             properties_1.defineReadOnly(this, "signer", null);
         }
         else {
-            errors.throwError("invalid signer or provider", errors.INVALID_ARGUMENT, { arg: "signerOrProvider", value: signerOrProvider });
+            logger.throwError("invalid signer or provider", logger_1.Logger.errors.INVALID_ARGUMENT, { arg: "signerOrProvider", value: signerOrProvider });
         }
         properties_1.defineReadOnly(this, "callStatic", {});
         properties_1.defineReadOnly(this, "estimate", {});
@@ -368,7 +363,7 @@ var Contract = /** @class */ (function () {
             }
             catch (error) {
                 // Without a provider, we cannot use ENS names
-                errors.throwError("provider is required to use non-address contract address", errors.INVALID_ARGUMENT, { argument: "addressOrName", value: addressOrName });
+                logger.throwError("provider is required to use non-address contract address", logger_1.Logger.errors.INVALID_ARGUMENT, { argument: "addressOrName", value: addressOrName });
             }
         }
         Object.keys(this.interface.functions).forEach(function (name) {
@@ -418,7 +413,7 @@ var Contract = /** @class */ (function () {
                 // Otherwise, poll for our code to be deployed
                 this._deployedPromise = this.provider.getCode(this.address, blockTag).then(function (code) {
                     if (code === "0x") {
-                        errors.throwError("contract not deployed", errors.UNSUPPORTED_OPERATION, {
+                        logger.throwError("contract not deployed", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                             contractAddress: _this.address,
                             operation: "getDeployed"
                         });
@@ -436,14 +431,14 @@ var Contract = /** @class */ (function () {
     Contract.prototype.fallback = function (overrides) {
         var _this = this;
         if (!this.signer) {
-            errors.throwError("sending a transaction require a signer", errors.UNSUPPORTED_OPERATION, { operation: "sendTransaction(fallback)" });
+            logger.throwError("sending a transaction require a signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "sendTransaction(fallback)" });
         }
         var tx = properties_1.shallowCopy(overrides || {});
         ["from", "to"].forEach(function (key) {
             if (tx[key] == null) {
                 return;
             }
-            errors.throwError("cannot override " + key, errors.UNSUPPORTED_OPERATION, { operation: key });
+            logger.throwError("cannot override " + key, logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: key });
         });
         tx.to = this.addressPromise;
         return this.deployed().then(function () {
@@ -488,7 +483,7 @@ var Contract = /** @class */ (function () {
             }
             var fragment = this.interface.getEvent(eventName);
             if (!fragment) {
-                errors.throwError("unknown event - " + eventName, errors.INVALID_ARGUMENT, { argumnet: "eventName", value: eventName });
+                logger.throwError("unknown event - " + eventName, logger_1.Logger.errors.INVALID_ARGUMENT, { argumnet: "eventName", value: eventName });
             }
             return this._normalizeRunningEvent(new FragmentRunningEvent(this.address, this.interface, fragment));
         }
@@ -544,7 +539,7 @@ var Contract = /** @class */ (function () {
     Contract.prototype._addEventListener = function (runningEvent, listener, once) {
         var _this = this;
         if (!this.provider) {
-            errors.throwError("events require a provider or a signer with a provider", errors.UNSUPPORTED_OPERATION, { operation: "once" });
+            logger.throwError("events require a provider or a signer with a provider", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "once" });
         }
         runningEvent.addListener(listener, once);
         // Track this running event and its listeners (may already be there; but no hard in updating)
@@ -570,7 +565,7 @@ var Contract = /** @class */ (function () {
         var filter = properties_1.shallowCopy(runningEvent.filter);
         if (typeof (fromBlockOrBlockhash) === "string" && bytes_1.isHexString(fromBlockOrBlockhash, 32)) {
             if (toBlock != null) {
-                errors.throwArgumentError("cannot specify toBlock with blockhash", "toBlock", toBlock);
+                logger.throwArgumentError("cannot specify toBlock with blockhash", "toBlock", toBlock);
             }
             filter.blockhash = fromBlockOrBlockhash;
         }

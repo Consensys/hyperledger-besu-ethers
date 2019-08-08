@@ -1,14 +1,9 @@
 "use strict";
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 var bytes_1 = require("@ethersproject/bytes");
-var errors = __importStar(require("@ethersproject/errors"));
+var logger_1 = require("@ethersproject/logger");
+var _version_1 = require("./_version");
+var logger = new logger_1.Logger(_version_1.version);
 // the following two functions are not currently exported from @ethersproject/bytes
 // so need to declare here
 function isHexable(value) {
@@ -29,7 +24,7 @@ function arrayify(value, options) {
         options = {};
     }
     if (typeof (value) === "number") {
-        errors.checkSafeUint53(value, "invalid arrayify value");
+        logger.checkSafeUint53(value, "invalid arrayify value");
         var result = [];
         while (value) {
             result.unshift(value & 0xff);
@@ -49,7 +44,7 @@ function arrayify(value, options) {
     if (bytes_1.isHexString(value)) {
         var hex = value.substring(2);
         if (!options.allowOddLength && hex.length % 2) {
-            errors.throwArgumentError("hex data is odd-length", "value", value);
+            logger.throwArgumentError("hex data is odd-length", "value", value);
         }
         var result = [];
         for (var i = 0; i < hex.length; i += 2) {
@@ -65,7 +60,7 @@ function arrayify(value, options) {
     if (bytes_1.isBytes(value)) {
         return addSlice(new Uint8Array(value));
     }
-    return errors.throwArgumentError("invalid arrayify value", "value", value);
+    return logger.throwArgumentError("invalid arrayify value", "value", value);
 }
 exports.arrayify = arrayify;
 var HexCharacters = "0123456789abcdef";
@@ -74,7 +69,7 @@ function hexlify(value, options) {
         options = {};
     }
     if (typeof (value) === "number") {
-        errors.checkSafeUint53(value, "invalid hexlify value");
+        logger.checkSafeUint53(value, "invalid hexlify value");
         var hex = "";
         while (value) {
             hex = HexCharacters[value & 0x0f] + hex;
@@ -96,7 +91,7 @@ function hexlify(value, options) {
     }
     if (bytes_1.isHexString(value)) {
         if (!options.allowOddLength && value.length % 2) {
-            errors.throwArgumentError("hex data is odd-length", "value", value);
+            logger.throwArgumentError("hex data is odd-length", "value", value);
         }
         return value.toLowerCase();
     }
@@ -113,6 +108,6 @@ function hexlify(value, options) {
         }
         return result;
     }
-    return errors.throwArgumentError("invalid hexlify value", "value", value);
+    return logger.throwArgumentError("invalid hexlify value", "value", value);
 }
 exports.hexlify = hexlify;

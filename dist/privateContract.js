@@ -23,23 +23,18 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 var address_1 = require("@ethersproject/address");
 var bytes_1 = require("@ethersproject/bytes");
 var bignumber_1 = require("@ethersproject/bignumber");
 var constants_1 = require("@ethersproject/constants");
 var contracts_1 = require("@ethersproject/contracts");
-var errors = __importStar(require("@ethersproject/errors"));
 var keccak256_1 = require("@ethersproject/keccak256");
 var properties_1 = require("@ethersproject/properties");
 var rlp_1 = require("@ethersproject/rlp");
+var logger_1 = require("@ethersproject/logger");
+var _version_1 = require("./_version");
+var logger = new logger_1.Logger(_version_1.version);
 // FIXME a workaround until this Ethers issue has been solved https://github.com/ethers-io/ethers.js/issues/577
 var contracts_2 = require("./contracts");
 var privateTransaction_1 = require("./privateTransaction");
@@ -84,15 +79,15 @@ function runPrivateMethod(contract, functionName, options) {
             // Check for unexpected keys (e.g. using "gas" instead of "gasLimit")
             for (var key in tx) {
                 if (!privateTransaction_1.allowedTransactionKeys[key]) {
-                    errors.throwError(("unknown transaction override - " + key), "overrides", tx);
+                    logger.throwError(("unknown transaction override - " + key), "overrides", tx);
                 }
             }
         }
-        errors.checkArgumentCount(params.length, method.inputs.length, "passed to contract");
+        logger.checkArgumentCount(params.length, method.inputs.length, "passed to contract");
         // Check overrides make sense
         ["data", "to", 'privateFrom', 'privateFor', 'restriction'].forEach(function (key) {
             if (tx[key] != null) {
-                errors.throwError("cannot override " + key, errors.UNSUPPORTED_OPERATION, { operation: key });
+                logger.throwError("cannot override " + key, logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: key });
             }
         });
         // FIXME until Pantheon supports priv_getCode, we can't check if the contract has been mined
@@ -116,7 +111,7 @@ function runPrivateMethod(contract, functionName, options) {
                     return Promise.resolve(constants_1.Zero);
                 }
                 if (!contract.provider && !contract.signer) {
-                    errors.throwError("call (constant functions) require a provider or signer", errors.UNSUPPORTED_OPERATION, { operation: "call" });
+                    logger.throwError("call (constant functions) require a provider or signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "call" });
                 }
                 // Check overrides make sense
                 ["gasLimit", "gasPrice", "value"].forEach(function (key) {
@@ -129,7 +124,7 @@ function runPrivateMethod(contract, functionName, options) {
                 }
                 // FIXME remove once Pantheon 1.3 supports an equivalent of eth_call
                 if (!contract.signer) {
-                    errors.throwError("can only call a private transaction by sending a signed transaction", errors.UNSUPPORTED_OPERATION, {
+                    logger.throwError("can only call a private transaction by sending a signed transaction", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                         transaction: tx,
                         operation: "call"
                     });
@@ -137,7 +132,7 @@ function runPrivateMethod(contract, functionName, options) {
                 //return (contract.signer || contract.provider).privateCall(tx).then((value: any) => {
                 return contract.signer.privateCall(tx).then(function (value) {
                     if (value == undefined) {
-                        errors.throwArgumentError('no value returned from private contract call', 'privateCallValue', {
+                        logger.throwArgumentError('no value returned from private contract call', 'privateCallValue', {
                             value: value,
                             functionName: functionName,
                             contractAddress: contract.address,
@@ -152,7 +147,7 @@ function runPrivateMethod(contract, functionName, options) {
                         return result;
                     }
                     catch (error) {
-                        if (error.code === errors.CALL_EXCEPTION) {
+                        if (error.code === logger_1.Logger.errors.CALL_EXCEPTION) {
                             error.address = contract.address;
                             error.args = params;
                             error.transaction = tx;
@@ -164,17 +159,17 @@ function runPrivateMethod(contract, functionName, options) {
             // Only computing the transaction estimate
             if (options.estimate) {
                 if (!contract.provider && !contract.signer) {
-                    errors.throwError("estimate require a provider or signer", errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" });
+                    logger.throwError("estimate require a provider or signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" });
                 }
                 // FIXME restore once Pantheon 1.3 supports an equivalent of eth_estimateGas
-                errors.throwError("can not currently estimate a private transaction", errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" });
+                logger.throwError("can not currently estimate a private transaction", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" });
                 //return (contract.signer || contract.provider).estimateGas(tx);
             }
             if (tx.gasLimit == null && method.gas != null) {
                 tx.gasLimit = bignumber_1.BigNumber.from(method.gas).add(21000);
             }
             if (tx.value != null && !method.payable) {
-                errors.throwError("contract method is not payable", errors.INVALID_ARGUMENT, {
+                logger.throwError("contract method is not payable", logger_1.Logger.errors.INVALID_ARGUMENT, {
                     argument: "sendPrivateTransaction",
                     value: tx,
                     method: method.format()
@@ -184,7 +179,7 @@ function runPrivateMethod(contract, functionName, options) {
                 return properties_1.resolveProperties(tx);
             }
             if (!contract.signer) {
-                errors.throwError("sending a private transaction require a signer", errors.UNSUPPORTED_OPERATION, { operation: "sendPrivateTransaction" });
+                logger.throwError("sending a private transaction require a signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "sendPrivateTransaction" });
             }
             return contract.signer.sendPrivateTransaction(tx).then(function (tx) {
                 var wait = tx.wait.bind(tx);
@@ -273,7 +268,7 @@ var PrivateContractFactory = /** @class */ (function (_super) {
             from = address_1.getAddress(transaction.from);
         }
         catch (error) {
-            errors.throwArgumentError("missing from address", "transaction", transaction);
+            logger.throwArgumentError("missing from address", "transaction", transaction);
         }
         var nonce = bytes_1.stripZeros(bytes_1.arrayify(transaction.nonce));
         // convert from object with privateFrom and privateFor properties to base64 from

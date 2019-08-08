@@ -12,9 +12,12 @@ import {
 } from '@ethersproject/bytes'
 import { Zero } from "@ethersproject/constants"
 import { checkProperties } from "@ethersproject/properties"
-import * as errors from "@ethersproject/errors"
 import { keccak256 } from "@ethersproject/keccak256"
 import { computePublicKey, recoverPublicKey } from "@ethersproject/signing-key"
+import { Logger } from "@ethersproject/logger";
+import { version } from "./_version";
+
+const logger = new Logger(version);
 
 import { getPrivateAddress } from './privateAddress'
 import { arrayify, hexlify } from './bytes'
@@ -211,14 +214,14 @@ export function serialize(transaction: PrivateUnsignedTransaction, signature?: S
 
         // Fixed-width field
         if (fieldInfo.length && value.length !== fieldInfo.length && value.length > 0) {
-            errors.throwError("invalid length for " + fieldInfo.name, errors.INVALID_ARGUMENT, { arg: ("transaction" + fieldInfo.name), value: value });
+            logger.throwArgumentError("invalid length for " + fieldInfo.name, ("transaction:" + fieldInfo.name), value);
         }
 
         // Variable-width (with a maximum)
         if (fieldInfo.maxLength) {
             value = stripZeros(value);
             if (value.length > fieldInfo.maxLength) {
-                errors.throwError("invalid length for " + fieldInfo.name, errors.INVALID_ARGUMENT, { arg: ("transaction" + fieldInfo.name), value: value });
+                logger.throwArgumentError("invalid length for " + fieldInfo.name, ("transaction:" + fieldInfo.name), value );
             }
         }
 
@@ -261,7 +264,7 @@ export function serialize(transaction: PrivateUnsignedTransaction, signature?: S
 export function parse(rawTransaction: BytesLike): PrivateTransaction {
     let transaction = RLP.decode(rawTransaction);
     if (transaction.length !== 12) {
-        errors.throwError(`invalid raw transaction. Has ${transaction.length} fields, expecting ${12}`, errors.INVALID_ARGUMENT, { arg: "rawTransaction", value: rawTransaction });
+        logger.throwArgumentError(`invalid raw transaction. Has ${transaction.length} fields, expecting ${12}`, "rawTransaction", rawTransaction);
     }
 
     let tx: PrivateTransaction = {

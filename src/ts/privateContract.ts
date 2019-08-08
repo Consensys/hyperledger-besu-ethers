@@ -8,10 +8,13 @@ import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
 import { Zero } from "@ethersproject/constants";
 import { ContractFactory, ContractInterface } from '@ethersproject/contracts';
-import * as errors from "@ethersproject/errors";
 import { keccak256 } from "@ethersproject/keccak256";
 import { defineReadOnly, deepCopy, resolveProperties, shallowCopy } from "@ethersproject/properties";
 import { encode } from "@ethersproject/rlp";
+import { Logger } from "@ethersproject/logger";
+import { version } from "./_version";
+
+const logger = new Logger(version);
 
 // FIXME a workaround until this Ethers issue has been solved https://github.com/ethers-io/ethers.js/issues/577
 import { Contract } from "./contracts";
@@ -118,17 +121,17 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
             // Check for unexpected keys (e.g. using "gas" instead of "gasLimit")
             for (let key in tx) {
                 if (!allowedTransactionKeys[key]) {
-                    errors.throwError(("unknown transaction override - " + key), "overrides", tx);
+                    logger.throwError(("unknown transaction override - " + key), "overrides", tx);
                 }
             }
         }
 
-        errors.checkArgumentCount(params.length, method.inputs.length, "passed to contract");
+        logger.checkArgumentCount(params.length, method.inputs.length, "passed to contract");
 
         // Check overrides make sense
         ["data", "to", 'privateFrom', 'privateFor', 'restriction'].forEach(function(key) {
             if (tx[key] != null) {
-                errors.throwError("cannot override " + key, errors.UNSUPPORTED_OPERATION, { operation: key });
+                logger.throwError("cannot override " + key, Logger.errors.UNSUPPORTED_OPERATION, { operation: key });
             }
         });
 
@@ -161,7 +164,7 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
                 }
 
                 if (!contract.provider && !contract.signer) {
-                    errors.throwError("call (constant functions) require a provider or signer", errors.UNSUPPORTED_OPERATION, { operation: "call" })
+                    logger.throwError("call (constant functions) require a provider or signer", Logger.errors.UNSUPPORTED_OPERATION, { operation: "call" })
                 }
 
                 // Check overrides make sense
@@ -175,7 +178,7 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
 
                 // FIXME remove once Pantheon 1.3 supports an equivalent of eth_call
                 if (!contract.signer) {
-                    errors.throwError("can only call a private transaction by sending a signed transaction", errors.UNSUPPORTED_OPERATION, {
+                    logger.throwError("can only call a private transaction by sending a signed transaction", Logger.errors.UNSUPPORTED_OPERATION, {
                         transaction: tx,
                         operation: "call"
                     });
@@ -185,7 +188,7 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
                 return contract.signer.privateCall(tx).then((value: any) => {
 
                     if (value == undefined) {
-                        errors.throwArgumentError('no value returned from private contract call', 'privateCallValue', {
+                        logger.throwArgumentError('no value returned from private contract call', 'privateCallValue', {
                             value,
                             functionName,
                             contractAddress: contract.address,
@@ -201,7 +204,7 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
                         return result;
 
                     } catch (error) {
-                        if (error.code === errors.CALL_EXCEPTION) {
+                        if (error.code === Logger.errors.CALL_EXCEPTION) {
                             error.address = contract.address;
                             error.args = params;
                             error.transaction = tx;
@@ -214,11 +217,11 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
             // Only computing the transaction estimate
             if (options.estimate) {
                 if (!contract.provider && !contract.signer) {
-                    errors.throwError("estimate require a provider or signer", errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" })
+                    logger.throwError("estimate require a provider or signer", Logger.errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" })
                 }
 
                 // FIXME restore once Pantheon 1.3 supports an equivalent of eth_estimateGas
-                errors.throwError("can not currently estimate a private transaction", errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" })
+                logger.throwError("can not currently estimate a private transaction", Logger.errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" })
                 //return (contract.signer || contract.provider).estimateGas(tx);
             }
 
@@ -227,7 +230,7 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
             }
 
             if (tx.value != null && !method.payable) {
-                errors.throwError("contract method is not payable", errors.INVALID_ARGUMENT, {
+                logger.throwError("contract method is not payable", Logger.errors.INVALID_ARGUMENT, {
                     argument: "sendPrivateTransaction",
                     value: tx,
                     method: method.format()
@@ -237,7 +240,7 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
             if (options.transaction) { return resolveProperties(tx); }
 
             if (!contract.signer) {
-                errors.throwError("sending a private transaction require a signer", errors.UNSUPPORTED_OPERATION, { operation: "sendPrivateTransaction" })
+                logger.throwError("sending a private transaction require a signer", Logger.errors.UNSUPPORTED_OPERATION, { operation: "sendPrivateTransaction" })
             }
 
             return contract.signer.sendPrivateTransaction(tx).then((tx: PrivateTransactionResponse) => {
@@ -361,7 +364,7 @@ export class PrivateContractFactory extends ContractFactory {
         try {
             from = getAddress(transaction.from);
         } catch (error) {
-            errors.throwArgumentError("missing from address", "transaction", transaction);
+            logger.throwArgumentError("missing from address", "transaction", transaction);
         }
 
         let nonce = stripZeros(arrayify(transaction.nonce));

@@ -7,7 +7,8 @@
   "scripts": {
     "buildSol": "cd ./scripts && ./buildSol.sh",
     "build": "tsc --build ./tsconfig.json",
-    "clean": "tsc --build --clean ./tsconfig.json"
+    "clean": "tsc --build --clean ./tsconfig.json",
+    "test": "jest --detectOpenHandles --forceExit --runInBand"
   },
   "repository": {
     "type": "git",
@@ -23,7 +24,9 @@
     "privacy",
     "privacy group",
     "Clique",
-    "IBFT"
+    "IBFT",
+    "JavaScript",
+    "library"
   ],
   "author": "Nick Addison",
   "license": "MIT",
@@ -32,7 +35,7 @@
   },
   "homepage": "https://github.com/naddison36/pantheon-ethers#readme",
   "dependencies": {
-    "ethers": "5.0.0-beta.148"
+    "ethers": "5.0.0-beta.153"
   },
   "devDependencies": {
     "@types/jest": "^24.0.17",

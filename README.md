@@ -24,6 +24,10 @@ JSON-RPC APIs.
 - [Pantheon](#pantheon)
   * [Web3.js](#web3js)
 - [Ethers.js](#ethersjs)
+- [Development](#development)
+  * [Build](#build)
+  * [Tests](#test)
+  * [Publish](#publish)
 
 # Disclaimer
 
@@ -260,31 +264,7 @@ console.log(peers)
      { localAddress: '172.20.0.10:34662',
        remoteAddress: '172.20.0.8:30303' },
     port: '0x765f',
-    id: '0x0cd6125df42a7d90b0e4a509c9ef54d7791b71b9f08b5e9e9d4d52ff8441bfcdeda61cd1f975db9fdd71f43248baa7d204d316ff36794f072fd66505b272261a' },
-  { version: '0x5',
-    name: 'pantheon/v1.2.1-dev-09c1da96/linux-x86_64/oracle_openjdk-java-11',
-    caps: [ 'eth/62', 'eth/63' ],
-    network:
-     { localAddress: '172.20.0.10:40352',
-       remoteAddress: '172.20.0.9:30303' },
-    port: '0x765f',
-    id: '0xaf80b90d25145da28c583359beb47b21796b2fe1a23c1511e443e7a64dfdb27d7434c380f0aa4c500e220aa1a9d068514b1ff4d5019e624e7ba1efe82b340a59' },
-  { version: '0x5',
-    name: 'pantheon/v1.2.1-dev-09c1da96/linux-x86_64/oracle_openjdk-java-11',
-    caps: [ 'eth/62', 'eth/63' ],
-    network:
-     { localAddress: '172.20.0.10:50894',
-       remoteAddress: '172.20.0.6:30303' },
-    port: '0x765f',
-    id: '0x0cdc1cd03bee518d60b94f50fe53ba1722c9693011d1a39cbbda06e091d3993746f29b17c957104ad26246da757a7bed3cf7c59a41dccbf2234c86c68439827b' },
-  { version: '0x5',
-    name: 'pantheon/v1.2.1-dev-09c1da96/linux-x86_64/oracle_openjdk-java-11',
-    caps: [ 'eth/62', 'eth/63' ],
-    network:
-     { localAddress: '172.20.0.10:59336',
-       remoteAddress: '172.20.0.7:30303' },
-    port: '0x765f',
-    id: '0xce7edc292d7b747fab2f23584bbafaffde5c8ff17cf689969614441e0527b90015ea9fee96aed6d9c0fc2fbe0bd1883dee223b3200246ff1e21976bdbc9a0fc8' } ]
+    id: '0x0cd6125df42a7d90b0e4a509c9ef54d7791b71b9f08b5e9e9d4d52ff8441bfcdeda61cd1f975db9fdd71f43248baa7d204d316ff36794f072fd66505b272261a' } ]
 */
 ```
 
@@ -490,3 +470,51 @@ Ethers.js links
 * [Version 4 Documentation](https://docs.ethers.io/ethers.js/)
 * [Version 5 code on branch ethers-v5-beta](https://github.com/ethers-io/ethers.js/tree/ethers-v5-beta)
 * [Ethers Gitter](https://gitter.im/ethers-io/Lobby)
+
+# Development
+
+The following is only required if you are contributing to the develop of this library.
+
+## Build
+
+This library has been developed with TypeScript so it needs to be compiled to JavaScript with
+```js
+npm run build
+```
+This uses the [tsconfig.json](./tsconfig.json) TypeScript config file and outputs the JavaScript and type definition files to the [dist](./dist) folder.
+
+### Solidity
+
+The Solidity contracts used in the examples and tests can be compiled with the following.
+```js
+npm run buildSol
+```
+This uses the [scripts/buildSol.sh](./scripts/buildSol.sh) script which uses a locally installed Solidity compiler `solc`. The ABI and evm files from compilation are output to the [dist/abis](./dist/abis) folder.
+
+See the Solidity documentation on how to install the [Solidity binary packages](https://solidity.readthedocs.io/en/latest/installing-solidity.html#binary-packages) on your operating system.
+
+## Test
+
+[Jest](https://jestjs.io/) is used to run the unit tests with the configuration in [jest.config.js](./jest.config.js)
+```bash
+jest --detectOpenHandles --forceExit --runInBand
+```
+
+## Publish
+
+Before publishing a new package to [npm](https://www.npmjs.com/), bump the package version in [package.json](./package.json) and [src/ts/_version.ts](./src/ts/_version.ts).
+
+The following will build, test and publish
+```bash
+npm run build
+npm run test
+npm publish
+```
+
+One way to test a new package before publishing it is to run `npm pack` and then update the examples to point to the created package file. eg `pantheon-ethers-0.0.1.tgz`. In [examples/package.json](./examples/package.json), change the `pantheon-ethers` dependency to point to the created package file. eg `"pantheon-ethers": "../pantheon-ethers-0.0.1.tgz"`.
+You can then run an example.
+```bash
+npm pack
+cd examples
+node privateTransactions.js
+```
