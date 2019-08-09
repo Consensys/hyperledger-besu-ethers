@@ -39,7 +39,6 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.17",
-    "@types/verror": "^1.10.3",
     "ethers-4": "npm:ethers@^4.0.33",
     "jest": "^24.8.0",
     "ts-jest": "^24.0.2",
