@@ -283,12 +283,12 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider implements PrivatePr
     }
 
     createPrivacyGroup(
-        members: string[] | Promise<string[]>,
-        name: string | Promise<string>,
-        description: string | Promise<string>,
+        addresses: string[] | Promise<string[]>,
+        name?: string | Promise<string>,
+        description?: string | Promise<string>,
     ): Promise<string> {
         return this._runPerform("createPrivacyGroup", {
-            members: () => Promise.resolve(members),
+            addresses: () => Promise.resolve(addresses),
             name: () => Promise.resolve(name),
             description: () => Promise.resolve(description),
         });
@@ -353,10 +353,7 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider implements PrivatePr
 
             // Privacy group management
             case "createPrivacyGroup":
-                return this.send("priv_createPrivacyGroup", [
-                    params.members,
-                    params.name,
-                    params.description]);
+                return this.send("priv_createPrivacyGroup", [ params ]);
 
             case "deletePrivacyGroup":
                 return this.send("priv_deletePrivacyGroup", [ params.privacyGroupId ]);

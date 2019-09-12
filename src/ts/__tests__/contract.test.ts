@@ -120,7 +120,8 @@ describe('Deploy contract using contract factory', () => {
         test('get public marker transaction receipt', async() => {
             const txReceipt = await providerNode1.getTransactionReceipt(txHash)
             expect(txReceipt.status).toEqual(1)
-            expect(txReceipt.from).toEqual(node1Address)
+            expect(txReceipt.from).not.toEqual(node1Address)
+            expect(txReceipt.from).toMatch(utils.RegEx.ethereumAddress)
             expect(txReceipt.to).toEqual(preCompiledContract)
             expect(txReceipt.logs).toEqual([])
             expect(txReceipt.contractAddress).toBeNull()

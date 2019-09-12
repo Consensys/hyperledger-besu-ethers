@@ -151,11 +151,12 @@ describe('Privacy Group Management APIs', () => {
                     privacyGroups.push(privacyGroupId)
                 })
 
-            test('delete each groups', () => {
-                privacyGroups.forEach(async (privacyGroupId) => {
+            test('delete each group', async() => {
+                expect.assertions(3)
+                for (const privacyGroupId of privacyGroups) {
                     const result = await providerNode1.deletePrivacyGroup(privacyGroupId)
                     expect(result).toEqual(privacyGroupId)
-                })
+                }
             })
         })
 
@@ -167,7 +168,6 @@ describe('Privacy Group Management APIs', () => {
             ${'invalid node in members'} | ${/Error creating privacy group/} | ${'Test'} | ${'Test desc'} | ${[node2, invalidNode]}
             ${'privateFrom not in members'} | ${/Error creating privacy group/} | ${'Second group'} | ${'Second group with the same members'} | ${[node2, node3]}
             ${'only self in group'} | ${/Error creating privacy group/} | ${'Self'} | ${'Only self in group'} | ${[node3]}
-            ${'no name or description'} | ${/Error creating privacy group/} | ${undefined} | ${undefined} | ${[node1, node2]}
             `('$reason to fail with $errorRegEx when name $name, description $description and members $members',
 
                 async ({privateFrom, errorRegEx, name, description, members}) => {
@@ -181,6 +181,35 @@ describe('Privacy Group Management APIs', () => {
                         expect(err.message).toMatch(errorRegEx)
                     }
                 })
+        })
+    })
+
+    describe("create privacy group with", () => {
+
+        const privacyGroups: string[] = []
+
+        test.each`
+        reason | addresses | name | description
+        ${'undefined name and description'} | ${[node2, node3]}  | ${undefined}  | ${undefined}
+        ${'null name and description'} | ${[node2, node3]}  | ${null}  | ${null}
+        ${'empty name and description'} | ${[node2, node3]}  | ${''}  | ${''}
+        ${'number name and description'} | ${[node2, node3]}  | ${1}  | ${2}
+      `('$reason when addresses $addresses, name $name and description $description',
+          async ({addresses, name, description}) => {
+              const privacyGroupId = await providerNode3.createPrivacyGroup(
+                addresses, name, description)
+              expect(privacyGroupId).toMatch(utils.RegEx.base64)
+              expect(privacyGroupId).toHaveLength(44)
+
+              privacyGroups.push(privacyGroupId)
+          })
+
+        test('delete each group', async() => {
+            expect.assertions(4)
+            for (const privacyGroupId of privacyGroups) {
+                const result = await providerNode3.deletePrivacyGroup(privacyGroupId)
+                expect(result).toEqual(privacyGroupId)
+            }
         })
     })
 })

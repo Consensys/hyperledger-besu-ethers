@@ -220,7 +220,7 @@ describe('Pantheon Ethers', () => {
 
                 test('node 3 signing address', async () => {
                     const result = await providerNode3.getTransactionCount(node3Address)
-                    expect(result).toEqual(node3Nonce + 1)
+                    expect(result).toEqual(node3Nonce)
                 })
 
                 test('node 2', async () => {
@@ -283,27 +283,34 @@ describe('Pantheon Ethers', () => {
                     const txReceipt = await providerNode3.getTransactionReceipt(publicTxHash)
                     expect(txReceipt.status).toEqual(1)
                     expect(txReceipt.contractAddress).toBeNull()
-                    expect(txReceipt.from).toEqual(node3Address)
+                    expect(txReceipt.from).not.toEqual(node3Address)
+                    expect(txReceipt.from).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceipt.to).toEqual(preCompiledContractAddress)
                     expect(txReceipt.logs).toEqual([])
+                    expect(txReceipt.transactionHash).toEqual(publicTxHash)
                 })
 
                 test('node 2', async() => {
                     const txReceipt = await providerNode2.getTransactionReceipt(publicTxHash)
+                    expect(txReceipt).toBeDefined()
                     expect(txReceipt.status).toEqual(1)
                     expect(txReceipt.contractAddress).toBeNull()
-                    expect(txReceipt.from).toEqual(node3Address)
+                    expect(txReceipt.from).not.toEqual(node3Address)
+                    expect(txReceipt.from).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceipt.to).toEqual(preCompiledContractAddress)
                     expect(txReceipt.logs).toEqual([])
+                    expect(txReceipt.transactionHash).toEqual(publicTxHash)
                 })
 
                 test('node 1', async() => {
                     const txReceipt = await providerNode1.getTransactionReceipt(publicTxHash)
                     expect(txReceipt.status).toEqual(1)
                     expect(txReceipt.contractAddress).toBeNull()
-                    expect(txReceipt.from).toEqual(node3Address)
+                    expect(txReceipt.from).not.toEqual(node3Address)
+                    expect(txReceipt.from).toMatch(utils.RegEx.ethereumAddress)
                     expect(txReceipt.to).toEqual(preCompiledContractAddress)
                     expect(txReceipt.logs).toEqual([])
+                    expect(txReceipt.transactionHash).toEqual(publicTxHash)
                 })
             })
 
@@ -315,7 +322,8 @@ describe('Pantheon Ethers', () => {
 
                     expect(tx.hash).toEqual(publicTxHash)
                     expect(tx.to).toMatch(utils.RegEx.ethereumAddress)
-                    expect(tx.from).toEqual(node3Address)
+                    expect(tx.from).not.toEqual(node3Address)
+                    expect(tx.from).toMatch(utils.RegEx.ethereumAddress)
 
                     // FIXME privateTxHash from transaction parse is not correct
                     // expect(tx.data).toEqual(privateTxHash)
@@ -325,7 +333,8 @@ describe('Pantheon Ethers', () => {
                     const tx = await providerNode2.getTransaction(publicTxHash)
                     expect(tx.hash).toEqual(publicTxHash)
                     expect(tx.to).toMatch(utils.RegEx.ethereumAddress)
-                    expect(tx.from).toEqual(node3Address)
+                    expect(tx.from).not.toEqual(node3Address)
+                    expect(tx.from).toMatch(utils.RegEx.ethereumAddress)
                     // FIXME privateTxHash from transaction parse is not correct
                     // expect(tx.data).toEqual(privateTxHash)
                 })
@@ -334,7 +343,8 @@ describe('Pantheon Ethers', () => {
                     const tx = await providerNode1.getTransaction(publicTxHash)
                     expect(tx.hash).toEqual(publicTxHash)
                     expect(tx.to).toMatch(utils.RegEx.ethereumAddress)
-                    expect(tx.from).toEqual(node3Address)
+                    expect(tx.from).not.toEqual(node3Address)
+                    expect(tx.from).toMatch(utils.RegEx.ethereumAddress)
                     // FIXME privateTxHash from transaction parse is not correct
                     // expect(tx.data).toEqual(privateTxHash)
                 })
@@ -367,7 +377,8 @@ describe('Pantheon Ethers', () => {
                     expect(tx.to).toBeNull()
                     expect(tx.data).toEqual(deployData)
                     expect(tx.privateFrom).toEqual(node3)
-                    expect(tx.privateFor).toEqual(testPrivacyGroupId)
+                    expect(tx.privateFor).toEqual(null)
+                    // expect(tx.privacyGroupId).toEqual(testPrivacyGroupId)
                     expect(tx.restriction).toEqual('restricted')
 
                     // Test BigNumber values
@@ -390,7 +401,8 @@ describe('Pantheon Ethers', () => {
                     expect(tx.to).toBeNull()
                     expect(tx.data).toEqual(deployData)
                     expect(tx.privateFrom).toEqual(node3)
-                    expect(tx.privateFor).toEqual(testPrivacyGroupId)
+                    expect(tx.privateFor).toEqual(null)
+                    // expect(tx.privacyGroupId).toEqual(testPrivacyGroupId)
                     expect(tx.restriction).toEqual('restricted')
 
                     // Test BigNumber values
@@ -565,11 +577,15 @@ describe('Pantheon Ethers', () => {
                 test('get private transaction by hash', async () => {
                     const txNode1 = await providerNode1.getPrivateTransaction(publicTxHash)
                     expect(txNode1.privateFrom).toEqual(txOptions.privateFrom)
+                    // TODO this will fail if privacyGroupId is used in the privateFrom
                     expect(txNode1.privateFor).toEqual(txOptions.privateFor)
+                    // TODO this will work when privacyGroupId is included in the transaction
+                    // expect(txNode1.privacyGroupId).toEqual(txOptions.privateFor)
 
                     const txNode2 = await providerNode2.getPrivateTransaction(publicTxHash)
                     expect(txNode2.privateFrom).toEqual(txOptions.privateFrom)
                     expect(txNode2.privateFor).toEqual(txOptions.privateFor)
+                    // expect(txNode1.privacyGroupId).toEqual(txOptions.privateFor)
 
                     const txNode3 = await providerNode3.getPrivateTransaction(publicTxHash)
                     expect(txNode3).toEqual(null)

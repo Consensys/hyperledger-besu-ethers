@@ -66,7 +66,7 @@ export interface PrivateProvider extends Provider {
     getPrivateTransaction(transactionHash: string): Promise<PrivateTransactionResponse>
 
     // Privacy Group functions
-    createPrivacyGroup(members: string[] | Promise<string[]>, name?: string | Promise<string>, description?: string | Promise<string>): Promise<string>,
+    createPrivacyGroup(addresses: string[] | Promise<string[]>, name?: string | Promise<string>, description?: string | Promise<string>): Promise<string>,
     deletePrivacyGroup(privacyGroupId: string | Promise<string>): Promise<string>,
     findPrivacyGroup(members: string[] | Promise<string[]>): Promise<FindPrivacyGroup[]>,
     getPrivacyPrecompileAddress(): Promise<string>
@@ -181,7 +181,6 @@ There are a number of limitations in the Pantheon 1.2 release that is being addr
 * Private transactions default to 10 million gas limit as there is no equivalent of [eth_estimateGas](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_estimategas) to estimate the gas of a private transaction. This gas limit can be overridden via Ethers.js' optional override object.
 * The client must wait until a contract has been mined before calling a contract method. Ethers.js supports calling function methods before a deployed contract has been mined by polling [eth_getCode](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_getcode). There is no equivalent method for private transactions.
 * You can't get events from private transactions as there is no equivalent of [getLogs](https://docs.pantheon.pegasys.tech/en/latest/Reference/Pantheon-API-Methods/#eth_getlogs) for private transactions.
-* The public marker transactions leak who sent the private transaction as the public transaction is signed by the node. Ideally, each public transaction would be signed by a randomly generated account.
 * You can not add/remove nodes to/from a privacy group.
 
 # Usage - Pantheon APIs
@@ -485,6 +484,11 @@ To tail the logs of a specific docker service. eg node 1
 docker-compose logs -f node1 orion1
 ```
 
+To list the cpu and memory used by each container
+```bash
+docker ps -q | xargs  docker stats --no-stream
+```
+
 To bash into the to the Pantheon image used by the quickstart
 ```bash
 docker run -it --entrypoint=sh quickstart/pantheon:develop-privacy
@@ -495,10 +499,12 @@ To bash into a running docker-compose service. eg node1
 docker-compose exec node1 sh
 ```
 
-To pull the latest Pantheon docker image from the `develop` branch and build a `quickstart/pantheon:develop-privacy` image
+To pull the latest Pantheon and Orion docker images from the `develop` branch and build a `quickstart/pantheon:develop-privacy` image
 ```bash
+cd privacy
 docker image pull pegasyseng/pantheon:develop
 docker-compose build bootnode
+docker-compose build --pull orion1
 ```
 
 The Pantheon tags for the Docker images can be found at https://hub.docker.com/r/pegasyseng/pantheon/tags

@@ -1,6 +1,6 @@
 {
   "name": "pantheon-ethers",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "JavaScript library that extends Ethers.js with Pantheon APIs including private transactions, administration, Clique, IBFT and Txpool",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/naddison36/pantheon-ethers#readme",
   "dependencies": {
-    "ethers": "5.0.0-beta.153"
+    "ethers": "5.0.0-beta.157"
   },
   "devDependencies": {
     "@types/jest": "^24.0.17",
