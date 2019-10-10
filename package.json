@@ -1,6 +1,6 @@
 {
-  "name": "pantheon-ethers",
-  "version": "0.0.3",
+  "name": "hyperledger-besu-ethers",
+  "version": "0.0.4",
   "description": "JavaScript library that extends Ethers.js with Pantheon APIs including private transactions, administration, Clique, IBFT and Txpool",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,10 +12,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/naddison36/pantheon-ethers.git"
+    "url": "git+https://github.com/naddison36/hyperledger-besu-ethers.git"
   },
   "keywords": [
-    "Pantheon",
+    "Hyperledger",
+    "Besu",
     "PegaSys",
     "Ethereum",
     "Enterprise Ethereum Alliance",
@@ -31,9 +32,9 @@
   "author": "Nick Addison",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/naddison36/pantheon-ethers/issues"
+    "url": "https://github.com/naddison36/hyperledger-besu-ethers/issues"
   },
-  "homepage": "https://github.com/naddison36/pantheon-ethers#readme",
+  "homepage": "https://github.com/naddison36/hyperledger-besu-ethers#readme",
   "dependencies": {
     "ethers": "5.0.0-beta.157"
   },

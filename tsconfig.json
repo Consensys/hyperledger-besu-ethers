@@ -30,6 +30,7 @@
     "rootDir": "./src/ts"
   },
   "exclude": [
-    "**/dist/*"
+    "**/dist/*",
+    "**/__tests__"
   ]
 }

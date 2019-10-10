@@ -14,128 +14,128 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var privateProvider_1 = require("./privateProvider");
-var PantheonProvider = /** @class */ (function (_super) {
-    __extends(PantheonProvider, _super);
-    function PantheonProvider() {
+var BesuProvider = /** @class */ (function (_super) {
+    __extends(BesuProvider, _super);
+    function BesuProvider() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    // Pantheon administration
-    PantheonProvider.prototype.addPeer = function (enodeUrl) {
+    // Besu administration
+    BesuProvider.prototype.addPeer = function (enodeUrl) {
         return this._runPerform("addPeer", {
             enodeUrl: function () { return Promise.resolve(enodeUrl); }
         });
     };
-    PantheonProvider.prototype.changeLogLevel = function (level) {
+    BesuProvider.prototype.changeLogLevel = function (level) {
         return this._runPerform("changeLogLevel", {
             level: function () { return Promise.resolve(level); }
         });
     };
-    PantheonProvider.prototype.getNodeInfo = function () {
+    BesuProvider.prototype.getNodeInfo = function () {
         return this._runPerform("getNodeInfo", {});
     };
-    PantheonProvider.prototype.getPeers = function () {
+    BesuProvider.prototype.getPeers = function () {
         return this._runPerform("getPeers", {});
     };
-    PantheonProvider.prototype.removePeer = function (enodeUrl) {
+    BesuProvider.prototype.removePeer = function (enodeUrl) {
         return this._runPerform("removePeer", {
             enodeUrl: function () { return Promise.resolve(enodeUrl); }
         });
     };
     // Miscellaneous
-    PantheonProvider.prototype.getModuleVersions = function () {
+    BesuProvider.prototype.getModuleVersions = function () {
         return this._runPerform("getModuleVersions", {});
     };
     // Txpool
-    PantheonProvider.prototype.getPantheonStatistics = function () {
-        return this._runPerform("getPantheonStatistics", {});
+    BesuProvider.prototype.getBesuStatistics = function () {
+        return this._runPerform("getBesuStatistics", {});
     };
-    PantheonProvider.prototype.getPantheonTransactions = function () {
-        return this._runPerform("getPantheonTransactions", {});
+    BesuProvider.prototype.getBesuTransactions = function () {
+        return this._runPerform("getBesuTransactions", {});
     };
     // Clique
-    PantheonProvider.prototype.cliqueDiscard = function (signerAddress) {
+    BesuProvider.prototype.cliqueDiscard = function (signerAddress) {
         return this._runPerform("cliqueDiscard", {
             signerAddress: function () { return Promise.resolve(signerAddress); }
         });
     };
-    PantheonProvider.prototype.cliqueGetSigners = function (blockParameter) {
+    BesuProvider.prototype.cliqueGetSigners = function (blockParameter) {
         return this._runPerform("cliqueGetSigners", {
             blockParameter: function () { return Promise.resolve(blockParameter); }
         });
     };
-    PantheonProvider.prototype.cliqueGetSignersAtHash = function (hash) {
+    BesuProvider.prototype.cliqueGetSignersAtHash = function (hash) {
         return this._runPerform("cliqueGetSigners", {
             hash: function () { return Promise.resolve(hash); }
         });
     };
-    PantheonProvider.prototype.cliquePropose = function (signerAddress, add) {
+    BesuProvider.prototype.cliquePropose = function (signerAddress, add) {
         return this._runPerform("cliquePropose", {
             signerAddress: function () { return Promise.resolve(signerAddress); },
             add: function () { return Promise.resolve(add); },
         });
     };
-    PantheonProvider.prototype.cliqueGetProposals = function () {
+    BesuProvider.prototype.cliqueGetProposals = function () {
         return this._runPerform("cliqueGetProposals", {});
     };
     // IBFT
-    PantheonProvider.prototype.ibftDiscardValidatorVote = function (validatorAddress) {
+    BesuProvider.prototype.ibftDiscardValidatorVote = function (validatorAddress) {
         return this._runPerform("ibftDiscardValidatorVote", {
             validatorAddress: function () { return Promise.resolve(validatorAddress); }
         });
     };
-    PantheonProvider.prototype.ibftGetPendingVotes = function () {
+    BesuProvider.prototype.ibftGetPendingVotes = function () {
         return this._runPerform("ibftGetPendingVotes", {});
     };
-    PantheonProvider.prototype.ibftGetValidatorsByBlockHash = function (hash) {
+    BesuProvider.prototype.ibftGetValidatorsByBlockHash = function (hash) {
         return this._runPerform("ibftGetValidatorsByBlockHash", {
             hash: function () { return Promise.resolve(hash); }
         });
     };
-    PantheonProvider.prototype.ibftGetValidatorsByBlockNumber = function (blockParameter) {
+    BesuProvider.prototype.ibftGetValidatorsByBlockNumber = function (blockParameter) {
         return this._runPerform("ibftGetValidatorsByBlockNumber", {
             blockParameter: function () { return Promise.resolve(blockParameter); }
         });
     };
-    PantheonProvider.prototype.ibftProposeValidatorVote = function (validatorAddress, add) {
+    BesuProvider.prototype.ibftProposeValidatorVote = function (validatorAddress, add) {
         return this._runPerform("ibftProposeValidatorVote", {
             validatorAddress: function () { return Promise.resolve(validatorAddress); },
             add: function () { return Promise.resolve(add); },
         });
     };
     // Permissioning
-    PantheonProvider.prototype.addAccountsToWhitelist = function (accounts) {
+    BesuProvider.prototype.addAccountsToWhitelist = function (accounts) {
         return this._runPerform("addAccountsToWhitelist", {
             accounts: function () { return Promise.resolve(accounts); },
         });
     };
-    PantheonProvider.prototype.getAccountsWhitelist = function () {
+    BesuProvider.prototype.getAccountsWhitelist = function () {
         return this._runPerform("getAccountsWhitelist", {});
     };
-    PantheonProvider.prototype.removeAccountsFromWhitelist = function (accounts) {
+    BesuProvider.prototype.removeAccountsFromWhitelist = function (accounts) {
         return this._runPerform("removeAccountsFromWhitelist", {
             accounts: function () { return Promise.resolve(accounts); },
         });
     };
-    PantheonProvider.prototype.addNodesToWhitelist = function (nodes) {
+    BesuProvider.prototype.addNodesToWhitelist = function (nodes) {
         return this._runPerform("addNodesToWhitelist", {
             nodes: function () { return Promise.resolve(nodes); },
         });
     };
-    PantheonProvider.prototype.getNodesWhitelist = function () {
+    BesuProvider.prototype.getNodesWhitelist = function () {
         return this._runPerform("getNodesWhitelist", {});
     };
-    PantheonProvider.prototype.removeNodesFromWhitelist = function (nodes) {
+    BesuProvider.prototype.removeNodesFromWhitelist = function (nodes) {
         return this._runPerform("removeNodesFromWhitelist", {
             nodes: function () { return Promise.resolve(nodes); },
         });
     };
-    PantheonProvider.prototype.reloadPermissionsFromFile = function () {
+    BesuProvider.prototype.reloadPermissionsFromFile = function () {
         return this._runPerform("reloadPermissionsFromFile", {});
     };
-    // Override the base perform method to add the pantheon API calls
-    PantheonProvider.prototype.perform = function (method, params) {
+    // Override the base perform method to add the Besu API calls
+    BesuProvider.prototype.perform = function (method, params) {
         switch (method) {
-            // Pantheon administration
+            // administration
             case "addPeer":
                 return this.send("admin_addPeer", [
                     params.enodeUrl,
@@ -156,10 +156,10 @@ var PantheonProvider = /** @class */ (function (_super) {
             case "getModuleVersions":
                 return this.send("rpc_modules", []);
             // Txpool
-            case "getPantheonStatistics":
-                return this.send("txpool_pantheonStatistics", []);
-            case "getPantheonTransactions":
-                return this.send("txpool_pantheonTransactions", []);
+            case "getBesuStatistics":
+                return this.send("txpool_besuStatistics", []);
+            case "getBesuTransactions":
+                return this.send("txpool_besuTransactions", []);
             // Clique
             case "cliqueDiscard":
                 return this.send("clique_discard", [
@@ -219,6 +219,6 @@ var PantheonProvider = /** @class */ (function (_super) {
                 return _super.prototype.perform.call(this, method, params);
         }
     };
-    return PantheonProvider;
+    return BesuProvider;
 }(privateProvider_1.PrivateJsonRpcProvider));
-exports.PantheonProvider = PantheonProvider;
+exports.BesuProvider = BesuProvider;

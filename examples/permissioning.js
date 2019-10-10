@@ -1,5 +1,5 @@
-const providers = require('pantheon-ethers').providers
-const provider = new providers.PantheonProvider("http://localhost:20000");
+const providers = require('hyperledger-besu-ethers').providers
+const provider = new providers.BesuProvider("http://localhost:20000");
 
 async function example() {
 

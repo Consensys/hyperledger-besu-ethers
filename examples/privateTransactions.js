@@ -1,16 +1,16 @@
 // This example works against the Private Network with Privacy Enabled Quickstart Tutorial
-// https://docs.pantheon.pegasys.tech/en/latest/Privacy/Privacy-Quickstart/
+// https://besu.hyperledger.org/en/latest/Tutorials/Quickstarts/Privacy-Quickstart/
 // Node.js 8 or above is required as async/await is used.
 // Run the following to build the simple storage contract: npm run buildSol
 
 const readFileSync = require("fs").readFileSync
 
-const PanEthers = require('pantheon-ethers')
+const BesuEthers = require('hyperledger-besu-ethers')
 
 // Create providers pointing to each of the nodes in the Privacy Enabled Quickstart Tutorial
-const providerNode1 = new PanEthers.providers.PrivateJsonRpcProvider("http://localhost:20000");
-const providerNode2 = new PanEthers.providers.PrivateJsonRpcProvider("http://localhost:20002");
-const providerNode3 = new PanEthers.providers.PrivateJsonRpcProvider("http://localhost:20004");
+const providerNode1 = new BesuEthers.providers.PrivateJsonRpcProvider("http://localhost:20000");
+const providerNode2 = new BesuEthers.providers.PrivateJsonRpcProvider("http://localhost:20002");
+const providerNode3 = new BesuEthers.providers.PrivateJsonRpcProvider("http://localhost:20004");
 
 // The Orion address from the Privacy Enabled Quickstart Tutorial
 const node1 = 'A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo='
@@ -35,13 +35,13 @@ async function example() {
   // This is like an Ethers Wallet but will have extra private functions like sendPrivateTransaction
   // The wallet has a provider pointing to node 1
   const privateKey = '0x0000000000000000000000000000000000000000000000000000000000000002'
-  const walletNode1 = new PanEthers.PrivateWallet(privateKey, providerNode1)
+  const walletNode1 = new BesuEthers.PrivateWallet(privateKey, providerNode1)
   console.log(`Address of node 1 wallet ${walletNode1.address}`)
   // Address of node 1 wallet 0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF
 
   // PrivateContractFactory is like Ethers ContractFactory except it
   // creates PrivateContract classes instead of Ethers Contract classes
-  const factory = new PanEthers.PrivateContractFactory(abi, bytecode, walletNode1);
+  const factory = new BesuEthers.PrivateContractFactory(abi, bytecode, walletNode1);
 
   // As we have already created a privacy group, we can set the privacy group Id in the privateFrom
   // Alternatively, the privateFrom can be an array of Orion addresses. eg [node1, node2]
@@ -60,10 +60,10 @@ async function example() {
 
   // Create a wallet with a provider pointing to node 2
   // I've used the same private key but it could be a different key
-  const walletNode2 = new PanEthers.PrivateWallet(privateKey, providerNode2)
+  const walletNode2 = new BesuEthers.PrivateWallet(privateKey, providerNode2)
 
   // Node 2 connects to the previously deployed contract
-  const contractNode2 = new PanEthers.PrivateContract(contractNode1.address, {privateFor: privacyGroupId}, abi, walletNode2)
+  const contractNode2 = new BesuEthers.PrivateContract(contractNode1.address, {privateFor: privacyGroupId}, abi, walletNode2)
 
   // Send a transaction to call the set function on the SimpleStorage contract
   let tx = await contractNode2.set(666)
@@ -80,8 +80,8 @@ async function example() {
   // Read value 666 from node 1
 
   // Create a wallet with a provider pointing to node 3 which is not part of the privacy group
-  const walletNode3 = new PanEthers.PrivateWallet(privateKey, providerNode3)
-  const contractNode3 = new PanEthers.PrivateContract(contractNode1.address, {privateFor: privacyGroupId}, abi, walletNode3)
+  const walletNode3 = new BesuEthers.PrivateWallet(privateKey, providerNode3)
+  const contractNode3 = new BesuEthers.PrivateContract(contractNode1.address, {privateFor: privacyGroupId}, abi, walletNode3)
 
   // Try and read storage value from node 3 which is not part of the privacy group
   try {

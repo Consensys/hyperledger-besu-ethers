@@ -346,7 +346,7 @@ export class PrivateJsonRpcProvider extends JsonRpcProvider implements PrivatePr
                 return this.send("priv_getTransactionCount", [ getLowerCase(params.address), params.privacyGroupId ]);
 
             case "getPrivateTransactionReceipt":
-                return this.send("eea_getTransactionReceipt", [ params.transactionHash ]);
+                return this.send("priv_getTransactionReceipt", [ params.transactionHash ]);
 
             case "getPrivateTransaction":
                 return this.send("priv_getPrivateTransaction", [ params.transactionHash ]);

@@ -2,14 +2,15 @@ import * as ethers from 'ethers';
 export * from 'ethers';
 export * from './privateContract';
 import * as privateProviders from './privateProvider';
-import * as pantheonProviders from './pantheonProvider';
+import * as besuProviders from './besuProvider';
 export declare const providers: {
-    PantheonProvider: typeof pantheonProviders.PantheonProvider;
+    BesuProvider: typeof besuProviders.BesuProvider;
     PrivateJsonRpcProvider: typeof privateProviders.PrivateJsonRpcProvider;
     Provider: typeof ethers.ethers.providers.Provider;
     BaseProvider: typeof ethers.ethers.providers.BaseProvider;
     FallbackProvider: typeof ethers.ethers.providers.FallbackProvider;
     AlchemyProvider: typeof ethers.ethers.providers.AlchemyProvider;
+    CloudflareProvider: typeof ethers.ethers.providers.CloudflareProvider;
     EtherscanProvider: typeof ethers.ethers.providers.EtherscanProvider;
     InfuraProvider: typeof ethers.ethers.providers.InfuraProvider;
     JsonRpcProvider: typeof ethers.ethers.providers.JsonRpcProvider;

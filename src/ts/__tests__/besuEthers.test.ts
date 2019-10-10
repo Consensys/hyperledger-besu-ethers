@@ -1,5 +1,5 @@
 
-import * as PantheonEthers from '../index'
+import * as BesuEthers from '../index'
 import {PrivateWallet, generatePrivacyGroup, providers, PrivateTransactionRequest, PrivacyGroupOptions, utils} from '../index'
 
 jest.setTimeout(15000)
@@ -28,7 +28,7 @@ const node2 = 'Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs='
 const node3 = 'k2zXEin4Ip/qBGlRkJejnGWdP9cjkK+DAvKNW31L2C8='
 const node3Address = '0xf17f52151EbEF6C7334FAD080c5704D77216b732'
 
-describe('Pantheon Ethers', () => {
+describe('Ethers', () => {
 
     let node1EnodeUrl: string
 
@@ -38,12 +38,12 @@ describe('Pantheon Ethers', () => {
     })
 
     test('Check overridden functions have been exported', ()=> {
-        expect(PantheonEthers).toBeDefined()
-        expect(PantheonEthers.utils).toBeDefined()
-        expect(PantheonEthers.utils.serialize).toBeInstanceOf(Function)
-        expect(PantheonEthers.utils.encode).toBeInstanceOf(Function)
-        expect(PantheonEthers.providers.PrivateJsonRpcProvider).toBeInstanceOf(Function)
-        expect(PantheonEthers.providers.PantheonProvider).toBeInstanceOf(Function)
+        expect(BesuEthers).toBeDefined()
+        expect(BesuEthers.utils).toBeDefined()
+        expect(BesuEthers.utils.serialize).toBeInstanceOf(Function)
+        expect(BesuEthers.utils.encode).toBeInstanceOf(Function)
+        expect(BesuEthers.providers.PrivateJsonRpcProvider).toBeInstanceOf(Function)
+        expect(BesuEthers.providers.BesuProvider).toBeInstanceOf(Function)
     })
 
     test('signed transaction matches EEA client', async() => {

@@ -25,13 +25,13 @@ export interface PeerInfo {
     id: string,
 }
 
-export interface PantheonStatistics {
+export interface BesuStatistics {
     maxSize: number,
     localCount: number,
     remoteCount: number,
 }
 
-export interface PantheonTransaction {
+export interface BesuTransaction {
     hash: string,
     isReceivedFromLocalSource: boolean,
     addedToPoolAt: string,
@@ -40,9 +40,9 @@ export interface PantheonTransaction {
 export type BlockParameter = number | 'earliest' | 'latest' | 'pending'
 export type PermissioningResult = 'Success' | 'error'
 
-export class PantheonProvider extends PrivateJsonRpcProvider {
+export class BesuProvider extends PrivateJsonRpcProvider {
 
-    // Pantheon administration
+    // Besu administration
     addPeer(
         enodeUrl: string | Promise<string>,
     ): Promise<boolean> {
@@ -81,12 +81,12 @@ export class PantheonProvider extends PrivateJsonRpcProvider {
     }
 
     // Txpool
-    getPantheonStatistics(): Promise<PantheonStatistics> {
-        return this._runPerform("getPantheonStatistics", {});
+    getBesuStatistics(): Promise<BesuStatistics> {
+        return this._runPerform("getBesuStatistics", {});
     }
 
-    getPantheonTransactions(): Promise<PantheonTransaction[]> {
-        return this._runPerform("getPantheonTransactions", {});
+    getBesuTransactions(): Promise<BesuTransaction[]> {
+        return this._runPerform("getBesuTransactions", {});
     }
 
     // Clique
@@ -194,11 +194,11 @@ export class PantheonProvider extends PrivateJsonRpcProvider {
         return this._runPerform("reloadPermissionsFromFile", { });
     }
 
-    // Override the base perform method to add the pantheon API calls
+    // Override the base perform method to add the Besu API calls
     perform(method: string, params: any): Promise<any> {
         switch (method) {
 
-            // Pantheon administration
+            // administration
             case "addPeer":
                 return this.send("admin_addPeer", [
                     params.enodeUrl,
@@ -225,11 +225,11 @@ export class PantheonProvider extends PrivateJsonRpcProvider {
                 return this.send("rpc_modules", []);
 
             // Txpool
-            case "getPantheonStatistics":
-                return this.send("txpool_pantheonStatistics", []);
+            case "getBesuStatistics":
+                return this.send("txpool_besuStatistics", []);
 
-            case "getPantheonTransactions":
-                return this.send("txpool_pantheonTransactions", []);
+            case "getBesuTransactions":
+                return this.send("txpool_besuTransactions", []);
 
             // Clique
             case "cliqueDiscard":

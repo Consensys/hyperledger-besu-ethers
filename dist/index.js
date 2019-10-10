@@ -26,8 +26,8 @@ __export(require("ethers"));
 __export(require("./privateContract"));
 // Import the overridden transaction functions
 var privateProviders = __importStar(require("./privateProvider"));
-var pantheonProviders = __importStar(require("./pantheonProvider"));
-exports.providers = __assign({}, ethers.providers, privateProviders, pantheonProviders);
+var besuProviders = __importStar(require("./besuProvider"));
+exports.providers = __assign({}, ethers.providers, privateProviders, besuProviders);
 var privateTransactions = __importStar(require("./privateTransaction"));
 __export(require("./privateTransaction"));
 var bytes = __importStar(require("./bytes"));

@@ -2,13 +2,13 @@ import { providers } from '../index'
 
 jest.setTimeout(15000)
 
-const provider = new providers.PantheonProvider("http://localhost:20000");
+const provider = new providers.BesuProvider("http://localhost:20000");
 provider.on('debug', (info) => {
     console.log(`Sent "${info.action}" action to node 1 with request: ${JSON.stringify(info.request)}\nResponse: ${JSON.stringify(info.response)}`);
 })
-const providerNode2 = new providers.PantheonProvider("http://localhost:20002");
+const providerNode2 = new providers.BesuProvider("http://localhost:20002");
 
-describe('Pantheon Admin APIs', () => {
+describe('Admin APIs', () => {
 
     let node2enode: string
 
@@ -58,15 +58,15 @@ describe('Pantheon Admin APIs', () => {
         expect(result).toBeTruthy()
     })
 
-    test('Pantheon Statistics', async() => {
-        const stats = await provider.getPantheonStatistics()
+    test('Besu Statistics', async() => {
+        const stats = await provider.getBesuStatistics()
         expect(stats.maxSize).toEqual(4096)
         expect(stats.localCount).toEqual(0)
         expect(stats.remoteCount).toEqual(0)
     })
 
-    test('Pantheon Transaction', async() => {
-        const results = await provider.getPantheonTransactions()
+    test('Besu Transaction', async() => {
+        const results = await provider.getBesuTransactions()
         expect(results).toHaveLength(0)
         // expect(results.hash).toEqual(4096)
     })

@@ -19,7 +19,7 @@ describe('Ethers Regression', () => {
 
     const noEtherWallet = new Wallet('0x1000000000000000000000000000000000000000000000000000000000000000')
     // one of the three pre-funded dev accounts
-    // https://github.com/PegaSysEng/pantheon/blob/master/config/src/main/resources/dev.json
+    // https://github.com/hyperledger/besu/blob/master/config/src/main/resources/dev.json
     const etherWallet = new Wallet('0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63')
 
     describe('account', () => {

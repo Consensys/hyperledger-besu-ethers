@@ -1,1 +1,1 @@
-export declare const version = "pantheon-ethers/0.0.2";
+export declare const version = "hyperledger-besu-ethers/0.0.4";

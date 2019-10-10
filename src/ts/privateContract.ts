@@ -135,7 +135,7 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
             }
         });
 
-        // FIXME until Pantheon supports priv_getCode, we can't check if the contract has been mined
+        // FIXME until Besu supports priv_getCode, we can't check if the contract has been mined
         // So for now we'll just assume the contract has been mined
         tx.to = contract.addressPromise;
         // // If the contract was just deployed, wait until it is minded
@@ -176,7 +176,7 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
 
                 if (options.transaction) { return resolveProperties(tx); }
 
-                // FIXME remove once Pantheon 1.3 supports an equivalent of eth_call
+                // FIXME remove once Besu supports an equivalent of eth_call
                 if (!contract.signer) {
                     logger.throwError("can only call a private transaction by sending a signed transaction", Logger.errors.UNSUPPORTED_OPERATION, {
                         transaction: tx,
@@ -220,7 +220,7 @@ function runPrivateMethod(contract: PrivateContract, functionName: string, optio
                     logger.throwError("estimate require a provider or signer", Logger.errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" })
                 }
 
-                // FIXME restore once Pantheon 1.3 supports an equivalent of eth_estimateGas
+                // FIXME restore once Besu supports an equivalent of eth_estimateGas
                 logger.throwError("can not currently estimate a private transaction", Logger.errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" })
                 //return (contract.signer || contract.provider).estimateGas(tx);
             }

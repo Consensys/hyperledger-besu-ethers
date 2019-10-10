@@ -1,9 +1,9 @@
 // This example works against the Private Network with Privacy Enabled Quickstart Tutorial
-// https://docs.pantheon.pegasys.tech/en/latest/Privacy/Privacy-Quickstart/
+// https://besu.hyperledger.org/en/latest/Tutorials/Quickstarts/Privacy-Quickstart/
 // Node.js 8 or above is required as async/await is used.
 
-const providers = require('pantheon-ethers').providers
-const provider = new providers.PantheonProvider("http://localhost:20000");
+const providers = require('hyperledger-besu-ethers').providers
+const provider = new providers.BesuProvider("http://localhost:20000");
 
 async function example() {
 

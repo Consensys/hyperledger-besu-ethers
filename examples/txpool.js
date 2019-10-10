@@ -1,13 +1,13 @@
-const providers = require('pantheon-ethers').providers
-const provider = new providers.PantheonProvider("http://localhost:20000");
+const providers = require('hyperledger-besu-ethers').providers
+const provider = new providers.BesuProvider("http://localhost:20000");
 
 async function example() {
 
-  const stats = await provider.getPantheonStatistics()
+  const stats = await provider.getBesuStatistics()
   console.log(stats)
   // { maxSize: 4096, localCount: 0, remoteCount: 0 }
 
-  const txs = await provider.getPantheonTransactions()
+  const txs = await provider.getBesuTransactions()
   console.log(txs)
   /* [
     {

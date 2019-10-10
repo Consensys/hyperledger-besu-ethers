@@ -90,7 +90,7 @@ function runPrivateMethod(contract, functionName, options) {
                 logger.throwError("cannot override " + key, logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: key });
             }
         });
-        // FIXME until Pantheon supports priv_getCode, we can't check if the contract has been mined
+        // FIXME until Besu supports priv_getCode, we can't check if the contract has been mined
         // So for now we'll just assume the contract has been mined
         tx.to = contract.addressPromise;
         // // If the contract was just deployed, wait until it is minded
@@ -122,7 +122,7 @@ function runPrivateMethod(contract, functionName, options) {
                 if (options.transaction) {
                     return properties_1.resolveProperties(tx);
                 }
-                // FIXME remove once Pantheon 1.3 supports an equivalent of eth_call
+                // FIXME remove once Besu supports an equivalent of eth_call
                 if (!contract.signer) {
                     logger.throwError("can only call a private transaction by sending a signed transaction", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                         transaction: tx,
@@ -161,7 +161,7 @@ function runPrivateMethod(contract, functionName, options) {
                 if (!contract.provider && !contract.signer) {
                     logger.throwError("estimate require a provider or signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" });
                 }
-                // FIXME restore once Pantheon 1.3 supports an equivalent of eth_estimateGas
+                // FIXME restore once Besu supports an equivalent of eth_estimateGas
                 logger.throwError("can not currently estimate a private transaction", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "estimateGas" });
                 //return (contract.signer || contract.provider).estimateGas(tx);
             }

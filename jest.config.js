@@ -26,5 +26,6 @@ module.exports = {
       }
     }
   },
+  extraGlobals: ["Math"],
   testEnvironment: 'node'
 }

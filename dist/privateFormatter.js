@@ -47,7 +47,7 @@ var PrivateFormatter = /** @class */ (function (_super) {
         var superFormats = _super.prototype.getDefaultFormats.call(this);
         // Override default formats with EeaFormat
         return __assign({}, superFormats, { 
-            // Format of API response of eea_getTransactionReceipt
+            // Format of API response of priv_getTransactionReceipt
             // which is called in PrivateJsonRpcProvider.getPrivateTransactionReceipt
             privateReceipt: {
                 to: providers_1.Formatter.allowNull(this.address, null),

@@ -40,7 +40,7 @@ export class PrivateFormatter extends Formatter {
         return {
             ...superFormats,
 
-            // Format of API response of eea_getTransactionReceipt
+            // Format of API response of priv_getTransactionReceipt
             // which is called in PrivateJsonRpcProvider.getPrivateTransactionReceipt
             privateReceipt: {
                 to: Formatter.allowNull(this.address, null),

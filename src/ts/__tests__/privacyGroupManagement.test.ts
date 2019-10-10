@@ -164,17 +164,15 @@ describe('Privacy Group Management APIs', () => {
             test.each`
             reason | errorRegEx | name | description | members
             ${'members undefined'} | ${/Invalid params/} | ${'Test'} | ${'Test desc'} | ${undefined}
-            ${'members empty array'} | ${/Error creating privacy group/} | ${'Test'} | ${'Test desc'} | ${[]}
-            ${'invalid node in members'} | ${/Error creating privacy group/} | ${'Test'} | ${'Test desc'} | ${[node2, invalidNode]}
-            ${'privateFrom not in members'} | ${/Error creating privacy group/} | ${'Second group'} | ${'Second group with the same members'} | ${[node2, node3]}
-            ${'only self in group'} | ${/Error creating privacy group/} | ${'Self'} | ${'Only self in group'} | ${[node3]}
+            ${'members empty array'} | ${/CreatePrivacyGroupShouldIncludeSelf/} | ${'Test'} | ${'Test desc'} | ${[]}
+            ${'invalid node in members'} | ${/EnclaveDecodePublicKey/} | ${'Test'} | ${'Test desc'} | ${[node1, invalidNode]}
+            ${'privateFrom not in members'} | ${/CreatePrivacyGroupShouldIncludeSelf/} | ${'Second group'} | ${'Second group with the same members'} | ${[node2, node3]}
             `('$reason to fail with $errorRegEx when name $name, description $description and members $members',
 
                 async ({privateFrom, errorRegEx, name, description, members}) => {
-
+                    expect.assertions(2)
                     try {
                         await providerNode1.createPrivacyGroup(members, name, description)
-                        expect(false).toBeTruthy()
                     }
                     catch (err) {
                         expect(err).toBeInstanceOf(Error)

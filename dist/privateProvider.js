@@ -287,9 +287,9 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
             });
         });
     };
-    PrivateJsonRpcProvider.prototype.createPrivacyGroup = function (members, name, description) {
+    PrivateJsonRpcProvider.prototype.createPrivacyGroup = function (addresses, name, description) {
         return this._runPerform("createPrivacyGroup", {
-            members: function () { return Promise.resolve(members); },
+            addresses: function () { return Promise.resolve(addresses); },
             name: function () { return Promise.resolve(name); },
             description: function () { return Promise.resolve(description); },
         });
@@ -336,16 +336,12 @@ var PrivateJsonRpcProvider = /** @class */ (function (_super) {
             case "getPrivateTransactionCount":
                 return this.send("priv_getTransactionCount", [getLowerCase(params.address), params.privacyGroupId]);
             case "getPrivateTransactionReceipt":
-                return this.send("eea_getTransactionReceipt", [params.transactionHash]);
+                return this.send("priv_getTransactionReceipt", [params.transactionHash]);
             case "getPrivateTransaction":
                 return this.send("priv_getPrivateTransaction", [params.transactionHash]);
             // Privacy group management
             case "createPrivacyGroup":
-                return this.send("priv_createPrivacyGroup", [
-                    params.members,
-                    params.name,
-                    params.description
-                ]);
+                return this.send("priv_createPrivacyGroup", [params]);
             case "deletePrivacyGroup":
                 return this.send("priv_deletePrivacyGroup", [params.privacyGroupId]);
             case "findPrivacyGroup":

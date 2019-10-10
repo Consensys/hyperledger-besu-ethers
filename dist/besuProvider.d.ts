@@ -21,27 +21,27 @@ export interface PeerInfo {
     port: string;
     id: string;
 }
-export interface PantheonStatistics {
+export interface BesuStatistics {
     maxSize: number;
     localCount: number;
     remoteCount: number;
 }
-export interface PantheonTransaction {
+export interface BesuTransaction {
     hash: string;
     isReceivedFromLocalSource: boolean;
     addedToPoolAt: string;
 }
 export declare type BlockParameter = number | 'earliest' | 'latest' | 'pending';
 export declare type PermissioningResult = 'Success' | 'error';
-export declare class PantheonProvider extends PrivateJsonRpcProvider {
+export declare class BesuProvider extends PrivateJsonRpcProvider {
     addPeer(enodeUrl: string | Promise<string>): Promise<boolean>;
     changeLogLevel(level: string | Promise<string>): Promise<boolean>;
     getNodeInfo(): Promise<NodeInfo>;
     getPeers(): Promise<PeerInfo[]>;
     removePeer(enodeUrl: string | Promise<string>): Promise<PeerInfo[]>;
     getModuleVersions(): Promise<object>;
-    getPantheonStatistics(): Promise<PantheonStatistics>;
-    getPantheonTransactions(): Promise<PantheonTransaction[]>;
+    getBesuStatistics(): Promise<BesuStatistics>;
+    getBesuTransactions(): Promise<BesuTransaction[]>;
     cliqueDiscard(signerAddress: string): Promise<boolean>;
     cliqueGetSigners(blockParameter: BlockParameter): Promise<string[]>;
     cliqueGetSignersAtHash(hash: string): Promise<string[]>;

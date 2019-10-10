@@ -1,13 +1,13 @@
 {
-  "name": "pantheon-ethers-examples",
+  "name": "hyperledger-besu-ethers-examples",
   "version": "0.0.1",
-  "description": "Examples for using Pantheon Ethers.js",
+  "description": "Examples for using Hyperledger Besu Ethers.js",
   "main": "index.js",
   "scripts": {
     "privacyGroup": "node privacyGroupManagement.js"
   },
   "dependencies": {
-    "pantheon-ethers": "^0.0.1"
+    "hyperledger-besu-ethers": "../hyperledger-besu-ethers-0.0.4.tgz"
   },
   "author": "Nick Addison",
   "license": "MIT"

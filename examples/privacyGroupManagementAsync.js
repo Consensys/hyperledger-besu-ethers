@@ -1,8 +1,8 @@
 // This example works against the Private Network with Privacy Enabled Quickstart Tutorial
-// https://docs.pantheon.pegasys.tech/en/latest/Privacy/Privacy-Quickstart/
+// https://besu.hyperledger.org/en/latest/Tutorials/Quickstarts/Privacy-Quickstart/
 // Node.js 8 or above is required as async/await is used.
 
-const providers = require('pantheon-ethers').providers
+const providers = require('hyperledger-besu-ethers').providers
 // Create a Pantheon provider which will have the privacy group functions
 const provider = new providers.PrivateJsonRpcProvider("http://localhost:20000")
 
