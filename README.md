@@ -497,7 +497,7 @@ To bash into a running docker-compose service. eg node1
 docker-compose exec node1 sh
 ```
 
-To pull the latest Hyperledger Besu and Orion docker images from the `develop` branch and build a `quickstart/pantheon:develop-privacy` image
+To pull the latest Hyperledger Besu and Orion docker images from the `develop` branch and build a `quickstart/besu:develop-privacy` image
 ```bash
 cd privacy
 docker image pull hyperledger/besu:develop
