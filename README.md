@@ -40,9 +40,9 @@ Besu's new privacy features are not ready for production use. See [Privacy Group
 
 # Install
 
-To install as a node module
+Until hyperledger-besu-ethers is published on npm using the PegaSysEng account, installs will have to be done from this git repository.
 ```bash
-npm install --production hyperledger-besu-ethers
+npm install PegaSysEng/hyperledger-besu-ethers
 ```
 
 # Usage - Private Transaction
@@ -570,7 +570,7 @@ npm run test
 npm publish
 ```
 
-One way to test a new package before publishing it is to run `npm pack` and then update the examples to point to the created package file. eg `hyperledger-besu-ethers-0.0.1.tgz`. In [examples/package.json](./examples/package.json), change the `hyperledger-besu-ethers` dependency to point to the created package file. eg `"hyperledger-besu-ethers": "../hyperledger-besu-ethers-0.0.1.tgz"`.
+One way to test a new package before publishing it is to run `npm pack` and then update the examples to point to the created package file. eg `hyperledger-besu-ethers-0.0.4.tgz`. In [examples/package.json](./examples/package.json), change the `hyperledger-besu-ethers` dependency to point to the created package file. eg `"hyperledger-besu-ethers": "../hyperledger-besu-ethers-0.0.4.tgz"`.
 You can then run an example.
 ```bash
 npm pack
